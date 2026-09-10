@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:,">
+  <title>板材孔位排版预览</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #172027;
+      --panel: #222c34;
+      --line: #f4f7fb;
+      --dim: #00ff3c;
+      --muted: #9aa7b2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #11181e;
+      color: #edf3f7;
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+    header {
+      display: flex;
+      gap: 12px;
+      align-items: end;
+      flex-wrap: wrap;
+      padding: 16px 18px;
+      background: #0f151a;
+      border-bottom: 1px solid #2f3a43;
+    }
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    input, select, button {
+      height: 36px;
+      border: 1px solid #3f4c56;
+      border-radius: 6px;
+      background: #1b242b;
+      color: #edf3f7;
+      padding: 0 10px;
+      font: inherit;
+    }
+    input { width: 96px; }
+    button {
+      cursor: pointer;
+      background: #0d6efd;
+      border-color: #2e83ff;
+      min-width: 92px;
+    }
+    main {
+      min-width: 0;
+      overflow: auto;
+      padding: 18px;
+    }
+    .stage {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      background: var(--bg);
+      border: 1px solid #2f3a43;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      min-height: 560px;
+    }
+    .plate { fill: none; stroke: var(--line); stroke-width: 1.5; }
+    .hole { fill: none; stroke: var(--line); stroke-width: 1.2; }
+    .dim { fill: none; stroke: var(--dim); stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+    .dimText { fill: var(--dim); font: 24px Consolas, Menlo, monospace; }
+    .smallText { fill: var(--dim); font: 22px Consolas, Menlo, monospace; }
+  
+
+    /* Codex / ChatGPT unified tool theme. Keep one accent color only. */
+    :root {
+      color-scheme: light !important;
+      --bg: #ffffff !important;
+      --panel: #ffffff !important;
+      --surface: #f7f7f8 !important;
+      --surface-strong: #ececf1 !important;
+      --text: #1a1c1f !important;
+      --ink: #1a1c1f !important;
+      --muted: #6b7280 !important;
+      --line: #e5e5e5 !important;
+      --accent: #339cff !important;
+      --accent-soft: rgba(51, 156, 255, 0.12) !important;
+      --soft: rgba(51, 156, 255, 0.12) !important;
+      --gold: #339cff !important;
+      --warn: #339cff !important;
+      --aux: #339cff !important;
+      --shadow: 0 18px 44px rgba(0, 0, 0, 0.06) !important;
+      --system-gray: #f7f7f8 !important;
+      --system-gray-2: #ececf1 !important;
+    }
+    html,
+    body {
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif !important;
+      letter-spacing: 0 !important;
+      -webkit-font-smoothing: antialiased;
+    }
+    main,
+    .page,
+    .app,
+    .workspace,
+    .container {
+      background: #ffffff !important;
+    }
+    h1, h2, h3, h4,
+    .section-title,
+    .field-label,
+    label,
+    b,
+    strong {
+      color: #1a1c1f !important;
+      letter-spacing: 0 !important;
+    }
+    .subtitle,
+    .muted,
+    small,
+    .hint,
+    .desc {
+      color: #6b7280 !important;
+    }
+    .panel,
+    .panel-inner,
+    .card,
+    .product-card,
+    .payment-panel,
+    .freight-panel,
+    .order-panel,
+    .metric,
+    .total-field,
+    .notice,
+    .payment-deduction,
+    .freight-question,
+    .quote-card,
+    .result-panel,
+    .search-card,
+    .preview-card,
+    .input-card,
+    .output-card,
+    .tool-card,
+    .summary-card,
+    .concrete-extra-options,
+    .concrete-match-tools,
+    .ningbo-match-tools,
+    .unit-price-field,
+    .cement-label,
+    .readonly-pill {
+      background: #ffffff !important;
+      border-color: #e5e5e5 !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+    }
+    .panel,
+    .card,
+    .product-card,
+    .payment-panel,
+    .freight-panel,
+    .order-panel,
+    .result-panel,
+    .search-card,
+    .preview-card,
+    .input-card,
+    .output-card,
+    .tool-card,
+    .summary-card {
+      border-radius: 18px !important;
+    }
+    input,
+    select,
+    textarea {
+      background: #ffffff !important;
+      border: 1px solid #d9d9e3 !important;
+      border-radius: 14px !important;
+      color: #1a1c1f !important;
+      font-family: inherit !important;
+      box-shadow: none !important;
+    }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #339cff !important;
+      box-shadow: 0 0 0 4px rgba(51, 156, 255, 0.16) !important;
+      outline: none !important;
+    }
+    input::placeholder,
+    textarea::placeholder {
+      color: #9ca3af !important;
+    }
+    button,
+    .button,
+    .btn,
+    .tool-button,
+    .action-button,
+    .copy-button {
+      border-radius: 14px !important;
+      border: 1px solid #d9d9e3 !important;
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+      font-family: inherit !important;
+      font-weight: 650 !important;
+    }
+    button.primary,
+    button:not(.secondary):not(.ghost),
+    #copyBtn,
+    #copyFreightQuestionBtn,
+    .result-actions button,
+    .freight-actions button,
+    .actions button:first-child {
+      background: #1a1c1f !important;
+      border-color: #1a1c1f !important;
+      color: #ffffff !important;
+    }
+    .suggestions,
+    .ningbo-suggestions,
+    .search-suggestions,
+    .autocomplete,
+    .dropdown,
+    .dropdown-menu {
+      background: #ffffff !important;
+      border: 1px solid #d9d9e3 !important;
+      color: #1a1c1f !important;
+      box-shadow: 0 16px 38px rgba(0, 0, 0, 0.12) !important;
+    }
+    .product,
+    button.product,
+    button.product:not(.secondary):not(.ghost),
+    .suggestion,
+    .suggestion:not(.secondary):not(.ghost),
+    button.suggestion,
+    button.suggestion:not(.secondary):not(.ghost),
+    .suggestion-item,
+    .suggestion-item:not(.secondary):not(.ghost),
+    button.suggestion-item,
+    button.suggestion-item:not(.secondary):not(.ghost),
+    .ningbo-suggestion-item,
+    .ningbo-suggestion-item:not(.secondary):not(.ghost),
+    button.ningbo-suggestion-item,
+    button.ningbo-suggestion-item:not(.secondary):not(.ghost),
+    .search-result,
+    .search-result:not(.secondary):not(.ghost),
+    button.search-result,
+    button.search-result:not(.secondary):not(.ghost),
+    .result-item,
+    .result-item:not(.secondary):not(.ghost),
+    button.result-item,
+    button.result-item:not(.secondary):not(.ghost) {
+      background: #ffffff !important;
+      border: 1px solid #e5e5e5 !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+      text-align: left !important;
+    }
+    .product.active,
+    button.product.active,
+    button.product.active:not(.secondary):not(.ghost) {
+      background: rgba(51, 156, 255, 0.10) !important;
+      border-color: rgba(51, 156, 255, 0.72) !important;
+      color: #1a1c1f !important;
+      box-shadow: 0 0 0 4px rgba(51, 156, 255, 0.14) !important;
+    }
+    .product-name,
+    .product .product-name,
+    button.product .product-name {
+      color: #1a1c1f !important;
+    }
+    .product-meta,
+    .product .product-meta,
+    button.product .product-meta,
+    .product-meta span,
+    .product .product-meta span,
+    button.product .product-meta span {
+      color: #6b7280 !important;
+    }
+    .suggestion strong,
+    .suggestion-item strong,
+    .ningbo-suggestion-item strong,
+    .search-result strong,
+    .result-item strong {
+      color: #1a1c1f !important;
+    }
+    .suggestion span,
+    .suggestion-item span,
+    .ningbo-suggestion-item span,
+    .search-result span,
+    .result-item span {
+      color: #6b7280 !important;
+    }
+    .product:hover,
+    .product:focus,
+    .suggestion:hover,
+    .suggestion:focus,
+    .suggestion-item:hover,
+    .suggestion-item:focus,
+    .ningbo-suggestion-item:hover,
+    .ningbo-suggestion-item:focus,
+    .search-result:hover,
+    .search-result:focus,
+    .result-item:hover,
+    .result-item:focus {
+      background: rgba(51, 156, 255, 0.10) !important;
+      border-color: rgba(51, 156, 255, 0.55) !important;
+      color: #1a1c1f !important;
+    }
+    button.secondary,
+    .secondary,
+    .ghost {
+      background: #f7f7f8 !important;
+      border-color: #e5e5e5 !important;
+      color: #1a1c1f !important;
+    }
+    .option span,
+    .checkline,
+    .pill,
+    .chip,
+    .tag,
+    .preset,
+    .tab,
+    .segment,
+    .quick-chip {
+      background: #ffffff !important;
+      border-color: #d9d9e3 !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+    }
+    .option input:checked + span,
+    .checkline:has(input:checked),
+    .option.default-option input:checked + span,
+    .option.default-option span,
+    .active,
+    .selected,
+    .is-active,
+    .chip.active,
+    .tab.active,
+    .segment.active {
+      background: rgba(51, 156, 255, 0.12) !important;
+      border-color: #339cff !important;
+      color: #1a1c1f !important;
+      box-shadow: inset 0 0 0 1px rgba(51, 156, 255, 0.22) !important;
+    }
+    .notice,
+    .payment-deduction,
+    .total-field {
+      background: #f7f7f8 !important;
+      border-color: #e5e5e5 !important;
+      color: #1a1c1f !important;
+    }
+    .total-field {
+      background: rgba(51, 156, 255, 0.18) !important;
+      border: 2px solid #339cff !important;
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.58),
+        0 10px 30px rgba(51, 156, 255, 0.16) !important;
+    }
+    .total-field .field-label {
+      color: #1a1c1f !important;
+      font-weight: 850 !important;
+      font-size: 17px !important;
+    }
+    .total-field input {
+      background: rgba(255, 255, 255, 0.94) !important;
+      border: 2px solid rgba(51, 156, 255, 0.72) !important;
+      color: #1a1c1f !important;
+      font-size: 28px !important;
+      font-weight: 900 !important;
+      box-shadow: 0 0 0 4px rgba(51, 156, 255, 0.08) !important;
+    }
+    .result-box,
+    .freight-question-box,
+    pre,
+    code,
+    .code,
+    .output,
+    .preview-output {
+      background: #1a1c1f !important;
+      color: #ffffff !important;
+      border-color: #1a1c1f !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
+    .freight-question-box {
+      background: #f7f7f8 !important;
+      color: #1a1c1f !important;
+      border-color: #e5e5e5 !important;
+      font-family: inherit !important;
+    }
+    .segmented {
+      background: #f7f7f8 !important;
+      border: 0 !important;
+      border-radius: 15px !important;
+      padding: 3px !important;
+      gap: 3px !important;
+      overflow: visible !important;
+      box-shadow: none !important;
+    }
+    .segmented button {
+      min-height: 38px !important;
+      border: 0 !important;
+      border-radius: 12px !important;
+      background: transparent !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+      font-weight: 650 !important;
+    }
+    .segmented button.active {
+      background: #1a1c1f !important;
+      color: #ffffff !important;
+      box-shadow: none !important;
+    }
+    .segmented.three {
+      gap: 3px !important;
+    }
+    .toolbar button:not(.primary) {
+      background: #f7f7f8 !important;
+      color: #1a1c1f !important;
+      border-color: #e5e5e5 !important;
+    }
+    .concrete-fee-list {
+      display: grid !important;
+      gap: 14px !important;
+      margin-bottom: 16px !important;
+    }
+    .concrete-fee-row {
+      display: grid !important;
+      grid-template-columns: minmax(280px, 1fr) minmax(180px, 0.6fr) 104px !important;
+      gap: 14px !important;
+      align-items: end !important;
+    }
+    .concrete-fee-row > div {
+      min-width: 0 !important;
+    }
+    .concrete-promo-delete {
+      min-height: 46px !important;
+      width: 104px !important;
+    }
+    #addConcretePromoBtn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      min-height: 46px !important;
+      min-width: 150px !important;
+      margin-top: 2px !important;
+    }
+    #addConcretePromoBtn + .hint {
+      display: block !important;
+      margin-top: 14px !important;
+      clear: both !important;
+    }
+    @media (max-width: 760px) {
+      .concrete-fee-row {
+        grid-template-columns: 1fr !important;
+      }
+      .concrete-promo-delete,
+      #addConcretePromoBtn {
+        width: 100% !important;
+      }
+    }
+    header {
+      background: transparent !important;
+      border-color: transparent !important;
+      color: #1a1c1f !important;
+    }
+    header h1,
+    .topbar h1,
+    main > h1 {
+      font-size: clamp(30px, 3.5vw, 42px) !important;
+      line-height: 1.08 !important;
+      font-weight: 800 !important;
+      color: #1a1c1f !important;
+    }
+    header .hint,
+    header p,
+    header small,
+    .topbar .subtitle {
+      color: #6b7280 !important;
+    }
+    @media (max-width: 760px) {
+      header h1,
+      .topbar h1,
+      main > h1 {
+        font-size: 26px !important;
+      }
+    }
+    header input,
+    header select {
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      border-color: #d9d9e3 !important;
+    }
+    .stage {
+      background: #f7f7f8 !important;
+      border-color: #d9d9e3 !important;
+    }
+    .plate,
+    .hole {
+      stroke: #1a1c1f !important;
+    }
+    .dim {
+      stroke: #1a1c1f !important;
+    }
+    .dimText,
+    .smallText {
+      fill: #1a1c1f !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
+    svg,
+    canvas {
+      color: #1a1c1f !important;
+    }
+    * {
+      text-shadow: none !important;
+      letter-spacing: 0 !important;
+    }
+
+    header {
+      background: #1a1c1f !important;
+      border-color: #1a1c1f !important;
+      color: #ffffff !important;
+    }
+    header label,
+    header .field-label,
+    header small,
+    header .hint {
+      color: rgba(255, 255, 255, 0.74) !important;
+    }
+    header input,
+    header select {
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      border-color: #d9d9e3 !important;
+    }
+    .stage {
+      background: #f7f7f8 !important;
+      border-color: #d9d9e3 !important;
+    }
+    .plate,
+    .hole {
+      stroke: #1a1c1f !important;
+    }
+    .dim {
+      stroke: #1a1c1f !important;
+    }
+    .dimText,
+    .smallText {
+      fill: #1a1c1f !important;
+      stroke: #f7f7f8 !important;
+      stroke-width: 5px !important;
+      paint-order: stroke fill !important;
+      dominant-baseline: middle !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+      font-weight: 500 !important;
+    }
+    svg,
+    canvas {
+      color: #1a1c1f !important;
+    }
+
+</style>
+  <link rel="stylesheet" href="apple-ui.css?v=20260908-2">
+</head>
+<body class="apple-ui" data-page="hole-1200">
+  <div class="tool-heading"><h1>孔心排版</h1><p class="subtitle">设置板材与孔位参数，预览尺寸标注并导出图纸。</p></div>
+  <header>
+    <label>板宽 mm <input id="widthMm" type="number" min="1" value="1200"></label>
+    <label>板高 mm <input id="heightMm" type="number" min="1" value="600"></label>
+    <label>孔数 <input id="holes" type="number" min="1" max="80" value="6"></label>
+    <label>孔径 mm <input id="diameter" type="number" min="1" value="40"></label>
+    <label>列数 <input id="columns" type="number" min="1" max="20" value="3"></label>
+    <label>横向边距 mm <input id="marginX" type="number" min="0" value="200"></label>
+    <label>纵向边距 mm <input id="marginY" type="number" min="0" value="150"></label>
+    <button id="downloadSvg">导出 SVG</button>
+  </header>
+  <main>
+    <div class="stage">
+      <svg id="svg" viewBox="0 0 1100 700" role="img" aria-label="板材孔位排版预览"></svg>
+    </div>
+  </main>
+
+  <script>
+    const svg = document.querySelector('#svg');
+    const fields = ['widthMm', 'heightMm', 'holes', 'diameter', 'columns', 'marginX', 'marginY'];
+    const ns = 'http://www.w3.org/2000/svg';
+
+    function el(name, attrs = {}, text = '') {
+      const node = document.createElementNS(ns, name);
+      Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
+      if (text) node.textContent = text;
+      return node;
+    }
+
+    function line(parent, x1, y1, x2, y2, className = 'dim') {
+      parent.append(el('line', { x1, y1, x2, y2, class: className }));
+    }
+
+    function text(parent, x, y, value, className = 'dimText', rotate = null, options = {}) {
+      const attrs = {
+        x,
+        y,
+        class: className,
+        'text-anchor': options.anchor || 'start',
+        'dominant-baseline': options.baseline || 'middle',
+      };
+      if (rotate !== null) attrs.transform = `rotate(${rotate} ${x} ${y})`;
+      parent.append(el('text', attrs, value));
+    }
+
+    function getValue(id) {
+      return Number(document.querySelector(`#${id}`).value);
+    }
+
+    function draw() {
+      svg.replaceChildren();
+      const widthMm = getValue('widthMm');
+      const heightMm = getValue('heightMm');
+      const holes = getValue('holes');
+      const diameter = getValue('diameter');
+      const requestedColumns = getValue('columns');
+      const columns = Math.min(requestedColumns, holes);
+      const rows = Math.ceil(holes / columns);
+      const marginX = getValue('marginX');
+      const marginY = getValue('marginY');
+      let validationError = '';
+      if (![widthMm, heightMm, diameter].every(n => Number.isFinite(n) && n > 0)
+        || ![holes, requestedColumns].every(n => Number.isSafeInteger(n) && n > 0)
+        || ![marginX, marginY].every(n => Number.isFinite(n) && n >= 0)) {
+        validationError = '请填写有效尺寸、孔径和正整数孔数；边距不能为负数。';
+      } else if (diameter > Math.min(widthMm, heightMm)
+        || marginX > widthMm / 2 || marginY > heightMm / 2
+        || (columns > 1 && (marginX < diameter / 2 || (widthMm - 2 * marginX) / (columns - 1) < diameter))
+        || (rows > 1 && (marginY < diameter / 2 || (heightMm - 2 * marginY) / (rows - 1) < diameter))) {
+        validationError = '孔位超出板材或相互重叠，请调整孔数、孔径和边距。';
+      }
+      document.querySelector('#downloadSvg').disabled = Boolean(validationError);
+      if (validationError) {
+        svg.append(el('text', { x: 30, y: 70, fill: '#b42318', 'font-size': 20 }, validationError));
+        return;
+      }
+
+      const canvasW = 1100;
+      const canvasH = 700;
+      const left = 170;
+      const top = 170;
+      const maxW = 800;
+      const maxH = 410;
+      const scale = Math.min(maxW / widthMm, maxH / heightMm);
+      const plateW = widthMm * scale;
+      const plateH = heightMm * scale;
+      const g = el('g', { transform: `translate(${left} ${top})` });
+      svg.append(g);
+
+      g.append(el('rect', { x: 0, y: 0, width: plateW, height: plateH, class: 'plate' }));
+
+      const usableW = Math.max(0, widthMm - 2 * marginX);
+      const usableH = Math.max(0, heightMm - 2 * marginY);
+      const gapX = columns > 1 ? usableW / (columns - 1) : 0;
+      const gapY = rows > 1 ? usableH / (rows - 1) : 0;
+      const holeR = (diameter * scale) / 2;
+      const points = [];
+
+      for (let i = 0; i < holes; i += 1) {
+        const col = i % columns;
+        const row = Math.floor(i / columns);
+        const rowCount = Math.min(columns, holes - row * columns);
+        const offsetCols = rowCount < columns ? (columns - rowCount) / 2 : 0;
+        const xMm = columns > 1 ? marginX + (col + offsetCols) * gapX : widthMm / 2;
+        const yMm = rows > 1 ? marginY + row * gapY : heightMm / 2;
+        points.push([xMm, yMm]);
+        g.append(el('circle', {
+          cx: xMm * scale,
+          cy: yMm * scale,
+          r: holeR,
+          class: 'hole',
+        }));
+      }
+
+      if (points.length > 0) {
+        const [xMm, yMm] = points[0];
+        const x = xMm * scale;
+        const y = yMm * scale;
+        line(g, x + holeR * 0.9, y + holeR * 0.9, x + 34, y + 62);
+        text(g, x + 58, y + 67, `Ø${diameter}`, 'smallText');
+      }
+
+      line(g, 0, -130, plateW, -130);
+      line(g, 0, -130, 0, -25);
+      line(g, plateW, -130, plateW, -25);
+      text(g, plateW / 2, -152, widthMm, 'dimText', null, { anchor: 'middle' });
+
+      const chainY = -52;
+      const xs = [0, ...[...new Set(points.map(([x]) => x))].sort((a, b) => a - b), widthMm];
+      for (let i = 0; i < xs.length - 1; i += 1) {
+        const x1 = xs[i] * scale;
+        const x2 = xs[i + 1] * scale;
+        line(g, x1, chainY, x2, chainY);
+        line(g, x2, chainY - 18, x2, chainY);
+        const label = Math.round(xs[i + 1] - xs[i]);
+        text(g, (x1 + x2) / 2, chainY + 28, label, 'dimText', null, { anchor: 'middle' });
+      }
+
+      line(g, -125, 0, -125, plateH);
+      line(g, -125, 0, 0, 0);
+      line(g, -125, plateH, 0, plateH);
+      text(g, -150, plateH / 2, heightMm, 'dimText', -90, { anchor: 'middle' });
+
+      const ys = [0, ...[...new Set(points.map(([, y]) => y))].sort((a, b) => a - b), heightMm];
+      for (let i = 0; i < ys.length - 1; i += 1) {
+        const y1 = ys[i] * scale;
+        const y2 = ys[i + 1] * scale;
+        line(g, -38, y1, -38, y2);
+        line(g, -55, y2, -38, y2);
+        const label = Math.round(ys[i + 1] - ys[i]);
+        text(g, -72, (y1 + y2) / 2, label, 'dimText', -90, { anchor: 'middle' });
+      }
+    }
+
+    fields.forEach((id) => document.querySelector(`#${id}`).addEventListener('input', draw));
+    document.querySelector('#downloadSvg').addEventListener('click', () => {
+      const blob = new Blob([svg.outerHTML], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'board-layout.svg';
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+    function preventNumberInputWheelChange() {
+      document.addEventListener('wheel', (event) => {
+        const active = document.activeElement;
+        if (!(active instanceof HTMLInputElement) || active.type !== 'number') return;
+        active.blur();
+        event.preventDefault();
+      }, { passive: false, capture: true });
+    }
+
+    preventNumberInputWheelChange();
+    draw();
+  </script>
+</body>
+</html>

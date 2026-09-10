@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:,">
+  <title>整板排版核算器</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      background: #f5f7f8;
+      color: #111;
+    }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 24px; }
+    .header { margin-bottom: 18px; display:flex; justify-content:space-between; gap:16px; align-items:flex-start; }
+    h1 { font-size: 28px; margin: 0 0 8px; }
+    .sub { color: #555; line-height: 1.7; font-size: 14px; }
+    .grid { display: grid; grid-template-columns: 380px 1fr; gap: 18px; align-items: start; }
+    .card {
+      background: #fff;
+      border: 1px solid #e6e8eb;
+      border-radius: 16px;
+      box-shadow: 0 6px 24px rgba(0,0,0,.05);
+      padding: 18px;
+    }
+    label { display: block; font-weight: 700; margin: 14px 0 8px; }
+    input, textarea, select, button {
+      width: 100%;
+      font: inherit;
+      border: 1px solid #d7dbe0;
+      border-radius: 12px;
+      padding: 11px 12px;
+      background: #fff;
+    }
+    textarea { min-height: 190px; resize: vertical; line-height: 1.6; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    button {
+      margin-top: 16px;
+      border: none;
+      background: #111;
+      color: #fff;
+      font-weight: 800;
+      cursor: pointer;
+      padding: 13px 14px;
+    }
+    button:hover { opacity: .9; }
+    .btnRow { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .secondary { background:#eef2f4; color:#111; border:1px solid #dde3e7; }
+    .result {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px,1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .metric { background: #f8fafb; border: 1px solid #edf0f2; border-radius: 14px; padding: 14px; }
+    .metric .num { font-size: 26px; font-weight: 900; margin-top: 4px; }
+    .metric .name { color: #667; font-size: 13px; }
+    .warn { color: #9a5b00; background: #fff7e6; border: 1px solid #ffe0a3; padding: 12px; border-radius: 12px; line-height: 1.7; margin-bottom: 16px; }
+    .boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+    .boardBox { background: #fff; border: 1px solid #e5e8eb; border-radius: 16px; padding: 14px; page-break-inside: avoid; }
+    .boardTitle { display:flex; justify-content:space-between; gap: 8px; font-weight: 800; margin-bottom: 10px; }
+    svg { width: 100%; height: auto; background: #fbfcfd; border: 1px solid #d9dee3; border-radius: 10px; }
+    .list { margin-top: 10px; font-size: 13px; color: #333; line-height: 1.8; }
+    .small { font-size: 12px; color: #666; line-height: 1.7; }
+    .error { color: #b00020; background:#fff1f3; border:1px solid #ffd1d8; padding:12px; border-radius:12px; margin-top:12px; display:none; }
+    .table { width:100%; border-collapse:collapse; margin:10px 0 16px; font-size:13px; }
+    .table th, .table td { border:1px solid #e5e8eb; padding:8px; text-align:left; }
+    .table th { background:#f6f8f9; }
+    @media (max-width: 900px) {
+      .header { display:block; }
+      .grid { grid-template-columns: 1fr; }
+      .result { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media print {
+      body { background:#fff; }
+      .inputCard, .printHide { display:none !important; }
+      .wrap { max-width:none; padding:0; }
+      .card { box-shadow:none; border:none; padding:0; }
+      .boards { grid-template-columns: repeat(2, 1fr); }
+    }
+  
+
+    /* Codex / ChatGPT unified tool theme. Keep one accent color only. */
+    :root {
+      color-scheme: light !important;
+      --bg: #ffffff !important;
+      --panel: #ffffff !important;
+      --surface: #f7f7f8 !important;
+      --surface-strong: #ececf1 !important;
+      --text: #1a1c1f !important;
+      --ink: #1a1c1f !important;
+      --muted: #6b7280 !important;
+      --line: #e5e5e5 !important;
+      --accent: #339cff !important;
+      --accent-soft: rgba(51, 156, 255, 0.12) !important;
+      --soft: rgba(51, 156, 255, 0.12) !important;
+      --gold: #339cff !important;
+      --warn: #339cff !important;
+      --aux: #339cff !important;
+      --shadow: 0 18px 44px rgba(0, 0, 0, 0.06) !important;
+      --system-gray: #f7f7f8 !important;
+      --system-gray-2: #ececf1 !important;
+      --tool-control-height: 44px;
+    }
+    html,
+    body {
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif !important;
+      letter-spacing: 0 !important;
+      -webkit-font-smoothing: antialiased;
+    }
+    main,
+    .page,
+    .app,
+    .workspace,
+    .container {
+      background: #ffffff !important;
+    }
+    h1, h2, h3, h4,
+    .section-title,
+    .field-label,
+    label,
+    b,
+    strong {
+      color: #1a1c1f !important;
+      letter-spacing: 0 !important;
+    }
+    .subtitle,
+    .muted,
+    small,
+    .hint,
+    .desc {
+      color: #6b7280 !important;
+    }
+    .panel,
+    .panel-inner,
+    .card,
+    .product-card,
+    .payment-panel,
+    .freight-panel,
+    .order-panel,
+    .metric,
+    .total-field,
+    .notice,
+    .payment-deduction,
+    .freight-question,
+    .quote-card,
+    .result-panel,
+    .search-card,
+    .preview-card,
+    .input-card,
+    .output-card,
+    .tool-card,
+    .summary-card,
+    .concrete-extra-options,
+    .concrete-match-tools,
+    .ningbo-match-tools,
+    .unit-price-field,
+    .cement-label,
+    .readonly-pill {
+      background: #ffffff !important;
+      border-color: #e5e5e5 !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+    }
+    .panel,
+    .card,
+    .product-card,
+    .payment-panel,
+    .freight-panel,
+    .order-panel,
+    .result-panel,
+    .search-card,
+    .preview-card,
+    .input-card,
+    .output-card,
+    .tool-card,
+    .summary-card {
+      border-radius: 18px !important;
+    }
+    input,
+    select,
+    textarea {
+      background: #ffffff !important;
+      border: 1px solid #d9d9e3 !important;
+      border-radius: 14px !important;
+      color: #1a1c1f !important;
+      font-family: inherit !important;
+      box-shadow: none !important;
+    }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #339cff !important;
+      box-shadow: 0 0 0 4px rgba(51, 156, 255, 0.16) !important;
+      outline: none !important;
+    }
+    input::placeholder,
+    textarea::placeholder {
+      color: #9ca3af !important;
+    }
+    button,
+    .button,
+    .btn,
+    .tool-button,
+    .action-button,
+    .copy-button {
+      border-radius: 14px !important;
+      border: 1px solid #d9d9e3 !important;
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+      font-family: inherit !important;
+      font-weight: 650 !important;
+    }
+    button.primary,
+    button:not(.secondary):not(.ghost),
+    #copyBtn,
+    #copyFreightQuestionBtn,
+    .result-actions button,
+    .freight-actions button,
+    .actions button:first-child {
+      background: #1a1c1f !important;
+      border-color: #1a1c1f !important;
+      color: #ffffff !important;
+    }
+    .suggestions,
+    .ningbo-suggestions,
+    .search-suggestions,
+    .autocomplete,
+    .dropdown,
+    .dropdown-menu {
+      background: #ffffff !important;
+      border: 1px solid #d9d9e3 !important;
+      color: #1a1c1f !important;
+      box-shadow: 0 16px 38px rgba(0, 0, 0, 0.12) !important;
+    }
+    .product,
+    button.product,
+    button.product:not(.secondary):not(.ghost),
+    .suggestion,
+    .suggestion:not(.secondary):not(.ghost),
+    button.suggestion,
+    button.suggestion:not(.secondary):not(.ghost),
+    .suggestion-item,
+    .suggestion-item:not(.secondary):not(.ghost),
+    button.suggestion-item,
+    button.suggestion-item:not(.secondary):not(.ghost),
+    .ningbo-suggestion-item,
+    .ningbo-suggestion-item:not(.secondary):not(.ghost),
+    button.ningbo-suggestion-item,
+    button.ningbo-suggestion-item:not(.secondary):not(.ghost),
+    .search-result,
+    .search-result:not(.secondary):not(.ghost),
+    button.search-result,
+    button.search-result:not(.secondary):not(.ghost),
+    .result-item,
+    .result-item:not(.secondary):not(.ghost),
+    button.result-item,
+    button.result-item:not(.secondary):not(.ghost) {
+      background: #ffffff !important;
+      border: 1px solid #e5e5e5 !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+      text-align: left !important;
+    }
+    .product.active,
+    button.product.active,
+    button.product.active:not(.secondary):not(.ghost) {
+      background: rgba(51, 156, 255, 0.10) !important;
+      border-color: rgba(51, 156, 255, 0.72) !important;
+      color: #1a1c1f !important;
+      box-shadow: 0 0 0 4px rgba(51, 156, 255, 0.14) !important;
+    }
+    .product-name,
+    .product .product-name,
+    button.product .product-name {
+      color: #1a1c1f !important;
+    }
+    .product-meta,
+    .product .product-meta,
+    button.product .product-meta,
+    .product-meta span,
+    .product .product-meta span,
+    button.product .product-meta span {
+      color: #6b7280 !important;
+    }
+    .suggestion strong,
+    .suggestion-item strong,
+    .ningbo-suggestion-item strong,
+    .search-result strong,
+    .result-item strong {
+      color: #1a1c1f !important;
+    }
+    .suggestion span,
+    .suggestion-item span,
+    .ningbo-suggestion-item span,
+    .search-result span,
+    .result-item span {
+      color: #6b7280 !important;
+    }
+    .product:hover,
+    .product:focus,
+    .suggestion:hover,
+    .suggestion:focus,
+    .suggestion-item:hover,
+    .suggestion-item:focus,
+    .ningbo-suggestion-item:hover,
+    .ningbo-suggestion-item:focus,
+    .search-result:hover,
+    .search-result:focus,
+    .result-item:hover,
+    .result-item:focus {
+      background: rgba(51, 156, 255, 0.10) !important;
+      border-color: rgba(51, 156, 255, 0.55) !important;
+      color: #1a1c1f !important;
+    }
+    button.secondary,
+    .secondary,
+    .ghost {
+      background: #f7f7f8 !important;
+      border-color: #e5e5e5 !important;
+      color: #1a1c1f !important;
+    }
+    .option span,
+    .checkline,
+    .pill,
+    .chip,
+    .tag,
+    .preset,
+    .tab,
+    .segment,
+    .quick-chip {
+      background: #ffffff !important;
+      border-color: #d9d9e3 !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+    }
+    .option input:checked + span,
+    .checkline:has(input:checked),
+    .option.default-option input:checked + span,
+    .option.default-option span,
+    .active,
+    .selected,
+    .is-active,
+    .chip.active,
+    .tab.active,
+    .segment.active {
+      background: rgba(51, 156, 255, 0.12) !important;
+      border-color: #339cff !important;
+      color: #1a1c1f !important;
+      box-shadow: inset 0 0 0 1px rgba(51, 156, 255, 0.22) !important;
+    }
+    .notice,
+    .payment-deduction,
+    .total-field {
+      background: #f7f7f8 !important;
+      border-color: #e5e5e5 !important;
+      color: #1a1c1f !important;
+    }
+    .total-field {
+      background: rgba(51, 156, 255, 0.18) !important;
+      border: 2px solid #339cff !important;
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.58),
+        0 10px 30px rgba(51, 156, 255, 0.16) !important;
+    }
+    .total-field .field-label {
+      color: #1a1c1f !important;
+      font-weight: 850 !important;
+      font-size: 17px !important;
+    }
+    .total-field input {
+      background: rgba(255, 255, 255, 0.94) !important;
+      border: 2px solid rgba(51, 156, 255, 0.72) !important;
+      color: #1a1c1f !important;
+      font-size: 28px !important;
+      font-weight: 900 !important;
+      box-shadow: 0 0 0 4px rgba(51, 156, 255, 0.08) !important;
+    }
+    .result-box,
+    .freight-question-box,
+    pre,
+    code,
+    .code,
+    .output,
+    .preview-output {
+      background: #1a1c1f !important;
+      color: #ffffff !important;
+      border-color: #1a1c1f !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
+    .freight-question-box {
+      background: #f7f7f8 !important;
+      color: #1a1c1f !important;
+      border-color: #e5e5e5 !important;
+      font-family: inherit !important;
+    }
+    .segmented {
+      background: #f7f7f8 !important;
+      border: 0 !important;
+      border-radius: 15px !important;
+      padding: 3px !important;
+      gap: 3px !important;
+      overflow: visible !important;
+      box-shadow: none !important;
+    }
+    .segmented button {
+      min-height: 38px !important;
+      border: 0 !important;
+      border-radius: 12px !important;
+      background: transparent !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+      font-weight: 650 !important;
+    }
+    .segmented button.active {
+      background: #1a1c1f !important;
+      color: #ffffff !important;
+      box-shadow: none !important;
+    }
+    .segmented.three {
+      gap: 3px !important;
+    }
+    .toolbar button:not(.primary) {
+      background: #f7f7f8 !important;
+      color: #1a1c1f !important;
+      border-color: #e5e5e5 !important;
+    }
+    .concrete-fee-list {
+      display: grid !important;
+      gap: 14px !important;
+      margin-bottom: 16px !important;
+    }
+    .concrete-fee-row {
+      display: grid !important;
+      grid-template-columns: minmax(280px, 1fr) minmax(180px, 0.6fr) 104px !important;
+      gap: 14px !important;
+      align-items: end !important;
+    }
+    .concrete-fee-row > div {
+      min-width: 0 !important;
+    }
+    .concrete-promo-delete {
+      min-height: 46px !important;
+      width: 104px !important;
+    }
+    #addConcretePromoBtn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      min-height: 46px !important;
+      min-width: 150px !important;
+      margin-top: 2px !important;
+    }
+    #addConcretePromoBtn + .hint {
+      display: block !important;
+      margin-top: 14px !important;
+      clear: both !important;
+    }
+    @media (max-width: 760px) {
+      .concrete-fee-row {
+        grid-template-columns: 1fr !important;
+      }
+      .concrete-promo-delete,
+      #addConcretePromoBtn {
+        width: 100% !important;
+      }
+    }
+    header {
+      background: transparent !important;
+      border-color: transparent !important;
+      color: #1a1c1f !important;
+    }
+    header h1,
+    .header h1,
+    .topbar h1,
+    main > h1 {
+      font-size: clamp(30px, 3.5vw, 42px) !important;
+      line-height: 1.08 !important;
+      font-weight: 800 !important;
+      color: #1a1c1f !important;
+    }
+    header .hint,
+    header p,
+    header small,
+    .topbar .subtitle {
+      color: #6b7280 !important;
+    }
+    @media (max-width: 760px) {
+      header h1,
+      .header h1,
+      .topbar h1,
+      main > h1 {
+        font-size: 26px !important;
+      }
+    }
+    .wrap input,
+    .wrap select,
+    .wrap button {
+      min-height: var(--tool-control-height) !important;
+    }
+    header input,
+    header select {
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      border-color: #d9d9e3 !important;
+    }
+    .stage {
+      background: #f7f7f8 !important;
+      border-color: #d9d9e3 !important;
+    }
+    .plate,
+    .hole {
+      stroke: #1a1c1f !important;
+    }
+    .dim {
+      stroke: #1a1c1f !important;
+    }
+    .dimText,
+    .smallText {
+      fill: #1a1c1f !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
+    svg,
+    canvas {
+      color: #1a1c1f !important;
+    }
+    * {
+      text-shadow: none !important;
+      letter-spacing: 0 !important;
+    }
+
+</style>
+  <link rel="stylesheet" href="apple-ui.css?v=20260908-2">
+</head>
+<body class="apple-ui" data-page="full-board-cut">
+  <div class="wrap">
+    <div class="header">
+      <div>
+        <h1>整板排版核算器</h1>
+        <div class="sub">输入格式示例：318*771=20，表示 318×771mm，数量 20 张。支持换行、空格、中文乘号 ×、英文 x。</div>
+      </div>
+      <div class="sub printHide">本地计算 · 请保留完整工具文件夹</div>
+    </div>
+
+    <div class="grid">
+      <div class="card inputCard">
+        <label>所需规格 + 数量</label>
+        <textarea id="input">318*771=20
+318*762=5
+248*248=18
+399*693=2
+399*696=1</textarea>
+
+        <div class="row">
+          <div>
+            <label>整板宽 mm</label>
+            <input id="boardW" type="number" value="1220" />
+          </div>
+          <div>
+            <label>整板高 mm</label>
+            <input id="boardH" type="number" value="2440" />
+          </div>
+        </div>
+
+        <label>是否允许旋转排版</label>
+        <select id="rotate">
+          <option value="yes" selected>允许旋转</option>
+          <option value="no">不允许旋转 / 保持纹理方向</option>
+        </select>
+
+        <label>锯缝 / 损耗间距 mm</label>
+        <input id="gap" type="number" value="0" min="0" />
+        <div class="small">实际开料建议填 2–5mm。填 0 代表理论排版，不计算锯缝。</div>
+
+        <button onclick="run()">开始计算</button>
+        <div class="btnRow">
+          <button class="secondary" onclick="clearInput()">清空输入</button>
+          <button class="secondary" onclick="window.print()">打印 / 导出PDF</button>
+        </div>
+        <div id="err" class="error"></div>
+
+        <div class="small" style="margin-top:14px;">
+          说明：这是快速自动排版工具，适合报价估算和开料前预排。若存在纹理方向、留边、封边、实际刀缝、批次色差等要求，正式开料前仍需人工复核。
+        </div>
+      </div>
+
+      <div class="card">
+        <div id="summary"></div>
+        <div id="boards" class="boards"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+function parseInput(text) {
+  const rows = text
+    .replace(/[×Xx]/g, '*')
+    .replace(/[，,；;]/g, '\n')
+    .split(/\n|\s+(?=\d+(?:\.\d+)?\s*\*)/)
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  const parsed = [];
+  for (const row of rows) {
+    const m = row.match(/^(\d+(?:\.\d+)?)\s*\*\s*(\d+(?:\.\d+)?)\s*=\s*(\d+)$/);
+    if (!m) throw new Error('无法识别这一行：' + row + '，请使用 318*771=20 这种格式');
+    if (![Number(m[1]), Number(m[2])].every(n => Number.isFinite(n) && n > 0) || !Number.isSafeInteger(Number(m[3])) || Number(m[3]) <= 0) throw new Error('尺寸必须大于0，数量必须为正整数：' + row);
+    parsed.push({ w: Number(m[1]), h: Number(m[2]), qty: Number(m[3]), label: `${Number(m[1])}×${Number(m[2])}` });
+  }
+  if (!parsed.length) throw new Error('请先输入规格和数量');
+  return parsed;
+}
+
+function expandItems(parsed, gap) {
+  const items = [];
+  for (const p of parsed) {
+    for (let i = 0; i < p.qty; i++) {
+      items.push({ w: p.w + gap, h: p.h + gap, rawW: p.w, rawH: p.h, label: p.label });
+    }
+  }
+  items.sort((a,b) => (b.w*b.h) - (a.w*a.h) || Math.max(b.w,b.h) - Math.max(a.w,a.h));
+  return items;
+}
+
+function intersects(a,b) {
+  return !(a.x >= b.x+b.w || a.x+a.w <= b.x || a.y >= b.y+b.h || a.y+a.h <= b.y);
+}
+
+function splitFreeRects(freeRects, placed) {
+  const out = [];
+  for (const r of freeRects) {
+    if (!intersects(r, placed)) { out.push(r); continue; }
+    if (placed.x > r.x) out.push({ x:r.x, y:r.y, w:placed.x-r.x, h:r.h });
+    if (placed.x + placed.w < r.x + r.w) out.push({ x:placed.x+placed.w, y:r.y, w:r.x+r.w-(placed.x+placed.w), h:r.h });
+    if (placed.y > r.y) out.push({ x:r.x, y:r.y, w:r.w, h:placed.y-r.y });
+    if (placed.y + placed.h < r.y + r.h) out.push({ x:r.x, y:placed.y+placed.h, w:r.w, h:r.y+r.h-(placed.y+placed.h) });
+  }
+  return pruneFreeRects(out);
+}
+
+function contains(a,b) {
+  return b.x >= a.x && b.y >= a.y && b.x+b.w <= a.x+a.w && b.y+b.h <= a.y+a.h;
+}
+
+function pruneFreeRects(rects) {
+  const clean = rects.filter(r => r.w > 0 && r.h > 0);
+  const result = [];
+  for (let i=0; i<clean.length; i++) {
+    let inside = false;
+    for (let j=0; j<clean.length; j++) {
+      if (i !== j && contains(clean[j], clean[i])) { inside = true; break; }
+    }
+    if (!inside) result.push(clean[i]);
+  }
+  return result;
+}
+
+function tryPack(items, boardW, boardH, allowRotate, boardCount) {
+  const boards = Array.from({length: boardCount}, () => ({ free:[{x:0,y:0,w:boardW,h:boardH}], used:[] }));
+
+  for (const item of items) {
+    let best = null;
+    for (let bi=0; bi<boards.length; bi++) {
+      for (const r of boards[bi].free) {
+        const opts = [{w:item.w,h:item.h,rot:false}];
+        if (allowRotate && item.w !== item.h) opts.push({w:item.h,h:item.w,rot:true});
+        for (const o of opts) {
+          if (o.w <= r.w && o.h <= r.h) {
+            const areaFit = r.w*r.h - o.w*o.h;
+            const shortSide = Math.min(r.w-o.w, r.h-o.h);
+            const longSide = Math.max(r.w-o.w, r.h-o.h);
+            const score = [areaFit, shortSide, longSide, r.y, r.x];
+            if (!best || compareScore(score, best.score) < 0) {
+              best = { score, bi, x:r.x, y:r.y, w:o.w, h:o.h, rot:o.rot, item };
+            }
+          }
+        }
+      }
+    }
+    if (!best) return null;
+    const placed = { x:best.x, y:best.y, w:best.w, h:best.h, rot:best.rot, item:best.item };
+    boards[best.bi].used.push(placed);
+    boards[best.bi].free = splitFreeRects(boards[best.bi].free, placed);
+  }
+  return boards;
+}
+
+function compareScore(a,b) {
+  for (let i=0; i<a.length; i++) if (a[i] !== b[i]) return a[i] - b[i];
+  return 0;
+}
+
+function pack(items, boardW, boardH, allowRotate) {
+  const totalArea = items.reduce((s,it) => s + it.w*it.h, 0);
+  const lower = Math.ceil(totalArea / (boardW*boardH));
+  for (let n = lower; n <= items.length; n++) {
+    const result = tryPack(items, boardW, boardH, allowRotate, n);
+    if (result) return { boards: result, lower };
+  }
+  return null;
+}
+
+function colorFor(label) {
+  let hash = 0;
+  for (let i=0; i<label.length; i++) hash = label.charCodeAt(i) + ((hash << 5) - hash);
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 65%, 78%)`;
+}
+
+function render(parsed, items, packResult, boardW, boardH, gap, allowRotate) {
+  const boards = packResult.boards;
+  const usedRawArea = parsed.reduce((s,p) => s + p.w*p.h*p.qty, 0);
+  const boardArea = boardW*boardH;
+  const theoretical = Math.ceil(usedRawArea / boardArea);
+  const usage = usedRawArea / (boards.length * boardArea) * 100;
+  const totalPieces = parsed.reduce((s,p)=>s+p.qty,0);
+
+  const specRows = parsed.map(p => `
+    <tr>
+      <td>${p.label}mm</td>
+      <td>${p.qty}张</td>
+      <td>${(p.w*p.h*p.qty/1000000).toFixed(3)}㎡</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('summary').innerHTML = `
+    <div class="result">
+      <div class="metric"><div class="name">实际排版整板</div><div class="num">${boards.length} 张</div></div>
+      <div class="metric"><div class="name">面积理论下限</div><div class="num">${theoretical} 张</div></div>
+      <div class="metric"><div class="name">总小板数量</div><div class="num">${totalPieces} 张</div></div>
+      <div class="metric"><div class="name">整板利用率</div><div class="num">${usage.toFixed(1)}%</div></div>
+    </div>
+    <table class="table">
+      <thead><tr><th>规格</th><th>数量</th><th>面积</th></tr></thead>
+      <tbody>${specRows}</tbody>
+    </table>
+    <div class="warn">
+      当前整板：${boardW}×${boardH}mm；旋转排版：${allowRotate ? '允许' : '不允许'}；锯缝/损耗间距：${gap}mm。<br>
+      说明：算法会尽量塞板，但不保证全局最优。正式开料前建议按图复核方向、纹理、锯缝和边料要求。
+    </div>
+  `;
+
+  const boardsEl = document.getElementById('boards');
+  boardsEl.innerHTML = '';
+  boards.forEach((b, idx) => {
+    const usedArea = b.used.reduce((s,p) => s + p.item.rawW*p.item.rawH, 0);
+    const util = usedArea / boardArea * 100;
+    const pieces = {};
+    b.used.forEach(p => pieces[p.item.label] = (pieces[p.item.label] || 0) + 1);
+    const list = Object.entries(pieces).map(([k,v]) => `${k}：${v}张`).join('　');
+
+    const svgPieces = b.used.map((p) => {
+      const txt = p.rot ? `${p.item.label}↻` : p.item.label;
+      const fs = Math.max(18, Math.min(42, Math.min(p.w-gap, p.h-gap) / 4.8));
+      return `
+        <rect x="${p.x}" y="${p.y}" width="${Math.max(0,p.w-gap)}" height="${Math.max(0,p.h-gap)}" fill="${colorFor(p.item.label)}" stroke="#111" stroke-width="2" />
+        <text x="${p.x + Math.max(0,p.w-gap)/2}" y="${p.y + Math.max(0,p.h-gap)/2}" font-size="${fs}" text-anchor="middle" dominant-baseline="middle" fill="#111">${txt}</text>
+      `;
+    }).join('');
+
+    const box = document.createElement('div');
+    box.className = 'boardBox';
+    box.innerHTML = `
+      <div class="boardTitle"><span>第 ${idx+1} 张整板</span><span>利用率 ${util.toFixed(1)}%</span></div>
+      <svg viewBox="0 0 ${boardW} ${boardH}" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="${boardW}" height="${boardH}" fill="none" stroke="#000" stroke-width="4" />
+        ${svgPieces}
+      </svg>
+      <div class="list">${list}</div>
+    `;
+    boardsEl.appendChild(box);
+  });
+}
+
+function run() {
+  const err = document.getElementById('err');
+  err.style.display = 'none';
+  try {
+    const parsed = parseInput(document.getElementById('input').value);
+    const boardW = Number(document.getElementById('boardW').value);
+    const boardH = Number(document.getElementById('boardH').value);
+    const gap = Number(document.getElementById('gap').value || 0);
+    const allowRotate = document.getElementById('rotate').value === 'yes';
+    if (![boardW, boardH].every(n => Number.isFinite(n) && n > 0)) throw new Error('整板尺寸必须大于0');
+    if (!Number.isFinite(gap) || gap < 0) throw new Error('锯缝不能为负数');
+    const items = expandItems(parsed, gap);
+    for (const it of items) {
+      const fits = (it.w <= boardW && it.h <= boardH) || (allowRotate && it.h <= boardW && it.w <= boardH);
+      if (!fits) throw new Error(`${it.label} 加上锯缝后无法放入 ${boardW}×${boardH} 整板`);
+    }
+    const result = pack(items, boardW, boardH, allowRotate);
+    if (!result) throw new Error('未能完成排版，请检查规格或减少锯缝');
+    render(parsed, items, result, boardW, boardH, gap, allowRotate);
+  } catch(e) {
+    document.getElementById('summary').innerHTML = '';
+    document.getElementById('boards').innerHTML = '';
+    err.innerText = e.message;
+    err.style.display = 'block';
+  }
+}
+
+function clearInput() {
+  document.getElementById('err').textContent = '';
+  document.getElementById('err').style.display = 'none';
+  document.getElementById('input').value = '';
+  document.getElementById('summary').innerHTML = '';
+  document.getElementById('boards').innerHTML = '';
+}
+
+function preventNumberInputWheelChange() {
+  document.addEventListener('wheel', (event) => {
+    const active = document.activeElement;
+    if (!(active instanceof HTMLInputElement) || active.type !== 'number') return;
+    active.blur();
+    event.preventDefault();
+  }, { passive: false, capture: true });
+}
+
+preventNumberInputWheelChange();
+run();
+</script>
+</body>
+</html>

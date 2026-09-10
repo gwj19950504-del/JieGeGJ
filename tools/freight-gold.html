@@ -1,0 +1,1850 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>鎏金板快速运费提交模版</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f2ea;
+      --panel: #fffdf8;
+      --text: #1d1a16;
+      --muted: #756c60;
+      --line: #d8cdbd;
+      --gold: #b88a2a;
+      --gold-dark: #7a5516;
+      --green: #26634a;
+      --red: #a83a2f;
+      --shadow: 0 18px 46px rgba(53, 42, 24, 0.13);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      overflow-x: hidden;
+      background:
+        linear-gradient(135deg, rgba(184, 138, 42, 0.13), transparent 38%),
+        radial-gradient(circle at 85% 8%, rgba(38, 99, 74, 0.12), transparent 28%),
+        var(--bg);
+    }
+
+    main {
+      width: min(1120px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 28px 0 36px;
+      min-width: 0;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-end;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 46px);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .status-pill {
+      flex: 0 0 auto;
+      border: 1px solid rgba(184, 138, 42, 0.42);
+      background: rgba(255, 253, 248, 0.74);
+      color: var(--gold-dark);
+      border-radius: 999px;
+      padding: 9px 13px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      align-items: start;
+      min-width: 0;
+    }
+
+    .panel {
+      background: rgba(255, 253, 248, 0.91);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .panel-inner {
+      padding: 20px;
+    }
+
+    .section-title {
+      margin: 0 0 14px;
+      font-size: 18px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-head .section-title {
+      margin: 0;
+    }
+
+    .clear-mini-button {
+      flex: 0 0 auto;
+      min-width: 108px;
+      min-height: 40px;
+    }
+
+    label {
+      display: block;
+      margin: 16px 0 8px;
+      color: #3a3229;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    textarea,
+    input[type="number"] {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      padding: 12px 13px;
+      outline: none;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    textarea:focus,
+    input[type="number"]:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(184, 138, 42, 0.16);
+    }
+
+    .segmented,
+    .spec-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .segmented {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .spec-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .option {
+      position: relative;
+    }
+
+    .option input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .option span {
+      display: block;
+      min-height: 58px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      padding: 11px 12px;
+      font-weight: 800;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+      transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+    }
+
+    .option small {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .option input:checked + span {
+      border-color: var(--gold);
+      background: #fff4cf;
+      color: #4b330e;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .quantity-product-row {
+      align-items: end;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .quantity-product-row .metric {
+      min-height: 74px;
+    }
+
+    .freight-items {
+      display: grid;
+      gap: 14px;
+    }
+
+    .freight-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(150px, 0.26fr) auto;
+      gap: 8px 14px;
+    }
+
+    .freight-item-head {
+      display: contents;
+    }
+
+    .freight-item-title {
+      color: var(--text);
+      font-weight: 850;
+      align-self: center;
+    }
+
+    .freight-item-title span {
+      margin-left: 14px;
+      color: var(--text);
+      font-weight: 850;
+    }
+
+    .freight-item-quantity-label {
+      align-self: center;
+      color: var(--text);
+      font-weight: 850;
+    }
+
+    .freight-item-remove {
+      min-height: 34px;
+      padding: 0 12px;
+      grid-column: 3;
+      grid-row: 1 / span 2;
+      align-self: center;
+      width: 86px;
+    }
+
+    .freight-item-grid {
+      display: contents;
+    }
+
+    .freight-item .spec-grid {
+      grid-column: 1;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .item-quantity {
+      grid-column: 2;
+      align-self: stretch;
+    }
+
+    .freight-item label {
+      margin: 0;
+    }
+
+    .add-item-row {
+      display: flex;
+      justify-content: flex-start;
+      margin-top: 12px;
+    }
+
+    .shipment-lines {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    button {
+      border: 0;
+      border-radius: 7px;
+      background: var(--text);
+      color: #fff;
+      font: inherit;
+      font-weight: 800;
+      min-height: 42px;
+      padding: 0 14px;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #efe5d5;
+      color: #34291b;
+      border: 1px solid var(--line);
+    }
+
+    button.success {
+      background: var(--green);
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+      min-width: 0;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 13px;
+      min-height: 88px;
+      min-width: 0;
+    }
+
+    .metric b {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 20px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .result-box {
+      border: 1px solid #cab892;
+      border-radius: 8px;
+      background: #16130f;
+      color: #fffaf0;
+      padding: 18px;
+      min-height: 224px;
+      white-space: pre-wrap;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 16px;
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .notice {
+      margin-top: 14px;
+      border-left: 4px solid var(--gold);
+      background: #fff7df;
+      padding: 11px 12px;
+      color: #4b3a17;
+      line-height: 1.55;
+      font-size: 13px;
+    }
+
+    .notice.error {
+      border-left-color: var(--red);
+      background: #fff0ed;
+      color: #6f2019;
+    }
+
+    .shunxin-section {
+      margin-top: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: 0 12px 30px rgba(17, 24, 39, 0.08);
+    }
+
+    .shunxin-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #f7f7f7;
+    }
+
+    .shunxin-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      font-weight: 900;
+      color: #1f2937;
+    }
+
+    .shunxin-logo {
+      width: 92px;
+      height: 48px;
+      border-radius: 6px;
+      object-fit: contain;
+      background: #000;
+      flex: 0 0 auto;
+    }
+
+    .shunxin-subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .shunxin-total {
+      color: #111827;
+      font-size: 24px;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .shunxin-options {
+      display: grid;
+      grid-template-columns: minmax(260px, 1.45fr) minmax(250px, 1.2fr) minmax(150px, 0.72fr) minmax(150px, 0.72fr);
+      align-items: stretch;
+      gap: 14px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #fcfcfc;
+    }
+
+    .shunxin-option-cell {
+      display: grid;
+      grid-template-rows: 18px 52px;
+      align-content: end;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .shunxin-option-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 850;
+      line-height: 1.35;
+      display: flex;
+      align-items: center;
+      height: 18px;
+      margin: 0;
+    }
+
+    .shunxin-option-cell input[type="number"] {
+      width: 100%;
+      min-width: 0;
+      height: 52px;
+      min-height: 52px;
+      box-sizing: border-box;
+      margin: 0;
+    }
+
+    .shunxin-upstairs-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      height: 52px;
+      min-height: 52px;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0 14px;
+      border: 1px solid #cfd6e2;
+      border-radius: 14px;
+      background: #fff;
+      color: #1f2937;
+      font-weight: 850;
+      cursor: pointer;
+    }
+
+    .shunxin-upstairs-toggle input {
+      width: 18px;
+      height: 18px;
+      min-height: auto;
+      margin: 0;
+      padding: 0;
+      accent-color: #2563eb;
+    }
+
+    .shunxin-fee-badge {
+      min-width: 0;
+      height: 52px;
+      min-height: 52px;
+      box-sizing: border-box;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      border-radius: 14px;
+      background: #fff7ed;
+      color: #9a3412;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .shunxin-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 220px;
+      gap: 14px;
+      padding: 16px 18px 18px;
+      align-items: stretch;
+    }
+
+    .shunxin-box {
+      min-height: 170px;
+      border-radius: 14px;
+      background: #18181b;
+      color: #fafafa;
+      padding: 16px;
+      white-space: pre-wrap;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 14px;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+    }
+
+    .shunxin-process {
+      border-radius: 14px;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #7c2d12;
+      padding: 14px;
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .shunxin-actions {
+      padding: 0 18px 18px;
+    }
+
+    .shunxin-actions button {
+      background: #111827;
+      min-width: 190px;
+    }
+
+    .rules {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .rules code {
+      color: var(--gold-dark);
+      background: #fff1c7;
+      border-radius: 5px;
+      padding: 2px 5px;
+      font-family: inherit;
+      font-weight: 700;
+    }
+
+    @media (max-width: 860px) {
+      .topbar {
+        display: block;
+      }
+
+      .status-pill {
+        display: inline-block;
+        margin-top: 14px;
+      }
+
+      .grid,
+      .summary {
+        grid-template-columns: 1fr;
+      }
+
+      .shunxin-head,
+      .shunxin-body {
+        grid-template-columns: 1fr;
+      }
+
+      .shunxin-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .shunxin-options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 560px) {
+      main {
+        width: min(100% - 18px, 1120px);
+        padding-top: 18px;
+      }
+
+      .panel-inner {
+        padding: 15px;
+      }
+
+      .segmented,
+      .spec-grid,
+      .row {
+        grid-template-columns: 1fr;
+      }
+
+      .shunxin-options {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* iPhone-style refinement aligned with the quote module. */
+    :root {
+      --bg: #f5f6f8;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #687385;
+      --line: #d9dee7;
+      --gold: #146c94;
+      --gold-dark: #0f506d;
+      --green: #248a5a;
+      --red: #c2410c;
+      --shadow: 0 18px 44px rgba(20, 36, 55, 0.08);
+    }
+
+    body {
+      background: var(--bg);
+    }
+
+    main {
+      width: min(1120px, calc(100% - 40px));
+    }
+
+    .panel,
+    .result,
+    .copy-box,
+    .status-pill {
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      background: rgba(255, 255, 255, 0.94);
+    }
+
+    .panel-inner {
+      padding: 22px;
+    }
+
+    input,
+    textarea,
+    select {
+      min-height: 52px;
+      border-radius: 14px;
+      border-color: #cfd6e2;
+      padding: 12px 14px;
+      font-size: 16px;
+    }
+
+    button,
+    .segmented label,
+    .spec-card,
+    .product-card {
+      min-height: 52px;
+      border-radius: 16px;
+    }
+
+    button.success,
+    .success {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+    }
+
+    .row,
+    .segmented,
+    .spec-grid,
+    .summary {
+      gap: 14px;
+    }
+
+    @media (max-width: 560px) {
+      main {
+        width: min(100% - 18px, 1120px);
+      }
+    }
+  
+
+    /* Codex / ChatGPT unified tool theme. Keep one accent color only. */
+    :root {
+      color-scheme: light !important;
+      --bg: #ffffff !important;
+      --panel: #ffffff !important;
+      --surface: #f7f7f8 !important;
+      --surface-strong: #ececf1 !important;
+      --text: #1a1c1f !important;
+      --ink: #1a1c1f !important;
+      --muted: #6b7280 !important;
+      --line: #e5e5e5 !important;
+      --accent: #339cff !important;
+      --accent-soft: rgba(51, 156, 255, 0.12) !important;
+      --soft: rgba(51, 156, 255, 0.12) !important;
+      --gold: #339cff !important;
+      --warn: #339cff !important;
+      --aux: #339cff !important;
+      --shadow: 0 18px 44px rgba(0, 0, 0, 0.06) !important;
+      --system-gray: #f7f7f8 !important;
+      --system-gray-2: #ececf1 !important;
+    }
+    html,
+    body {
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif !important;
+      letter-spacing: 0 !important;
+      -webkit-font-smoothing: antialiased;
+    }
+    main,
+    .page,
+    .app,
+    .workspace,
+    .container {
+      background: #ffffff !important;
+    }
+    h1, h2, h3, h4,
+    .section-title,
+    .field-label,
+    label,
+    b,
+    strong {
+      color: #1a1c1f !important;
+      letter-spacing: 0 !important;
+    }
+    .subtitle,
+    .muted,
+    small,
+    .hint,
+    .desc {
+      color: #6b7280 !important;
+    }
+    .panel,
+    .panel-inner,
+    .card,
+    .product-card,
+    .payment-panel,
+    .freight-panel,
+    .order-panel,
+    .metric,
+    .total-field,
+    .notice,
+    .payment-deduction,
+    .freight-question,
+    .quote-card,
+    .result-panel,
+    .search-card,
+    .preview-card,
+    .input-card,
+    .output-card,
+    .tool-card,
+    .summary-card,
+    .concrete-extra-options,
+    .concrete-match-tools,
+    .ningbo-match-tools,
+    .unit-price-field,
+    .cement-label,
+    .readonly-pill {
+      background: #ffffff !important;
+      border-color: #e5e5e5 !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+    }
+    .panel,
+    .card,
+    .product-card,
+    .payment-panel,
+    .freight-panel,
+    .order-panel,
+    .result-panel,
+    .search-card,
+    .preview-card,
+    .input-card,
+    .output-card,
+    .tool-card,
+    .summary-card {
+      border-radius: 18px !important;
+    }
+    input,
+    select,
+    textarea {
+      background: #ffffff !important;
+      border: 1px solid #d9d9e3 !important;
+      border-radius: 14px !important;
+      color: #1a1c1f !important;
+      font-family: inherit !important;
+      box-shadow: none !important;
+    }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #339cff !important;
+      box-shadow: 0 0 0 4px rgba(51, 156, 255, 0.16) !important;
+      outline: none !important;
+    }
+    input::placeholder,
+    textarea::placeholder {
+      color: #9ca3af !important;
+    }
+    button,
+    .button,
+    .btn,
+    .tool-button,
+    .action-button,
+    .copy-button {
+      border-radius: 14px !important;
+      border: 1px solid #d9d9e3 !important;
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+      font-family: inherit !important;
+      font-weight: 650 !important;
+    }
+    button.primary,
+    button:not(.secondary):not(.ghost),
+    #copyBtn,
+    #copyFreightQuestionBtn,
+    .result-actions button,
+    .freight-actions button,
+    .actions button:first-child {
+      background: #1a1c1f !important;
+      border-color: #1a1c1f !important;
+      color: #ffffff !important;
+    }
+    .suggestions,
+    .ningbo-suggestions,
+    .search-suggestions,
+    .autocomplete,
+    .dropdown,
+    .dropdown-menu {
+      background: #ffffff !important;
+      border: 1px solid #d9d9e3 !important;
+      color: #1a1c1f !important;
+      box-shadow: 0 16px 38px rgba(0, 0, 0, 0.12) !important;
+    }
+    .product,
+    button.product,
+    button.product:not(.secondary):not(.ghost),
+    .suggestion,
+    .suggestion:not(.secondary):not(.ghost),
+    button.suggestion,
+    button.suggestion:not(.secondary):not(.ghost),
+    .suggestion-item,
+    .suggestion-item:not(.secondary):not(.ghost),
+    button.suggestion-item,
+    button.suggestion-item:not(.secondary):not(.ghost),
+    .ningbo-suggestion-item,
+    .ningbo-suggestion-item:not(.secondary):not(.ghost),
+    button.ningbo-suggestion-item,
+    button.ningbo-suggestion-item:not(.secondary):not(.ghost),
+    .search-result,
+    .search-result:not(.secondary):not(.ghost),
+    button.search-result,
+    button.search-result:not(.secondary):not(.ghost),
+    .result-item,
+    .result-item:not(.secondary):not(.ghost),
+    button.result-item,
+    button.result-item:not(.secondary):not(.ghost) {
+      background: #ffffff !important;
+      border: 1px solid #e5e5e5 !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+      text-align: left !important;
+    }
+    .product.active,
+    button.product.active,
+    button.product.active:not(.secondary):not(.ghost) {
+      background: rgba(51, 156, 255, 0.10) !important;
+      border-color: rgba(51, 156, 255, 0.72) !important;
+      color: #1a1c1f !important;
+      box-shadow: 0 0 0 4px rgba(51, 156, 255, 0.14) !important;
+    }
+    .product-name,
+    .product .product-name,
+    button.product .product-name {
+      color: #1a1c1f !important;
+    }
+    .product-meta,
+    .product .product-meta,
+    button.product .product-meta,
+    .product-meta span,
+    .product .product-meta span,
+    button.product .product-meta span {
+      color: #6b7280 !important;
+    }
+    .suggestion strong,
+    .suggestion-item strong,
+    .ningbo-suggestion-item strong,
+    .search-result strong,
+    .result-item strong {
+      color: #1a1c1f !important;
+    }
+    .suggestion span,
+    .suggestion-item span,
+    .ningbo-suggestion-item span,
+    .search-result span,
+    .result-item span {
+      color: #6b7280 !important;
+    }
+    .product:hover,
+    .product:focus,
+    .suggestion:hover,
+    .suggestion:focus,
+    .suggestion-item:hover,
+    .suggestion-item:focus,
+    .ningbo-suggestion-item:hover,
+    .ningbo-suggestion-item:focus,
+    .search-result:hover,
+    .search-result:focus,
+    .result-item:hover,
+    .result-item:focus {
+      background: rgba(51, 156, 255, 0.10) !important;
+      border-color: rgba(51, 156, 255, 0.55) !important;
+      color: #1a1c1f !important;
+    }
+    button.secondary,
+    .secondary,
+    .ghost {
+      background: #f7f7f8 !important;
+      border-color: #e5e5e5 !important;
+      color: #1a1c1f !important;
+    }
+    .option span,
+    .checkline,
+    .pill,
+    .chip,
+    .tag,
+    .preset,
+    .tab,
+    .segment,
+    .quick-chip {
+      background: #ffffff !important;
+      border-color: #d9d9e3 !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+    }
+    .option input:checked + span,
+    .checkline:has(input:checked),
+    .option.default-option input:checked + span,
+    .option.default-option span,
+    .active,
+    .selected,
+    .is-active,
+    .chip.active,
+    .tab.active,
+    .segment.active {
+      background: rgba(51, 156, 255, 0.12) !important;
+      border-color: #339cff !important;
+      color: #1a1c1f !important;
+      box-shadow: inset 0 0 0 1px rgba(51, 156, 255, 0.22) !important;
+    }
+    .notice,
+    .payment-deduction,
+    .total-field {
+      background: #f7f7f8 !important;
+      border-color: #e5e5e5 !important;
+      color: #1a1c1f !important;
+    }
+    .total-field {
+      background: rgba(51, 156, 255, 0.18) !important;
+      border: 2px solid #339cff !important;
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.58),
+        0 10px 30px rgba(51, 156, 255, 0.16) !important;
+    }
+    .total-field .field-label {
+      color: #1a1c1f !important;
+      font-weight: 850 !important;
+      font-size: 17px !important;
+    }
+    .total-field input {
+      background: rgba(255, 255, 255, 0.94) !important;
+      border: 2px solid rgba(51, 156, 255, 0.72) !important;
+      color: #1a1c1f !important;
+      font-size: 28px !important;
+      font-weight: 900 !important;
+      box-shadow: 0 0 0 4px rgba(51, 156, 255, 0.08) !important;
+    }
+    .result-box,
+    .freight-question-box,
+    pre,
+    code,
+    .code,
+    .output,
+    .preview-output {
+      background: #1a1c1f !important;
+      color: #ffffff !important;
+      border-color: #1a1c1f !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
+    .freight-question-box {
+      background: #f7f7f8 !important;
+      color: #1a1c1f !important;
+      border-color: #e5e5e5 !important;
+      font-family: inherit !important;
+    }
+    .segmented {
+      background: #f7f7f8 !important;
+      border: 0 !important;
+      border-radius: 15px !important;
+      padding: 3px !important;
+      gap: 3px !important;
+      overflow: visible !important;
+      box-shadow: none !important;
+    }
+    .segmented button {
+      min-height: 38px !important;
+      border: 0 !important;
+      border-radius: 12px !important;
+      background: transparent !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+      font-weight: 650 !important;
+    }
+    .segmented button.active {
+      background: #1a1c1f !important;
+      color: #ffffff !important;
+      box-shadow: none !important;
+    }
+    .segmented.three {
+      gap: 3px !important;
+    }
+    .toolbar button:not(.primary) {
+      background: #f7f7f8 !important;
+      color: #1a1c1f !important;
+      border-color: #e5e5e5 !important;
+    }
+    .concrete-fee-list {
+      display: grid !important;
+      gap: 14px !important;
+      margin-bottom: 16px !important;
+    }
+    .concrete-fee-row {
+      display: grid !important;
+      grid-template-columns: minmax(280px, 1fr) minmax(180px, 0.6fr) 104px !important;
+      gap: 14px !important;
+      align-items: end !important;
+    }
+    .concrete-fee-row > div {
+      min-width: 0 !important;
+    }
+    .concrete-promo-delete {
+      min-height: 46px !important;
+      width: 104px !important;
+    }
+    #addConcretePromoBtn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      min-height: 46px !important;
+      min-width: 150px !important;
+      margin-top: 2px !important;
+    }
+    #addConcretePromoBtn + .hint {
+      display: block !important;
+      margin-top: 14px !important;
+      clear: both !important;
+    }
+    @media (max-width: 760px) {
+      .concrete-fee-row {
+        grid-template-columns: 1fr !important;
+      }
+      .concrete-promo-delete,
+      #addConcretePromoBtn {
+        width: 100% !important;
+      }
+    }
+    header {
+      background: transparent !important;
+      border-color: transparent !important;
+      color: #1a1c1f !important;
+    }
+    header h1,
+    .topbar h1,
+    main > h1 {
+      font-size: clamp(30px, 3.5vw, 42px) !important;
+      line-height: 1.08 !important;
+      font-weight: 800 !important;
+      color: #1a1c1f !important;
+    }
+    header .hint,
+    header p,
+    header small,
+    .topbar .subtitle {
+      color: #6b7280 !important;
+    }
+    @media (max-width: 760px) {
+      header h1,
+      .topbar h1,
+      main > h1 {
+        font-size: 26px !important;
+      }
+    }
+    header input,
+    header select {
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      border-color: #d9d9e3 !important;
+    }
+    .stage {
+      background: #f7f7f8 !important;
+      border-color: #d9d9e3 !important;
+    }
+    .plate,
+    .hole {
+      stroke: #1a1c1f !important;
+    }
+    .dim {
+      stroke: #1a1c1f !important;
+    }
+    .dimText,
+    .smallText {
+      fill: #1a1c1f !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
+    svg,
+    canvas {
+      color: #1a1c1f !important;
+    }
+    * {
+      text-shadow: none !important;
+      letter-spacing: 0 !important;
+    }
+
+    .quantity-product-row {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+      gap: 24px !important;
+      align-items: start !important;
+    }
+    .quantity-product-row > div {
+      min-width: 0 !important;
+      width: 100% !important;
+    }
+    .quantity-product-row label {
+      display: block !important;
+      margin-bottom: 10px !important;
+    }
+    .quantity-product-row input,
+    .quantity-product-row .metric {
+      width: 100% !important;
+      min-height: 82px !important;
+      height: 82px !important;
+      box-sizing: border-box !important;
+    }
+    .quantity-product-row .metric {
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      gap: 6px !important;
+      padding: 14px 18px !important;
+      background: #ffffff !important;
+      border: 1px solid #d9d9e3 !important;
+      border-radius: 16px !important;
+      box-shadow: none !important;
+    }
+    .quantity-product-row .metric b {
+      color: #1a1c1f !important;
+      font-size: 14px !important;
+      line-height: 1.2 !important;
+      font-weight: 750 !important;
+    }
+    .quantity-product-row .metric strong {
+      color: #1a1c1f !important;
+      font-size: 22px !important;
+      line-height: 1.15 !important;
+      font-weight: 850 !important;
+    }
+    #materialGroup {
+      align-items: center !important;
+      padding: 2px !important;
+    }
+    #materialGroup .option span {
+      min-height: 46px !important;
+      height: 46px !important;
+      display: flex !important;
+      align-items: center !important;
+      padding: 0 16px !important;
+      line-height: 1.2 !important;
+    }
+    @media (max-width: 760px) {
+      .quantity-product-row {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+      }
+    }
+
+    .freight-item {
+      border-radius: 18px !important;
+      border-color: #e5e5e5 !important;
+      background: #ffffff !important;
+      box-shadow: none !important;
+      display: grid !important;
+      grid-template-columns: minmax(190px, 0.38fr) minmax(0, 1fr) minmax(150px, 0.22fr) 88px !important;
+      gap: 8px 14px !important;
+      padding: 16px !important;
+      align-items: stretch !important;
+    }
+
+    .freight-item-head,
+    .freight-item-grid {
+      display: contents !important;
+    }
+
+    .freight-item-title,
+    .freight-item-spec-label,
+    .freight-item-quantity-label {
+      min-height: 30px !important;
+      display: flex !important;
+      align-items: center !important;
+      margin: 0 !important;
+      font-weight: 850 !important;
+      line-height: 1.2 !important;
+    }
+
+    .freight-item-title span {
+      margin-left: 18px !important;
+      font-weight: 850 !important;
+    }
+
+    .freight-item-remove {
+      grid-column: 4 !important;
+      grid-row: 1 / span 2 !important;
+      align-self: center !important;
+      justify-self: stretch !important;
+      width: 88px !important;
+      min-height: 44px !important;
+      padding: 0 10px !important;
+    }
+
+    .item-material {
+      grid-column: 1 !important;
+      align-self: stretch !important;
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+      gap: 8px !important;
+      background: transparent !important;
+      padding: 0 !important;
+      border-radius: 0 !important;
+    }
+
+    .item-material .option span {
+      min-height: 42px !important;
+      height: 42px !important;
+      padding: 0 12px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 14px !important;
+      line-height: 1.15 !important;
+    }
+
+    .freight-item .spec-grid {
+      grid-column: 2 !important;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      gap: 12px !important;
+    }
+
+    .freight-item .option span {
+      min-height: 64px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      padding: 10px 14px !important;
+    }
+
+    .item-quantity {
+      grid-column: 3 !important;
+      align-self: stretch !important;
+      min-height: 64px !important;
+      height: 64px !important;
+      font-size: 18px !important;
+      font-weight: 750 !important;
+    }
+
+    .freight-item-remove:disabled {
+      opacity: 0.42 !important;
+      cursor: not-allowed !important;
+    }
+
+    #addItemBtn {
+      min-width: 160px !important;
+      min-height: 46px !important;
+    }
+
+    @media (max-width: 760px) {
+      .freight-item {
+        grid-template-columns: 1fr !important;
+      }
+      .freight-item-title,
+      .freight-item-spec-label,
+      .freight-item-quantity-label,
+      .freight-item-remove,
+      .item-material,
+      .freight-item .spec-grid {
+        grid-template-columns: 1fr !important;
+        grid-column: 1 !important;
+        grid-row: auto !important;
+        width: 100% !important;
+      }
+    }
+
+    .freight-item {
+      display: block !important;
+      padding: 18px !important;
+    }
+
+    .freight-item-head {
+      display: grid !important;
+      grid-template-columns: minmax(220px, 0.28fr) minmax(0, 1fr) 88px !important;
+      gap: 14px !important;
+      align-items: center !important;
+      margin-bottom: 16px !important;
+    }
+
+    .freight-item-title,
+    .freight-item-spec-label,
+    .freight-item-quantity-label {
+      min-height: auto !important;
+      display: flex !important;
+      align-items: center !important;
+      margin: 0 !important;
+      color: #1a1c1f !important;
+      font-size: 16px !important;
+      font-weight: 850 !important;
+      line-height: 1.2 !important;
+      white-space: nowrap !important;
+    }
+
+    .freight-item .item-material {
+      grid-column: 2 !important;
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 12px !important;
+      min-width: 0 !important;
+      background: transparent !important;
+      padding: 0 !important;
+    }
+
+    .freight-item .item-material .option span {
+      min-height: 42px !important;
+      height: 42px !important;
+      padding: 0 14px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 15px !important;
+      font-weight: 850 !important;
+    }
+
+    .freight-item-remove {
+      grid-column: 3 !important;
+      grid-row: auto !important;
+      align-self: center !important;
+      justify-self: stretch !important;
+      width: 88px !important;
+      min-height: 42px !important;
+    }
+
+    .freight-item-grid {
+      display: grid !important;
+      grid-template-columns: minmax(220px, 0.28fr) minmax(0, 1fr) !important;
+      gap: 14px !important;
+      align-items: end !important;
+    }
+
+    .freight-quantity-field,
+    .freight-spec-field {
+      min-width: 0 !important;
+    }
+
+    .freight-item .spec-grid {
+      grid-column: auto !important;
+      display: grid !important;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      gap: 12px !important;
+    }
+
+    .freight-item .spec-grid .option span {
+      min-height: 58px !important;
+      padding: 9px 12px !important;
+      justify-content: center !important;
+    }
+
+    .item-quantity {
+      grid-column: auto !important;
+      width: 100% !important;
+      min-height: 58px !important;
+      height: 58px !important;
+      font-size: 18px !important;
+      font-weight: 750 !important;
+    }
+
+    .freight-item-quantity-label,
+    .freight-item-spec-label {
+      margin-bottom: 8px !important;
+    }
+
+    @media (max-width: 900px) {
+      .freight-item-head,
+      .freight-item-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      .freight-item .item-material,
+      .freight-item-remove {
+        grid-column: 1 !important;
+      }
+
+      .freight-item-remove {
+        width: 100% !important;
+      }
+
+      .freight-item .spec-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
+</style>
+  <link rel="stylesheet" href="apple-ui.css?v=20260908-2">
+</head>
+<body class="apple-ui" data-page="freight-gold">
+  <main>
+    <div class="topbar">
+      <div>
+        <h1>鎏金板快速运费提交模版</h1>
+        <p class="subtitle">复制地址，选择材质、规格和数量，自动生成板材重量、托盘/木箱重量、DB 打包费和可复制咨询文本。</p>
+      </div>
+      <div class="status-pill">产品默认：鎏金板</div>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="panel-inner">
+          <div class="section-head">
+            <h2 class="section-title">填写信息</h2>
+            <button type="button" class="secondary clear-mini-button" id="resetFreightBtn">清空</button>
+          </div>
+
+          <label for="address">1. 地址</label>
+          <textarea id="address" placeholder="例如：辽宁省大连市甘井子区和硕园25-7"></textarea>
+
+          <label>2. 规格与数量</label>
+          <div class="freight-items" id="itemList"></div>
+          <div class="add-item-row">
+            <button type="button" class="secondary" id="addItemBtn">新增一组规格</button>
+          </div>
+
+          <div class="row quantity-product-row">
+            <div>
+              <label>产品</label>
+              <div class="metric">
+                <b>当前产品</b>
+                <strong>鎏金板</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="rules">
+            托盘规则：<code>6mm 10张以内</code> 或 <code>2mm 20张以内</code> 优先托盘；2440 长度用 2 米托盘，3000/3050 长度用 3 米托盘。超过托盘数量后，按可容纳片数选择最小木箱。
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-inner">
+          <h2 class="section-title">自动核算</h2>
+          <div class="summary">
+            <div class="metric">
+              <b>重量公式</b>
+              <strong id="weightLine">-</strong>
+            </div>
+            <div class="metric">
+              <b>包装</b>
+              <strong id="packageLine">-</strong>
+            </div>
+            <div class="metric">
+              <b>打包费</b>
+              <strong id="dbLine">-</strong>
+            </div>
+          </div>
+
+          <div id="result" class="result-box"></div>
+          <div class="actions">
+            <button type="button" class="success" id="copyBtn">复制运费咨询模板</button>
+            <button type="button" class="secondary" id="clearBtn">清空地址</button>
+          </div>
+          <div id="notice" class="notice"></div>
+
+          <div class="shunxin-section" id="shunxinSection">
+            <div class="shunxin-head">
+              <div class="shunxin-title">
+                <img class="shunxin-logo" src="assets/shunxin-jieda-logo.png" alt="顺心捷达">
+                <div>
+                  <div>顺心捷达自动报价</div>
+                  <div class="shunxin-subtitle">仅用于鎏金板，根据地址、重量、包装和官方报价表自动估算。</div>
+                </div>
+              </div>
+              <div class="shunxin-total" id="shunxinTotal">-</div>
+            </div>
+            <div class="shunxin-options">
+              <div class="shunxin-option-cell">
+                <label class="shunxin-option-label" for="shunxinDeclaredValue">货值总金额（元，可不填）</label>
+                <input id="shunxinDeclaredValue" type="number" min="0" step="0.01" inputmode="decimal" placeholder="不填按2000元以内，保费5元">
+              </div>
+              <div class="shunxin-option-cell">
+                <span class="shunxin-option-label">上门服务</span>
+                <label class="shunxin-upstairs-toggle">
+                  <input id="shunxinIncludeUpstairs" type="checkbox">
+                  <span>需要上门（默认不上门）</span>
+                </label>
+              </div>
+              <div class="shunxin-option-cell">
+                <span class="shunxin-option-label">保价费用</span>
+                <span class="shunxin-fee-badge" id="shunxinInsuranceFee">保费：5元</span>
+              </div>
+              <div class="shunxin-option-cell">
+                <span class="shunxin-option-label">上门费用</span>
+                <span class="shunxin-fee-badge" id="shunxinUpstairsFee">上门费：待计算</span>
+              </div>
+            </div>
+            <div class="shunxin-body">
+              <div class="shunxin-box" id="shunxinQuote">请填写地址和规格数量</div>
+              <div class="shunxin-process" id="shunxinProcess">自动显示计算过程</div>
+            </div>
+            <div class="shunxin-actions">
+              <button type="button" id="copyShunxinBtn">复制顺心捷达报价</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="shunxin-rates.js?v=20260815-1"></script>
+  <script src="freight-gold-core.js?v=20260824-1"></script>
+  <script>
+    const freightCore = window.GoldFreightCore;
+    const specs = freightCore.specs;
+
+    const state = {
+      items: [
+        { id: 1, material: "hard", specKey: "hard-2440", quantity: "" }
+      ],
+      nextItemId: 2
+    };
+
+    const els = {
+      address: document.querySelector("#address"),
+      itemList: document.querySelector("#itemList"),
+      addItemBtn: document.querySelector("#addItemBtn"),
+      result: document.querySelector("#result"),
+      notice: document.querySelector("#notice"),
+      weightLine: document.querySelector("#weightLine"),
+      packageLine: document.querySelector("#packageLine"),
+      dbLine: document.querySelector("#dbLine"),
+      copyBtn: document.querySelector("#copyBtn"),
+      clearBtn: document.querySelector("#clearBtn"),
+      resetFreightBtn: document.querySelector("#resetFreightBtn"),
+      shunxinDeclaredValue: document.querySelector("#shunxinDeclaredValue"),
+      shunxinIncludeUpstairs: document.querySelector("#shunxinIncludeUpstairs"),
+      shunxinInsuranceFee: document.querySelector("#shunxinInsuranceFee"),
+      shunxinUpstairsFee: document.querySelector("#shunxinUpstairsFee"),
+      shunxinTotal: document.querySelector("#shunxinTotal"),
+      shunxinQuote: document.querySelector("#shunxinQuote"),
+      shunxinProcess: document.querySelector("#shunxinProcess"),
+      copyShunxinBtn: document.querySelector("#copyShunxinBtn")
+    };
+
+    function renderItems() {
+      state.items.forEach((item) => {
+        item.material = item.material || "hard";
+        const currentSpecs = specs[item.material] || specs.hard;
+        if (!currentSpecs.some((spec) => spec.key === item.specKey)) {
+          item.specKey = currentSpecs[0].key;
+        }
+      });
+
+      els.itemList.innerHTML = state.items.map((item, index) => `
+        <div class="freight-item" data-item-id="${item.id}">
+          <div class="freight-item-head">
+            <div class="freight-item-title">明细 ${index + 1}</div>
+            <div class="item-material segmented">
+              <label class="option">
+                <input type="radio" name="material-${item.id}" value="hard" ${item.material === "hard" ? "checked" : ""}>
+                <span>硬质 6mm厚</span>
+              </label>
+              <label class="option">
+                <input type="radio" name="material-${item.id}" value="soft" ${item.material === "soft" ? "checked" : ""}>
+                <span>软质 2mm厚</span>
+              </label>
+            </div>
+            <button type="button" class="secondary freight-item-remove" ${state.items.length <= 1 ? "disabled" : ""}>删除</button>
+          </div>
+          <div class="freight-item-grid">
+            <div class="freight-quantity-field">
+              <div class="freight-item-quantity-label">数量</div>
+              <input id="quantity-${item.id}" class="item-quantity" type="number" min="1" step="1" value="${item.quantity}" placeholder="张数" inputmode="numeric">
+            </div>
+            <div class="freight-spec-field">
+              <div class="freight-item-spec-label">规格</div>
+              <div class="spec-grid">
+                ${(specs[item.material] || specs.hard).map((spec) => `
+                  <label class="option">
+                    <input type="radio" name="spec-${item.id}" value="${spec.key}" ${spec.key === item.specKey ? "checked" : ""}>
+                    <span>${spec.label}<small>单张 ${spec.unitWeight}KG</small></span>
+                  </label>
+                `).join("")}
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join("");
+
+      els.itemList.querySelectorAll(".freight-item").forEach((row) => {
+        const id = Number.parseInt(row.dataset.itemId, 10);
+        const item = state.items.find((entry) => entry.id === id);
+        row.querySelectorAll(`input[name="material-${id}"]`).forEach((input) => {
+          input.addEventListener("change", () => {
+            item.material = input.value;
+            item.specKey = specs[item.material][0].key;
+            renderItems();
+            calculate();
+          });
+        });
+        row.querySelectorAll(`input[name="spec-${id}"]`).forEach((input) => {
+          input.addEventListener("change", () => {
+            item.specKey = input.value;
+            calculate();
+          });
+        });
+        row.querySelector(".item-quantity").addEventListener("input", (event) => {
+          item.quantity = event.target.value;
+          calculate();
+        });
+        row.querySelector(".freight-item-remove").addEventListener("click", () => {
+          if (state.items.length <= 1) return;
+          state.items = state.items.filter((entry) => entry.id !== id);
+          renderItems();
+          calculate();
+        });
+      });
+    }
+
+    function addItem() {
+      state.items.push({
+        id: state.nextItemId,
+        material: "hard",
+        specKey: specs.hard[0].key,
+        quantity: ""
+      });
+      state.nextItemId += 1;
+      renderItems();
+      calculate();
+    }
+
+    function shipmentItems() {
+      return state.items.map((item) => {
+        const material = item.material || "hard";
+        const quantity = Number.parseInt(String(item.quantity).trim(), 10);
+        return { ...item, material, quantity };
+      });
+    }
+
+    function shunxinFeeLabel(label, value, suffix = "") {
+      if (!Number.isFinite(value)) return `${label}：待计算`;
+      const amount = Math.round((value + Number.EPSILON) * 100) / 100;
+      return `${label}：${amount}元${suffix}`;
+    }
+
+    function setShunxinResult(result = {}) {
+      els.shunxinTotal.textContent = result.totalText || "-";
+      els.shunxinQuote.textContent = result.quoteText || "请填写地址和规格数量";
+      els.shunxinProcess.textContent = result.processText || "自动显示计算过程";
+      els.shunxinInsuranceFee.textContent = shunxinFeeLabel("保费", result.insuranceFee);
+      els.shunxinUpstairsFee.textContent = shunxinFeeLabel("上门费", result.upstairsFee, els.shunxinIncludeUpstairs.checked ? "（已计入）" : "（未计入）");
+    }
+
+    function updateShunxinQuote({ address, totalWeight, pkg, weightLine, packageLine, dbLine, db }) {
+      const result = freightCore.buildShunxinQuote({
+        address,
+        totalWeight,
+        pkg,
+        weightLine,
+        packageLine,
+        dbLine,
+        db,
+        declaredValue: els.shunxinDeclaredValue.value,
+        includeUpstairsFee: els.shunxinIncludeUpstairs.checked
+      });
+      setShunxinResult(result);
+    }
+
+    function calculate() {
+      const allItems = shipmentItems();
+      const invalidItem = allItems.find((item) => String(item.quantity || "").trim() && (!Number.isFinite(item.quantity) || item.quantity <= 0));
+      if (invalidItem) {
+        els.weightLine.textContent = "-";
+        els.packageLine.textContent = "-";
+        els.dbLine.textContent = "-";
+        els.result.textContent = `${els.address.value.trim() || "请粘贴地址"}\n\n请输入大于 0 的数量`;
+        setShunxinResult({ quoteText: "请输入大于 0 的数量", processText: "需要先完成自动核算。" });
+        els.notice.textContent = "每一组规格的数量都需要填写大于 0 的整数。";
+        els.notice.className = "notice error";
+        return;
+      }
+
+      const shipment = freightCore.calculateShipment(allItems);
+      if (!shipment.ok && shipment.type === "empty") {
+        els.weightLine.textContent = "-";
+        els.packageLine.textContent = "-";
+        els.dbLine.textContent = "-";
+        els.result.textContent = `${els.address.value.trim() || "请粘贴地址"}\n\n请填写至少一组规格数量`;
+        setShunxinResult({ quoteText: "请填写至少一组规格数量", processText: "需要先完成自动核算。" });
+        els.notice.textContent = "可以新增多组规格；同一票发货会按总张数、最长规格统一核算包装。";
+        els.notice.className = "notice";
+        return;
+      }
+
+      if (!shipment.ok) {
+        const message = shipment.message || "请检查规格数量后再提交。";
+        els.result.textContent = message;
+        els.notice.textContent = message;
+        els.notice.className = "notice error";
+        els.weightLine.textContent = "-";
+        els.packageLine.textContent = shipment.type === "overflow" ? "需拆分" : "需确认";
+        els.dbLine.textContent = shipment.dbLine || "-";
+        setShunxinResult({ quoteText: message, processText: "需要先完成自动核算。" });
+        return;
+      }
+
+      const address = els.address.value.trim() || "请粘贴地址";
+      const template = `${address}\n\n${shipment.weightLine}\n${shipment.packageLine}\n${shipment.dbLine}`;
+
+      els.weightLine.innerHTML = `${shipment.weightLine}<span class="shipment-lines">${shipment.detailLine}</span>`;
+      els.packageLine.textContent = shipment.packageLine;
+      els.dbLine.textContent = shipment.dbLine;
+      els.result.textContent = template;
+      updateShunxinQuote({
+        address,
+        totalWeight: shipment.totalWeight,
+        pkg: shipment.pkg,
+        weightLine: shipment.weightLine,
+        packageLine: shipment.packageLine,
+        dbLine: shipment.dbLine,
+        db: shipment.db
+      });
+
+      els.notice.textContent = shipment.notice;
+      els.notice.className = "notice";
+    }
+
+    els.address.addEventListener("input", calculate);
+    els.shunxinDeclaredValue.addEventListener("input", calculate);
+    els.shunxinIncludeUpstairs.addEventListener("change", calculate);
+    els.addItemBtn.addEventListener("click", addItem);
+
+    els.clearBtn.addEventListener("click", () => {
+      els.address.value = "";
+      els.address.focus();
+      calculate();
+    });
+
+    els.resetFreightBtn.addEventListener("click", () => {
+      els.address.value = "";
+      els.shunxinDeclaredValue.value = "";
+      els.shunxinIncludeUpstairs.checked = false;
+      state.items = [
+        { id: 1, material: "hard", specKey: "hard-2440", quantity: "" }
+      ];
+      state.nextItemId = 2;
+      renderItems();
+      calculate();
+      els.address.focus();
+    });
+
+    els.copyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(els.result.textContent);
+        els.copyBtn.textContent = "已复制";
+        window.setTimeout(() => {
+          els.copyBtn.textContent = "复制运费咨询模板";
+        }, 1200);
+      } catch (error) {
+        const range = document.createRange();
+        range.selectNodeContents(els.result);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        els.copyBtn.textContent = "已选中，可手动复制";
+      }
+    });
+
+    els.copyShunxinBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(els.shunxinQuote.textContent);
+        els.copyShunxinBtn.textContent = "已复制";
+        window.setTimeout(() => {
+          els.copyShunxinBtn.textContent = "复制顺心捷达报价";
+        }, 1200);
+      } catch (error) {
+        const range = document.createRange();
+        range.selectNodeContents(els.shunxinQuote);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        els.copyShunxinBtn.textContent = "已选中，可手动复制";
+      }
+    });
+
+    function preventNumberInputWheelChange() {
+      document.addEventListener("wheel", (event) => {
+        const active = document.activeElement;
+        if (!(active instanceof HTMLInputElement) || active.type !== "number") return;
+        active.blur();
+        event.preventDefault();
+      }, { passive: false, capture: true });
+    }
+
+    preventNumberInputWheelChange();
+    renderItems();
+    calculate();
+  </script>
+</body>
+</html>

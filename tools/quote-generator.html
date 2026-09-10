@@ -1,0 +1,2715 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>文字报价</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f6f8;
+      --panel: #ffffff;
+      --ink: #1f2937;
+      --muted: #687385;
+      --line: #d9dee7;
+      --brand: #146c94;
+      --brand-dark: #0f506d;
+      --soft: #e9f4f8;
+      --warn: #9a5b00;
+      --radius: 8px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Microsoft YaHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+
+    main {
+      width: min(1440px, calc(100vw - 32px));
+      margin: 28px auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: 0;
+    }
+
+    .hint {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 28px rgba(20, 36, 55, 0.06);
+    }
+
+    .form {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .section {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .section.product-section {
+      grid-column: 1 / -1;
+    }
+
+    .section.fee-section {
+      grid-column: span 7;
+    }
+
+    .section.note-section {
+      grid-column: span 5;
+    }
+
+    .section:first-child {
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .section-title {
+      margin: 0 0 12px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .section-head .section-title {
+      margin: 0;
+    }
+
+    .section-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .clear-mini-button {
+      flex: 0 0 auto;
+      min-width: 96px;
+      min-height: 40px;
+      padding: 0 16px;
+      border-radius: 6px;
+      font-weight: 700;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid #c9d1dc;
+      border-radius: 6px;
+      padding: 9px 10px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(20, 108, 148, 0.14);
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    .quote-freight-panel {
+      overflow: hidden;
+    }
+
+    .quote-freight-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .quote-freight-inner {
+      display: grid;
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .quote-freight-inner textarea {
+      min-height: 92px;
+    }
+
+    .quote-freight-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .quote-freight-metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px;
+      min-height: 76px;
+    }
+
+    .quote-freight-metric b {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .quote-freight-metric strong {
+      display: block;
+      overflow-wrap: anywhere;
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    .freight-question-box {
+      min-height: 190px;
+      border-radius: 8px;
+      background: #171a1d;
+      color: #fff;
+      padding: 18px;
+      white-space: pre-wrap;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 15px;
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+    }
+
+    .freight-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .freight-actions button {
+      flex: 1 1 240px;
+    }
+
+    .shunxin-section {
+      overflow: hidden;
+      border: 1px solid #d9dee7;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .shunxin-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px;
+      border-bottom: 1px solid #d9dee7;
+      background: #f7f8fa;
+    }
+
+    .shunxin-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .shunxin-logo {
+      width: 116px;
+      height: 54px;
+      flex: 0 0 auto;
+      border-radius: 6px;
+      object-fit: contain;
+      background: #050505;
+    }
+
+    .shunxin-subtitle {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.45;
+    }
+
+    .shunxin-total {
+      flex: 0 0 auto;
+      color: #15181c;
+      font-size: 26px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .shunxin-options {
+      display: grid;
+      grid-template-columns: minmax(260px, 1.45fr) minmax(250px, 1.2fr) minmax(150px, 0.72fr) minmax(150px, 0.72fr);
+      align-items: stretch;
+      gap: 14px;
+      padding: 16px;
+      border-bottom: 1px solid #d9dee7;
+      background: #fcfcfc;
+    }
+
+    .shunxin-option-cell {
+      display: grid;
+      grid-template-rows: 18px 52px;
+      align-content: end;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .shunxin-option-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.35;
+      display: flex;
+      align-items: center;
+      height: 18px;
+      margin: 0;
+    }
+
+    .shunxin-upstairs-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      height: 52px;
+      min-height: 52px;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0 14px;
+      border: 1px solid #d9dee7;
+      border-radius: 8px;
+      background: #fff;
+      color: #1f2937;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .shunxin-upstairs-toggle input {
+      width: 18px;
+      height: 18px;
+      min-height: auto;
+      margin: 0;
+      padding: 0;
+      accent-color: #2563eb;
+    }
+
+    .shunxin-fee-badge {
+      min-width: 0;
+      height: 52px;
+      min-height: 52px;
+      box-sizing: border-box;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      border-radius: 8px;
+      background: #f7f8fa;
+      border: 1px solid #d9dee7;
+      color: #374151;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .shunxin-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(240px, 0.75fr);
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .shunxin-box,
+    .shunxin-process {
+      min-height: 190px;
+      border-radius: 8px;
+      padding: 18px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      line-height: 1.65;
+    }
+
+    .shunxin-box {
+      background: #171a1d;
+      color: #fff;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 15px;
+    }
+
+    .shunxin-process {
+      border: 1px solid #d9dee7;
+      background: #f7f8fa;
+      color: #485161;
+      font-size: 14px;
+    }
+
+    .shunxin-actions {
+      display: flex;
+      padding: 0 16px 16px;
+    }
+
+    .shunxin-actions button {
+      min-width: 240px;
+    }
+
+    #singleProductFields {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    #singleProductFields > .field,
+    #singleProductFields > .grid-2,
+    #singleProductFields > .spec-actions {
+      margin-bottom: 0;
+    }
+
+    #singleProductFields > .field:nth-child(1) {
+      grid-column: span 6;
+    }
+
+    #singleProductFields > .spec-actions {
+      grid-column: span 6;
+      align-self: end;
+    }
+
+    #singleProductFields > .field:nth-child(3) {
+      grid-column: span 4;
+    }
+
+    #singleProductFields > .grid-2 {
+      grid-column: span 8;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    #singleProductFields > .field:nth-child(5) {
+      grid-column: 1 / -1;
+    }
+
+    .inline {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 34px;
+    }
+
+    .inline input[type="checkbox"],
+    .inline input[type="radio"] {
+      width: 16px;
+      min-height: 16px;
+      margin: 0;
+      accent-color: var(--brand);
+    }
+
+    .inline label {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .toggle-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .extra-fee-inputs {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-top: 12px;
+    }
+
+    .toggle-row .inline {
+      flex: 1 1 240px;
+      border: 1px solid #d8e5ea;
+      border-radius: 8px;
+      background: #f7fbfd;
+      padding: 10px 12px;
+    }
+
+    .spec-actions {
+      display: none;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      padding: 10px;
+      margin-bottom: 12px;
+      border: 1px solid #cfe2ea;
+      border-radius: 6px;
+      background: var(--soft);
+    }
+
+    .spec-actions.show {
+      display: grid;
+    }
+
+    .radio-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .radio-pill {
+      position: relative;
+    }
+
+    .radio-pill input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .radio-pill span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      border: 1px solid #c9d1dc;
+      border-radius: 6px;
+      padding: 9px 10px;
+      background: #fff;
+      text-align: center;
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    .radio-pill input:checked + span {
+      border-color: var(--brand);
+      color: var(--brand-dark);
+      background: var(--soft);
+      font-weight: 700;
+    }
+
+    .pricing-mode {
+      grid-template-columns: repeat(2, 1fr);
+      margin-bottom: 0;
+    }
+
+    .shipment-mode {
+      grid-template-columns: repeat(2, 1fr);
+      margin-bottom: 12px;
+    }
+
+    .mode-panel {
+      border: 1px solid #cfe2ea;
+      border-radius: 8px;
+      background: #f7fbfd;
+      padding: 12px;
+    }
+
+    .mode-panel .inline {
+      min-height: 0;
+    }
+
+    .compact-mode-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      padding: 7px 11px;
+      border: 1px solid #cfe2ea;
+      border-radius: 999px;
+      background: #f7fbfd;
+      color: #344054;
+      white-space: nowrap;
+    }
+
+    .compact-mode-toggle input {
+      width: 15px;
+      min-height: 15px;
+      margin: 0;
+      accent-color: var(--brand);
+    }
+
+    .compact-mode-toggle label {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .product-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .product-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .product-card-title {
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .small-button {
+      min-height: 30px;
+      padding: 5px 9px;
+      font-size: 13px;
+      border-color: #c9d1dc;
+      background: #fff;
+      color: var(--brand-dark);
+    }
+
+    .calc-line {
+      padding: 10px;
+      border-radius: 6px;
+      background: #f7fafc;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    #multiCalcLine {
+      grid-column: span 5;
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+      min-height: 72px;
+    }
+
+    .calc-line strong {
+      color: var(--ink);
+    }
+
+    .preview-wrap {
+      overflow: hidden;
+    }
+
+    .preview-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcfd;
+    }
+
+    .preview-title {
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      gap: 8px;
+    }
+
+    button {
+      min-height: 38px;
+      border: 1px solid var(--brand);
+      border-radius: 6px;
+      padding: 8px 12px;
+      background: var(--brand);
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #fff;
+      color: var(--brand-dark);
+    }
+
+    button:hover {
+      filter: brightness(0.96);
+    }
+
+    .quote {
+      min-height: 420px;
+      padding: 24px 28px;
+      white-space: pre-wrap;
+      font-size: 17px;
+      line-height: 1.8;
+      outline: none;
+      cursor: text;
+    }
+
+    .quote:focus {
+      box-shadow: inset 0 0 0 3px rgba(20, 108, 148, 0.14);
+    }
+
+    .copy-state {
+      min-width: 62px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: left;
+      min-height: 18px;
+    }
+
+    .history-view {
+      display: none;
+    }
+
+    body.history-open .layout,
+    body.history-open header {
+      display: none;
+    }
+
+    body.history-open .history-view {
+      display: block;
+    }
+
+    .history-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .history-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px;
+    }
+
+    .history-item-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .history-title {
+      font-weight: 800;
+    }
+
+    .history-meta {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .history-preview {
+      color: #344054;
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      max-height: 78px;
+      overflow: hidden;
+      margin: 0 0 10px;
+    }
+
+    .warning {
+      color: var(--warn);
+      font-size: 13px;
+      margin-top: 7px;
+    }
+
+    @media (max-width: 860px) {
+      main {
+        width: min(100vw - 20px, 720px);
+        margin: 16px auto;
+      }
+
+      header,
+      .layout {
+        display: block;
+      }
+
+      .form {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .section.product-section,
+      .section.fee-section,
+      .section.note-section,
+      #multiCalcLine {
+        grid-column: 1 / -1;
+      }
+
+      .section-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .panel {
+        margin-bottom: 14px;
+      }
+
+      .section-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .quote-freight-head {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .quote-freight-summary {
+        grid-template-columns: 1fr;
+      }
+
+      .shunxin-head {
+        align-items: flex-start;
+      }
+
+      .shunxin-title {
+        align-items: flex-start;
+      }
+
+      .shunxin-logo {
+        width: 92px;
+        height: 44px;
+      }
+
+      .shunxin-total {
+        font-size: 20px;
+      }
+
+      .shunxin-options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .shunxin-body {
+        grid-template-columns: 1fr;
+      }
+
+      .shunxin-box,
+      .shunxin-process {
+        min-height: 150px;
+      }
+
+      .shunxin-actions button {
+        width: 100%;
+      }
+
+      .grid-2,
+      .radio-group,
+      #singleProductFields,
+      #singleProductFields > .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      #singleProductFields > .field:nth-child(1),
+      #singleProductFields > .spec-actions,
+      #singleProductFields > .field:nth-child(3),
+      #singleProductFields > .grid-2,
+      #singleProductFields > .field:nth-child(5) {
+        grid-column: 1 / -1;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      main {
+        width: auto;
+        margin: 0;
+      }
+
+      header,
+      .form {
+        display: none;
+      }
+
+      .layout {
+        display: block;
+      }
+
+      .panel {
+        border: 0;
+        box-shadow: none;
+      }
+
+      .preview-head {
+        display: none;
+      }
+
+      .quote {
+        padding: 0;
+        min-height: auto;
+      }
+    }
+
+    /* iPhone-style refinement shared by quote-related tools. */
+    :root {
+      --bg: #f5f6f8;
+      --panel: #ffffff;
+      --ink: #1f2937;
+      --muted: #687385;
+      --line: #d9dee7;
+      --brand: #146c94;
+      --brand-dark: #0f506d;
+      --soft: #e9f4f8;
+      --radius: 18px;
+    }
+
+    body {
+      background: var(--bg);
+    }
+
+    main {
+      width: min(1440px, calc(100vw - 40px));
+    }
+
+    .panel {
+      border-radius: 22px;
+      box-shadow: 0 18px 44px rgba(20, 36, 55, 0.08);
+    }
+
+    .form {
+      gap: 18px;
+      padding: 22px;
+    }
+
+    .section {
+      border-radius: 18px;
+      padding: 18px;
+      background: rgba(255, 255, 255, 0.96);
+    }
+
+    input,
+    select,
+    textarea {
+      min-height: 52px;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 16px;
+    }
+
+    .radio-pill span,
+    button,
+    .toggle-row .inline,
+    .compact-mode-toggle {
+      min-height: 52px;
+      border-radius: 16px;
+    }
+
+    #singleProductFields {
+      gap: 16px;
+      align-items: stretch;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    #singleProductFields > .field:nth-child(1),
+    #singleProductFields > .spec-actions {
+      grid-column: span 6;
+    }
+
+    #singleProductFields > .spec-actions {
+      display: grid;
+      align-content: start;
+      gap: 8px;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    #singleProductFields > .field:nth-child(1),
+    #singleProductFields > .spec-actions {
+      grid-template-rows: auto 52px;
+      align-self: start;
+    }
+
+    #singleProductFields > .field:nth-child(1) {
+      display: grid;
+      gap: 8px;
+    }
+
+    #singleProductFields > .field:nth-child(1) label,
+    #singleProductFields > .spec-actions label {
+      margin-bottom: 0;
+      line-height: 1.25;
+    }
+
+    #singleProductFields > .field:nth-child(3) {
+      grid-column: span 4;
+    }
+
+    #singleProductFields > .grid-2 {
+      grid-column: span 8;
+      gap: 16px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    #singleProductFields > .field:nth-child(5) {
+      grid-column: 1 / -1;
+    }
+
+    #singleProductFields .field {
+      margin-bottom: 0;
+    }
+
+    #singleProductFields > .field:nth-child(1) input,
+    #singleProductFields > .spec-actions select {
+      min-height: 52px;
+    }
+
+    .button-row {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        width: min(100% - 18px, 1440px);
+      }
+
+      #singleProductFields > .field:nth-child(1),
+      #singleProductFields > .spec-actions,
+      #singleProductFields > .field:nth-child(3),
+      #singleProductFields > .grid-2,
+      #singleProductFields > .field:nth-child(5) {
+        grid-column: 1 / -1;
+      }
+
+      #singleProductFields > .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .button-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  
+
+    /* Codex / ChatGPT unified tool theme. Keep one accent color only. */
+    :root {
+      color-scheme: light !important;
+      --bg: #ffffff !important;
+      --panel: #ffffff !important;
+      --surface: #f7f7f8 !important;
+      --surface-strong: #ececf1 !important;
+      --text: #1a1c1f !important;
+      --ink: #1a1c1f !important;
+      --muted: #6b7280 !important;
+      --line: #e5e5e5 !important;
+      --accent: #339cff !important;
+      --accent-soft: rgba(51, 156, 255, 0.12) !important;
+      --soft: rgba(51, 156, 255, 0.12) !important;
+      --gold: #339cff !important;
+      --warn: #339cff !important;
+      --aux: #339cff !important;
+      --shadow: 0 18px 44px rgba(0, 0, 0, 0.06) !important;
+      --system-gray: #f7f7f8 !important;
+      --system-gray-2: #ececf1 !important;
+    }
+    html,
+    body {
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif !important;
+      letter-spacing: 0 !important;
+      -webkit-font-smoothing: antialiased;
+    }
+    main,
+    .page,
+    .app,
+    .workspace,
+    .container {
+      background: #ffffff !important;
+    }
+    h1, h2, h3, h4,
+    .section-title,
+    .field-label,
+    label,
+    b,
+    strong {
+      color: #1a1c1f !important;
+      letter-spacing: 0 !important;
+    }
+    .subtitle,
+    .muted,
+    small,
+    .hint,
+    .desc {
+      color: #6b7280 !important;
+    }
+    .panel,
+    .panel-inner,
+    .card,
+    .product-card,
+    .payment-panel,
+    .freight-panel,
+    .order-panel,
+    .metric,
+    .total-field,
+    .notice,
+    .payment-deduction,
+    .freight-question,
+    .quote-card,
+    .result-panel,
+    .search-card,
+    .preview-card,
+    .input-card,
+    .output-card,
+    .tool-card,
+    .summary-card,
+    .concrete-extra-options,
+    .concrete-match-tools,
+    .ningbo-match-tools,
+    .unit-price-field,
+    .cement-label,
+    .readonly-pill {
+      background: #ffffff !important;
+      border-color: #e5e5e5 !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+    }
+    .panel,
+    .card,
+    .product-card,
+    .payment-panel,
+    .freight-panel,
+    .order-panel,
+    .result-panel,
+    .search-card,
+    .preview-card,
+    .input-card,
+    .output-card,
+    .tool-card,
+    .summary-card {
+      border-radius: 18px !important;
+    }
+    input,
+    select,
+    textarea {
+      background: #ffffff !important;
+      border: 1px solid #d9d9e3 !important;
+      border-radius: 14px !important;
+      color: #1a1c1f !important;
+      font-family: inherit !important;
+      box-shadow: none !important;
+    }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #339cff !important;
+      box-shadow: 0 0 0 4px rgba(51, 156, 255, 0.16) !important;
+      outline: none !important;
+    }
+    input::placeholder,
+    textarea::placeholder {
+      color: #9ca3af !important;
+    }
+    button,
+    .button,
+    .btn,
+    .tool-button,
+    .action-button,
+    .copy-button {
+      border-radius: 14px !important;
+      border: 1px solid #d9d9e3 !important;
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+      font-family: inherit !important;
+      font-weight: 650 !important;
+    }
+    button.primary,
+    button:not(.secondary):not(.ghost),
+    #copyBtn,
+    #copyFreightQuestionBtn,
+    .result-actions button,
+    .freight-actions button,
+    .actions button:first-child {
+      background: #1a1c1f !important;
+      border-color: #1a1c1f !important;
+      color: #ffffff !important;
+    }
+    .suggestions,
+    .ningbo-suggestions,
+    .search-suggestions,
+    .autocomplete,
+    .dropdown,
+    .dropdown-menu {
+      background: #ffffff !important;
+      border: 1px solid #d9d9e3 !important;
+      color: #1a1c1f !important;
+      box-shadow: 0 16px 38px rgba(0, 0, 0, 0.12) !important;
+    }
+    .product,
+    button.product,
+    button.product:not(.secondary):not(.ghost),
+    .suggestion,
+    .suggestion:not(.secondary):not(.ghost),
+    button.suggestion,
+    button.suggestion:not(.secondary):not(.ghost),
+    .suggestion-item,
+    .suggestion-item:not(.secondary):not(.ghost),
+    button.suggestion-item,
+    button.suggestion-item:not(.secondary):not(.ghost),
+    .ningbo-suggestion-item,
+    .ningbo-suggestion-item:not(.secondary):not(.ghost),
+    button.ningbo-suggestion-item,
+    button.ningbo-suggestion-item:not(.secondary):not(.ghost),
+    .search-result,
+    .search-result:not(.secondary):not(.ghost),
+    button.search-result,
+    button.search-result:not(.secondary):not(.ghost),
+    .result-item,
+    .result-item:not(.secondary):not(.ghost),
+    button.result-item,
+    button.result-item:not(.secondary):not(.ghost) {
+      background: #ffffff !important;
+      border: 1px solid #e5e5e5 !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+      text-align: left !important;
+    }
+    .product.active,
+    button.product.active,
+    button.product.active:not(.secondary):not(.ghost) {
+      background: rgba(51, 156, 255, 0.10) !important;
+      border-color: rgba(51, 156, 255, 0.72) !important;
+      color: #1a1c1f !important;
+      box-shadow: 0 0 0 4px rgba(51, 156, 255, 0.14) !important;
+    }
+    .product-name,
+    .product .product-name,
+    button.product .product-name {
+      color: #1a1c1f !important;
+    }
+    .product-meta,
+    .product .product-meta,
+    button.product .product-meta,
+    .product-meta span,
+    .product .product-meta span,
+    button.product .product-meta span {
+      color: #6b7280 !important;
+    }
+    .suggestion strong,
+    .suggestion-item strong,
+    .ningbo-suggestion-item strong,
+    .search-result strong,
+    .result-item strong {
+      color: #1a1c1f !important;
+    }
+    .suggestion span,
+    .suggestion-item span,
+    .ningbo-suggestion-item span,
+    .search-result span,
+    .result-item span {
+      color: #6b7280 !important;
+    }
+    .product:hover,
+    .product:focus,
+    .suggestion:hover,
+    .suggestion:focus,
+    .suggestion-item:hover,
+    .suggestion-item:focus,
+    .ningbo-suggestion-item:hover,
+    .ningbo-suggestion-item:focus,
+    .search-result:hover,
+    .search-result:focus,
+    .result-item:hover,
+    .result-item:focus {
+      background: rgba(51, 156, 255, 0.10) !important;
+      border-color: rgba(51, 156, 255, 0.55) !important;
+      color: #1a1c1f !important;
+    }
+    button.secondary,
+    .secondary,
+    .ghost {
+      background: #f7f7f8 !important;
+      border-color: #e5e5e5 !important;
+      color: #1a1c1f !important;
+    }
+    .option span,
+    .checkline,
+    .pill,
+    .chip,
+    .tag,
+    .preset,
+    .tab,
+    .segment,
+    .quick-chip {
+      background: #ffffff !important;
+      border-color: #d9d9e3 !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+    }
+    .option input:checked + span,
+    .checkline:has(input:checked),
+    .option.default-option input:checked + span,
+    .option.default-option span,
+    .active,
+    .selected,
+    .is-active,
+    .chip.active,
+    .tab.active,
+    .segment.active {
+      background: rgba(51, 156, 255, 0.12) !important;
+      border-color: #339cff !important;
+      color: #1a1c1f !important;
+      box-shadow: inset 0 0 0 1px rgba(51, 156, 255, 0.22) !important;
+    }
+    .product-suggest-field {
+      position: relative;
+    }
+    .quote-suggestions {
+      position: absolute;
+      z-index: 30;
+      left: 0;
+      right: 0;
+      top: calc(100% + 6px);
+      max-height: 360px;
+      overflow: auto;
+      border-radius: 14px;
+    }
+    button.quote-suggestion-item,
+    button.quote-suggestion-item:not(.secondary):not(.ghost) {
+      display: block;
+      width: 100%;
+      min-height: 58px;
+      padding: 12px 14px;
+      border: 0 !important;
+      border-bottom: 1px solid #e5e5e5 !important;
+      border-radius: 0 !important;
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      text-align: left !important;
+      cursor: pointer;
+      box-shadow: none !important;
+    }
+    button.quote-suggestion-item:last-child {
+      border-bottom: 0 !important;
+    }
+    .quote-suggestion-item strong,
+    .quote-suggestion-item span {
+      display: block;
+    }
+    .quote-suggestion-item strong {
+      font-size: 15px;
+      line-height: 1.25;
+      font-weight: 800;
+      color: #1a1c1f !important;
+    }
+    .quote-suggestion-item span {
+      margin-top: 4px;
+      color: #6b7280 !important;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .notice,
+    .payment-deduction,
+    .total-field {
+      background: #f7f7f8 !important;
+      border-color: #e5e5e5 !important;
+      color: #1a1c1f !important;
+    }
+    .total-field {
+      background: rgba(51, 156, 255, 0.18) !important;
+      border: 2px solid #339cff !important;
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.58),
+        0 10px 30px rgba(51, 156, 255, 0.16) !important;
+    }
+    .total-field .field-label {
+      color: #1a1c1f !important;
+      font-weight: 850 !important;
+      font-size: 17px !important;
+    }
+    .total-field input {
+      background: rgba(255, 255, 255, 0.94) !important;
+      border: 2px solid rgba(51, 156, 255, 0.72) !important;
+      color: #1a1c1f !important;
+      font-size: 28px !important;
+      font-weight: 900 !important;
+      box-shadow: 0 0 0 4px rgba(51, 156, 255, 0.08) !important;
+    }
+    .result-box,
+    .freight-question-box,
+    pre,
+    code,
+    .code,
+    .output,
+    .preview-output {
+      background: #1a1c1f !important;
+      color: #ffffff !important;
+      border-color: #1a1c1f !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
+    .freight-question-box {
+      background: #f7f7f8 !important;
+      color: #1a1c1f !important;
+      border-color: #e5e5e5 !important;
+      font-family: inherit !important;
+    }
+    .segmented {
+      background: #f7f7f8 !important;
+      border: 0 !important;
+      border-radius: 15px !important;
+      padding: 3px !important;
+      gap: 3px !important;
+      overflow: visible !important;
+      box-shadow: none !important;
+    }
+    .segmented button {
+      min-height: 38px !important;
+      border: 0 !important;
+      border-radius: 12px !important;
+      background: transparent !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+      font-weight: 650 !important;
+    }
+    .segmented button.active {
+      background: #1a1c1f !important;
+      color: #ffffff !important;
+      box-shadow: none !important;
+    }
+    .segmented.three {
+      gap: 3px !important;
+    }
+    .toolbar button:not(.primary) {
+      background: #f7f7f8 !important;
+      color: #1a1c1f !important;
+      border-color: #e5e5e5 !important;
+    }
+    .concrete-fee-list {
+      display: grid !important;
+      gap: 14px !important;
+      margin-bottom: 16px !important;
+    }
+    .concrete-fee-row {
+      display: grid !important;
+      grid-template-columns: minmax(280px, 1fr) minmax(180px, 0.6fr) 104px !important;
+      gap: 14px !important;
+      align-items: end !important;
+    }
+    .concrete-fee-row > div {
+      min-width: 0 !important;
+    }
+    .concrete-promo-delete {
+      min-height: 46px !important;
+      width: 104px !important;
+    }
+    #addConcretePromoBtn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      min-height: 46px !important;
+      min-width: 150px !important;
+      margin-top: 2px !important;
+    }
+    #addConcretePromoBtn + .hint {
+      display: block !important;
+      margin-top: 14px !important;
+      clear: both !important;
+    }
+    @media (max-width: 760px) {
+      .concrete-fee-row {
+        grid-template-columns: 1fr !important;
+      }
+      .concrete-promo-delete,
+      #addConcretePromoBtn {
+        width: 100% !important;
+      }
+    }
+    header {
+      background: transparent !important;
+      border-color: transparent !important;
+      color: #1a1c1f !important;
+    }
+    header h1,
+    .topbar h1,
+    main > h1 {
+      font-size: clamp(30px, 3.5vw, 42px) !important;
+      line-height: 1.08 !important;
+      font-weight: 800 !important;
+      color: #1a1c1f !important;
+    }
+    header .hint,
+    header p,
+    header small,
+    .topbar .subtitle {
+      color: #6b7280 !important;
+    }
+    @media (max-width: 760px) {
+      header h1,
+      .topbar h1,
+      main > h1 {
+        font-size: 26px !important;
+      }
+    }
+    header input,
+    header select {
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      border-color: #d9d9e3 !important;
+    }
+    .stage {
+      background: #f7f7f8 !important;
+      border-color: #d9d9e3 !important;
+    }
+    .plate,
+    .hole {
+      stroke: #1a1c1f !important;
+    }
+    .dim {
+      stroke: #1a1c1f !important;
+    }
+    .dimText,
+    .smallText {
+      fill: #1a1c1f !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
+    svg,
+    canvas {
+      color: #1a1c1f !important;
+    }
+    * {
+      text-shadow: none !important;
+      letter-spacing: 0 !important;
+    }
+
+    #noteExtra {
+      min-height: 260px !important;
+      height: 260px !important;
+      resize: vertical !important;
+      line-height: 1.55 !important;
+    }
+    .note-section .field {
+      min-height: 0 !important;
+    }
+
+</style>
+  <link rel="stylesheet" href="apple-ui.css?v=20260908-2">
+</head>
+<body class="apple-ui" data-page="quote-generator">
+  <main>
+    <header>
+      <div>
+        <h1>文字报价</h1>
+        <p class="hint">上方填写报价信息，下方自动生成可复制报价文字。</p>
+      </div>
+      <div class="hint">材料费取整：小数第一位 0-3 舍，4-9 入。</div>
+    </header>
+
+    <div class="layout">
+      <section class="panel form" aria-label="报价填写区">
+        <div class="section product-section">
+          <div class="section-head">
+            <p class="section-title">产品信息</p>
+            <div class="section-actions">
+              <button id="clearQuoteTopBtn" class="secondary clear-mini-button" type="button">清空</button>
+              <div class="compact-mode-toggle">
+                <input id="multiMode" type="checkbox">
+                <label for="multiMode">多产品报价</label>
+              </div>
+            </div>
+          </div>
+          <div id="singleProductFields">
+            <div class="field product-suggest-field">
+            <label for="product">产品</label>
+            <input id="product" value="" placeholder="例如：白锈鎏金板">
+            <div id="productSuggestions" class="quote-suggestions hidden"></div>
+            </div>
+
+            <div id="liujinSpecs" class="spec-actions">
+            <label for="quickSpec">快捷规格</label>
+            <select id="quickSpec">
+              <option value="">请选择或手动填写</option>
+              <option>硬质-1220*2440*6mm</option>
+              <option selected>硬质-1220*3050*6mm</option>
+              <option>软质-1200*2440*2~3mm</option>
+              <option>软质-1200*3000*2~3mm</option>
+            </select>
+            </div>
+
+            <div class="field">
+            <label>计价方式</label>
+            <div class="radio-group pricing-mode">
+              <label class="radio-pill">
+                <input name="pricingMode" type="radio" value="area" checked>
+                <span>按平方</span>
+              </label>
+              <label class="radio-pill">
+                <input name="pricingMode" type="radio" value="sheet">
+                <span>按张</span>
+              </label>
+            </div>
+            </div>
+
+            <div class="grid-2">
+            <div class="field">
+              <label for="quantity">数量（张）</label>
+              <input id="quantity" type="number" min="1" step="1" value="3">
+            </div>
+            <div class="field">
+              <label id="originalPriceLabel" for="originalPrice">原价（元/平方，可不填）</label>
+              <input id="originalPrice" type="number" min="0" step="0.01" placeholder="不填则不显示">
+            </div>
+            <div class="field">
+              <label id="unitPriceLabel" for="unitPrice">折扣优惠价（元/平方）</label>
+              <input id="unitPrice" type="number" min="0" step="0.01" placeholder="请手动填写优惠价">
+            </div>
+            </div>
+
+            <div class="field">
+            <label for="spec">规格</label>
+            <input id="spec" value="硬质-1220*3050*6mm" placeholder="例如：硬质-1220*3050*6mm 或 1220*3050">
+            <div id="specTip" class="warning"></div>
+            </div>
+          </div>
+
+          <div id="multiProductFields" class="hidden">
+            <div class="field">
+              <label>发货方式</label>
+              <div class="radio-group shipment-mode">
+                <label class="radio-pill">
+                  <input name="shipmentMode" type="radio" value="same" checked>
+                  <span>同一个仓库发货</span>
+                </label>
+                <label class="radio-pill">
+                  <input name="shipmentMode" type="radio" value="different">
+                  <span>不同仓库发货</span>
+                </label>
+              </div>
+            </div>
+
+            <div id="multiProducts"></div>
+            <button id="addProduct" class="secondary" type="button">新增产品</button>
+
+            <div id="sameWarehouseFees" class="mode-panel" style="margin-top: 14px;">
+              <p class="section-title">同仓费用</p>
+              <div class="grid-2">
+                <div class="field">
+                  <label for="multiBoxFee">木箱（元）</label>
+                  <input id="multiBoxFee" type="number" min="0" step="1" value="300">
+                </div>
+                <div class="field">
+                  <label for="multiFreightFee">运费（元）</label>
+                  <input id="multiFreightFee" type="number" min="0" step="1" value="0">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="singleFees" class="section fee-section">
+          <p class="section-title">费用</p>
+          <div id="singleFeeInputs" class="grid-2">
+            <div class="field">
+              <label for="boxFee">木箱（元）</label>
+              <input id="boxFee" type="number" min="0" step="1" value="300">
+            </div>
+            <div class="field">
+              <label for="freightFee">运费（元）</label>
+              <input id="freightFee" type="number" min="0" step="1" value="0">
+            </div>
+          </div>
+
+          <div class="grid-2 extra-fee-inputs">
+            <div class="field">
+              <label for="processingFee">加工费（元）</label>
+              <input id="processingFee" type="number" min="0" step="1" value="0" placeholder="不填为 0">
+            </div>
+            <div class="field">
+              <label for="accessoryFee">辅料费（元）</label>
+              <input id="accessoryFee" type="number" min="0" step="1" value="0" placeholder="不填为 0">
+            </div>
+            <div class="field">
+              <label for="manualTaxFee">税金（元，手填金额优先计入）</label>
+              <input id="manualTaxFee" type="number" min="0" step="1" value="0" placeholder="不填则按税率">
+            </div>
+          </div>
+
+          <div class="toggle-row">
+            <div id="includeFreightRow" class="inline">
+              <input id="includeFreight" type="checkbox">
+              <label for="includeFreight">报价含运费（运费大于 0 自动）</label>
+            </div>
+            <div class="inline">
+              <input id="includeTax" type="checkbox">
+              <label for="includeTax">按税率自动计税（手填税金优先）</label>
+            </div>
+          </div>
+
+          <div id="taxBox" class="field" hidden>
+            <label>税率</label>
+            <div class="radio-group">
+              <label class="radio-pill">
+                <input name="taxType" type="radio" value="10" checked>
+                <span>专票 10%</span>
+              </label>
+              <label class="radio-pill">
+                <input name="taxType" type="radio" value="3">
+                <span>普票 3%</span>
+              </label>
+              <label class="radio-pill">
+                <input name="taxType" type="radio" value="custom">
+                <span>自定义</span>
+              </label>
+            </div>
+            <div class="field" style="margin-top: 10px;">
+              <label for="customTax">自定义税率（%）</label>
+              <input id="customTax" type="number" min="0" step="0.01" value="10">
+            </div>
+          </div>
+
+          <div id="calcLine" class="calc-line"></div>
+        </div>
+
+        <div id="multiCalcLine" class="calc-line hidden"></div>
+
+        <div class="section note-section">
+          <p class="section-title">备注</p>
+          <div class="field">
+            <label for="noteExtra">额外备注（可不填）</label>
+            <textarea id="noteExtra" placeholder="这里写额外说明，会追加到报价单最后。"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel preview-wrap" aria-label="报价预览区">
+        <div class="preview-head">
+          <div>
+            <div class="preview-title">文字报价预览</div>
+            <div id="copyState" class="copy-state"></div>
+          </div>
+          <div class="button-row">
+            <button id="copyBtn" type="button">复制报价</button>
+            <button id="historyBtn" class="secondary" type="button">历史记录</button>
+            <button id="resetBtn" class="secondary" type="button">重置选项</button>
+            <button id="resumeQuoteAuto" class="secondary" type="button" hidden>恢复自动生成</button>
+          </div>
+        </div>
+        <p id="quoteEditStatus" class="hint" hidden>正文已手动编辑，表单修改暂不覆盖正文；复制前请核对金额，或点击“恢复自动生成”。</p>
+        <div id="quote" class="quote" contenteditable="true" spellcheck="false" aria-label="可编辑报价单正文"></div>
+      </section>
+
+      <section class="panel quote-freight-panel" aria-label="鎏金板运费快速提问">
+        <div class="quote-freight-head">
+          <div>
+            <div class="preview-title">鎏金板运费快速提问</div>
+            <p class="hint">只识别鎏金板产品；根据上方规格和数量自动生成运费提交模板。</p>
+          </div>
+          <button id="clearQuoteFreightBtn" class="secondary clear-mini-button" type="button">清空</button>
+        </div>
+        <div class="quote-freight-inner">
+          <div class="field">
+            <label for="quoteFreightAddress">1. 地址</label>
+            <textarea id="quoteFreightAddress" placeholder="例如：辽宁省大连市甘井子区和硕园25-7"></textarea>
+          </div>
+          <div class="quote-freight-summary">
+            <div class="quote-freight-metric">
+              <b>重量公式</b>
+              <strong id="quoteFreightWeight">-</strong>
+            </div>
+            <div class="quote-freight-metric">
+              <b>包装</b>
+              <strong id="quoteFreightPackage">-</strong>
+            </div>
+            <div class="quote-freight-metric">
+              <b>打包费</b>
+              <strong id="quoteFreightDb">-</strong>
+            </div>
+          </div>
+          <div id="quoteFreightBox" class="freight-question-box">请填写鎏金板产品、规格、数量和地址。</div>
+          <div class="freight-actions">
+            <button id="copyQuoteFreightBtn" type="button">复制运费提问</button>
+          </div>
+          <div id="quoteFreightNotice" class="calc-line">会跟随上方鎏金板报价自动更新。</div>
+        </div>
+      </section>
+
+      <section class="shunxin-section" id="quoteShunxinSection" aria-label="顺心捷达自动报价">
+        <div class="shunxin-head">
+          <div class="shunxin-title">
+            <img class="shunxin-logo" src="assets/shunxin-jieda-logo.png" alt="顺心捷达">
+            <div>
+              <div>顺心捷达自动报价</div>
+              <div class="shunxin-subtitle">仅用于鎏金板，根据上方规格、数量、地址和官方报价表自动估算。</div>
+            </div>
+          </div>
+          <div class="shunxin-total" id="quoteShunxinTotal">-</div>
+        </div>
+        <div class="shunxin-options">
+          <div class="shunxin-option-cell">
+            <span class="shunxin-option-label">货值来源</span>
+            <span class="shunxin-fee-badge">保价金额自动读取报价总计</span>
+          </div>
+          <div class="shunxin-option-cell">
+            <span class="shunxin-option-label">上门服务</span>
+            <label class="shunxin-upstairs-toggle">
+              <input id="quoteShunxinIncludeUpstairs" type="checkbox">
+              <span>需要上门（默认不上门）</span>
+            </label>
+          </div>
+          <div class="shunxin-option-cell">
+            <span class="shunxin-option-label">保价费用</span>
+            <span class="shunxin-fee-badge" id="quoteShunxinInsuranceFee">保费：待计算</span>
+          </div>
+          <div class="shunxin-option-cell">
+            <span class="shunxin-option-label">上门费用</span>
+            <span class="shunxin-fee-badge" id="quoteShunxinUpstairsFee">上门费：待计算</span>
+          </div>
+        </div>
+        <div class="shunxin-body">
+          <div class="shunxin-box" id="quoteShunxinQuote">请填写鎏金板产品、规格、数量和地址</div>
+          <div class="shunxin-process" id="quoteShunxinProcess">自动显示计算过程</div>
+        </div>
+        <div class="shunxin-actions">
+          <button type="button" id="copyQuoteShunxinBtn">复制顺心捷达报价</button>
+        </div>
+      </section>
+    </div>
+
+    <section id="historyView" class="history-view">
+      <div class="history-head">
+        <div>
+          <h1>报价历史记录</h1>
+          <p class="hint">自动保留最近 40 条生成记录，点击载入后回到文字报价界面。</p>
+        </div>
+        <button id="backToQuote" class="secondary" type="button">返回文字报价界面</button>
+      </div>
+      <div id="historyList" class="history-list"></div>
+    </section>
+  </main>
+
+  <script src="product-data.js?v=20260905-1"></script>
+  <script src="shunxin-rates.js?v=20260815-1"></script>
+  <script src="freight-gold-core.js?v=20260824-1"></script>
+  <script>
+    const els = {
+      multiMode: document.querySelector("#multiMode"),
+      singleProductFields: document.querySelector("#singleProductFields"),
+      multiProductFields: document.querySelector("#multiProductFields"),
+      singleFees: document.querySelector("#singleFees"),
+      singleFeeInputs: document.querySelector("#singleFeeInputs"),
+      includeFreightRow: document.querySelector("#includeFreightRow"),
+      sameWarehouseFees: document.querySelector("#sameWarehouseFees"),
+      multiProducts: document.querySelector("#multiProducts"),
+      multiBoxFee: document.querySelector("#multiBoxFee"),
+      multiFreightFee: document.querySelector("#multiFreightFee"),
+      multiCalcLine: document.querySelector("#multiCalcLine"),
+      addProduct: document.querySelector("#addProduct"),
+      clearQuoteTopBtn: document.querySelector("#clearQuoteTopBtn"),
+      product: document.querySelector("#product"),
+      productSuggestions: document.querySelector("#productSuggestions"),
+      quickSpec: document.querySelector("#quickSpec"),
+      liujinSpecs: document.querySelector("#liujinSpecs"),
+      pricingMode: () => document.querySelector('input[name="pricingMode"]:checked')?.value || "area",
+      shipmentMode: () => document.querySelector('input[name="shipmentMode"]:checked')?.value || "same",
+      originalPriceLabel: document.querySelector("#originalPriceLabel"),
+      originalPrice: document.querySelector("#originalPrice"),
+      unitPriceLabel: document.querySelector("#unitPriceLabel"),
+      quantity: document.querySelector("#quantity"),
+      unitPrice: document.querySelector("#unitPrice"),
+      spec: document.querySelector("#spec"),
+      specTip: document.querySelector("#specTip"),
+      boxFee: document.querySelector("#boxFee"),
+      freightFee: document.querySelector("#freightFee"),
+      processingFee: document.querySelector("#processingFee"),
+      accessoryFee: document.querySelector("#accessoryFee"),
+      manualTaxFee: document.querySelector("#manualTaxFee"),
+      includeFreight: document.querySelector("#includeFreight"),
+      includeTax: document.querySelector("#includeTax"),
+      taxBox: document.querySelector("#taxBox"),
+      customTax: document.querySelector("#customTax"),
+      calcLine: document.querySelector("#calcLine"),
+      noteExtra: document.querySelector("#noteExtra"),
+      quote: document.querySelector("#quote"),
+      copyBtn: document.querySelector("#copyBtn"),
+      historyBtn: document.querySelector("#historyBtn"),
+      resetBtn: document.querySelector("#resetBtn"),
+      copyState: document.querySelector("#copyState"),
+      quoteFreightAddress: document.querySelector("#quoteFreightAddress"),
+      quoteFreightWeight: document.querySelector("#quoteFreightWeight"),
+      quoteFreightPackage: document.querySelector("#quoteFreightPackage"),
+      quoteFreightDb: document.querySelector("#quoteFreightDb"),
+      quoteFreightBox: document.querySelector("#quoteFreightBox"),
+      quoteFreightNotice: document.querySelector("#quoteFreightNotice"),
+      copyQuoteFreightBtn: document.querySelector("#copyQuoteFreightBtn"),
+      clearQuoteFreightBtn: document.querySelector("#clearQuoteFreightBtn"),
+      quoteShunxinSection: document.querySelector("#quoteShunxinSection"),
+      quoteShunxinIncludeUpstairs: document.querySelector("#quoteShunxinIncludeUpstairs"),
+      quoteShunxinInsuranceFee: document.querySelector("#quoteShunxinInsuranceFee"),
+      quoteShunxinUpstairsFee: document.querySelector("#quoteShunxinUpstairsFee"),
+      quoteShunxinTotal: document.querySelector("#quoteShunxinTotal"),
+      quoteShunxinQuote: document.querySelector("#quoteShunxinQuote"),
+      quoteShunxinProcess: document.querySelector("#quoteShunxinProcess"),
+      copyQuoteShunxinBtn: document.querySelector("#copyQuoteShunxinBtn"),
+      historyView: document.querySelector("#historyView"),
+      historyList: document.querySelector("#historyList"),
+      backToQuote: document.querySelector("#backToQuote"),
+    };
+
+    const historyKey = "jiege.quote.history.v1";
+    const productData = window.JieGeProductData;
+    const liujinSpecOptions = productData.liujinSpecs.filter((item) => item.value !== "hard-600").map((item) => item.label);
+    const ningboProductCatalog = productData.groupedNingboCatalog();
+    const ningboProductVariantsCatalog = productData.ningboProductCatalog;
+    let currentQuoteTotal = 0;
+
+    function money(value) {
+      const num = Number(value);
+      return Number.isFinite(num) ? num : 0;
+    }
+
+    function sanSheSiRu(value) {
+      if (!Number.isFinite(value)) return 0;
+      const floor = Math.floor(value);
+      const firstDecimal = Math.floor((value - floor) * 10 + 1e-8);
+      return firstDecimal <= 3 ? floor : floor + 1;
+    }
+
+    function parseSpec(text) {
+      const normalized = String(text).replace(/×/g, "*").replace(/[xX]/g, "*").replace(/\s/g, "");
+      const match = normalized.match(/(\d+(?:\.\d+)?)\*(\d+(?:\.\d+)?)/);
+      if (!match) return null;
+      let width = Number(match[1]);
+      let height = Number(match[2]);
+      if (!Number.isFinite(width) || !Number.isFinite(height)) return null;
+      if (width > 20) width = width / 1000;
+      if (height > 20) height = height / 1000;
+      return { width, height };
+    }
+
+    function formatSpecForQuote(text) {
+      const value = String(text).trim();
+      if (!value) return "";
+      const compact = value.replace(/×/g, "*").replace(/[xX]/g, "*").replace(/\s/g, "").replace(/(?:毫米|mm)+$/i, "mm");
+      const match = compact.match(/(\d+(?:\.\d+)?)\*(\d+(?:\.\d+)?)/);
+      const hasMm = /mm$/i.test(compact);
+      const looksLikeMillimeters = match && (Number(match[1]) > 20 || Number(match[2]) > 20);
+      if (hasMm || !looksLikeMillimeters) return compact;
+      return `${compact}mm`;
+    }
+
+    function normalizeLookupText(value) {
+      return String(value || "").replace(/\s+/g, "").toLowerCase();
+    }
+
+    function formatNingboSpecNumber(value) {
+      const num = Number(value);
+      if (!Number.isFinite(num)) return String(value || "").trim();
+      return Number.isInteger(num) ? String(num) : String(num).replace(/\.?0+$/, "");
+    }
+
+    function formatNingboSpec(spec) {
+      const raw = String(spec || "").trim();
+      if (!raw) return "";
+      const clean = raw.replace(/\s+/g, "").replace(/[xX×]/g, "*").replace(/mm$/i, "");
+      const parts = clean.split("*").filter(Boolean);
+      const nums = parts.map((part) => Number(part));
+      if (parts.length >= 2 && Number.isFinite(nums[0]) && Number.isFinite(nums[1])) {
+        let first = nums[0];
+        let second = nums[1];
+        const isSmallPanel = (first === 1200 && second === 600) || (first === 600 && second === 1200);
+        if (isSmallPanel) {
+          first = 1200;
+          second = 600;
+        } else if (first > second) {
+          [first, second] = [second, first];
+        }
+        const rest = parts.slice(2).map(formatNingboSpecNumber);
+        return `${formatNingboSpecNumber(first)}*${formatNingboSpecNumber(second)}${rest.length ? `*${rest.join("*")}` : ""}mm`;
+      }
+      return `${clean}mm`;
+    }
+
+    function uniqueNingboProducts(items) {
+      const seen = new Set();
+      return items.filter((item) => {
+        const key = normalizeLookupText(item.name);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function ningboProductMatches(value) {
+      const keyword = normalizeLookupText(value);
+      if (!keyword) return [];
+      const exact = ningboProductCatalog.filter((item) => normalizeLookupText(item.name) === keyword);
+      if (exact.length) return uniqueNingboProducts(exact);
+      return uniqueNingboProducts(ningboProductCatalog.filter((item) =>
+        normalizeLookupText(item.name).includes(keyword) || keyword.includes(normalizeLookupText(item.name))
+      ));
+    }
+
+    function findNingboProduct(value) {
+      const keyword = normalizeLookupText(value);
+      if (!keyword) return null;
+      return ningboProductCatalog.find((item) => normalizeLookupText(item.name) === keyword) || null;
+    }
+
+    function ningboProductVariants(product) {
+      if (!product) return [];
+      const key = normalizeLookupText(product.name);
+      return ningboProductVariantsCatalog.filter((item) => normalizeLookupText(item.name) === key);
+    }
+
+    function ningboSpecsForProduct(product) {
+      return [...new Set(ningboProductVariants(product).flatMap((item) => item.specs).map(formatNingboSpec).filter(Boolean))];
+    }
+
+    function renderQuickSpecOptions(options, selected = "") {
+      const selectedValue = selected || options[0] || "";
+      els.quickSpec.innerHTML = [
+        '<option value="">请选择或手动填写</option>',
+        ...options.map((option) => `<option value="${escapeHtml(option)}"${option === selectedValue ? " selected" : ""}>${escapeHtml(option)}</option>`)
+      ].join("");
+      els.quickSpec.value = selectedValue;
+    }
+
+    function syncProductQuickSpecs({ applyFirstSpec = false } = {}) {
+      const product = findNingboProduct(els.product.value);
+      const specs = product ? ningboSpecsForProduct(product) : liujinSpecOptions;
+      const shouldShow = product || els.product.value.includes("鎏金板");
+      const currentSpec = els.spec.value.trim();
+      const shouldAutoPickOnlySpec = product && specs.length === 1 && currentSpec !== specs[0];
+      els.liujinSpecs.classList.toggle("show", shouldShow);
+      renderQuickSpecOptions(specs, specs.includes(currentSpec) ? currentSpec : "");
+      if (product && (applyFirstSpec || shouldAutoPickOnlySpec) && specs[0]) {
+        els.quickSpec.value = specs[0];
+        els.spec.value = specs[0];
+      } else {
+        syncQuickSpec();
+      }
+    }
+
+    function summarizeNingboProduct(product) {
+      const variants = ningboProductVariants(product);
+      const groups = new Map();
+      variants.forEach((item) => {
+        if (!groups.has(item.price)) groups.set(item.price, []);
+        item.specs.map(formatNingboSpec).forEach((spec) => {
+          if (spec && !groups.get(item.price).includes(spec)) groups.get(item.price).push(spec);
+        });
+      });
+      return Array.from(groups.entries()).map(([price, specs]) =>
+        `${price}元/平：${specs.join("、")}`
+      ).join("；");
+    }
+
+    function hideProductSuggestions() {
+      els.productSuggestions.classList.add("hidden");
+      els.productSuggestions.innerHTML = "";
+    }
+
+    function renderProductSuggestions() {
+      const exact = findNingboProduct(els.product.value);
+      const matches = ningboProductMatches(els.product.value);
+      if (!matches.length || exact) {
+        hideProductSuggestions();
+        return;
+      }
+      els.productSuggestions.innerHTML = matches.slice(0, 12).map((item) => `
+        <button type="button" class="quote-suggestion-item" data-product="${escapeHtml(item.name)}">
+          <strong>${escapeHtml(item.name)}</strong>
+          <span>${escapeHtml(summarizeNingboProduct(item))}</span>
+        </button>
+      `).join("");
+      els.productSuggestions.classList.remove("hidden");
+    }
+
+    function selectNingboProduct(productName) {
+      const product = findNingboProduct(productName);
+      if (!product) return;
+      const specs = ningboSpecsForProduct(product);
+      els.product.value = product.name;
+      els.unitPrice.value = "";
+      if (specs[0]) {
+        renderQuickSpecOptions(specs, specs[0]);
+        els.spec.value = specs[0];
+      }
+      hideProductSuggestions();
+      render();
+    }
+
+    function meterText(value) {
+      return value.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+    }
+
+    function getTaxRate() {
+      const checked = document.querySelector('input[name="taxType"]:checked');
+      if (!checked) return 0;
+      if (checked.value === "custom") return money(els.customTax.value) / 100;
+      return Number(checked.value) / 100;
+    }
+
+    function buildNote(hasTax, hasFreight) {
+      const taxText = hasTax ? "含税金" : "不含税金";
+      const freightText = hasFreight ? "含运费" : "不含运费";
+      const freightStatus = hasFreight ? "运费已含" : "运费到付";
+      return `备注：此报价仅是主材，不含辅料，${taxText}，${freightText}；${freightStatus}，送货到楼下，不包搬运和卸货，定制产品一经下定非质量问题不予退换（产品易碎，包装需平放不要竖起，使用前不可淋雨）\n\n（先验货没问题后再签收付运费，如果发现异常拍照和视频发我处理好再收货，签收前的损坏我们来承担，如不验货当着司机面反馈后续发现了损坏物流将不予负责）`;
+    }
+
+    function materialLine(item, index = null) {
+      const prefix = index ? `材料费${index}` : "材料费";
+      if (item.pricingMode === "sheet") return `${prefix}：${item.quantity || 0}张*${item.unitPrice || 0}元/张=${item.materialFee}元`;
+      return `${prefix}：${item.quantity || 0}张*${item.widthText}*${item.heightText}平*${item.unitPrice || 0}元/平=${item.materialFee}元`;
+    }
+
+    function priceInfoLine(item) {
+      if (item.originalPrice === null || item.originalPrice === "" || !Number.isFinite(Number(item.originalPrice)) || Number(item.originalPrice) <= 0) return "";
+      const unit = item.pricingMode === "sheet" ? "张" : "平";
+      return `价格：原价${item.originalPrice}/${unit}，折扣优惠价${item.unitPrice || 0}/${unit}`;
+    }
+
+    function readExtraFees(baseAmount, includeTax) {
+      const processingFee = money(els.processingFee.value);
+      const accessoryFee = money(els.accessoryFee.value);
+      const manualTaxFee = money(els.manualTaxFee.value);
+      const taxBase = baseAmount + processingFee + accessoryFee;
+      const autoTaxFee = includeTax ? sanSheSiRu(taxBase * getTaxRate()) : 0;
+      const taxFee = manualTaxFee > 0 ? manualTaxFee : autoTaxFee;
+      return { processingFee, accessoryFee, taxFee, taxBase };
+    }
+
+    function pushExtraFeeLines(lines, extraFees) {
+      if (extraFees.processingFee > 0) lines.push(`加工费：${extraFees.processingFee}元`);
+      if (extraFees.accessoryFee > 0) lines.push(`辅料费：${extraFees.accessoryFee}元`);
+      if (extraFees.taxFee > 0) lines.push(`税金：${extraFees.taxFee}元`);
+    }
+
+    function extraFeeCalcText(extraFees) {
+      const parts = [];
+      if (extraFees.processingFee > 0) parts.push(`加工费：<strong>${extraFees.processingFee}</strong>`);
+      if (extraFees.accessoryFee > 0) parts.push(`辅料费：<strong>${extraFees.accessoryFee}</strong>`);
+      if (extraFees.taxFee > 0) parts.push(`税金：<strong>${extraFees.taxFee}</strong>`);
+      return parts.join("；");
+    }
+
+    function productTemplate(index) {
+      return `
+        <div class="product-card" data-product-index="${index}">
+          <div class="product-card-head">
+            <div class="product-card-title">产品${index}</div>
+            <button class="small-button remove-product" type="button">删除</button>
+          </div>
+          <div class="field"><label>产品</label><input class="multi-product" value="${index === 1 ? "白锈鎏金板" : "钨酒鎏金板"}" placeholder="例如：白锈鎏金板"></div>
+          <div class="field"><label>规格</label><input class="multi-spec" value="硬质-1220*3050*6mm" placeholder="例如：硬质-1220*3050*6mm"><div class="warning multi-spec-tip"></div></div>
+          <div class="field">
+            <label>计价方式</label>
+            <div class="radio-group pricing-mode">
+              <label class="radio-pill"><input name="multiPricingMode${index}" type="radio" value="area" checked><span>按平方</span></label>
+              <label class="radio-pill"><input name="multiPricingMode${index}" type="radio" value="sheet"><span>按张</span></label>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label>数量（张）</label><input class="multi-quantity" type="number" min="1" step="1" value="3"></div>
+            <div class="field"><label class="multi-original-price-label">原价（元/平方，可不填）</label><input class="multi-original-price" type="number" min="0" step="0.01" placeholder="不填则不显示"></div>
+            <div class="field"><label class="multi-unit-price-label">折扣优惠价（元/平方）</label><input class="multi-unit-price" type="number" min="0" step="0.01" placeholder="请手动填写优惠价"></div>
+          </div>
+          <div class="grid-2 different-fees hidden">
+            <div class="field"><label>木箱（元）</label><input class="multi-box-fee" type="number" min="0" step="1" value="300"></div>
+            <div class="field"><label>运费（元，0 为到付）</label><input class="multi-freight-fee" type="number" min="0" step="1" value="0"></div>
+          </div>
+        </div>`;
+    }
+
+    function renumberProducts() {
+      const cards = [...els.multiProducts.querySelectorAll(".product-card")];
+      cards.forEach((card, index) => {
+        const number = index + 1;
+        card.dataset.productIndex = number;
+        card.querySelector(".product-card-title").textContent = `产品${number}`;
+        card.querySelectorAll('input[type="radio"]').forEach((radio) => { radio.name = `multiPricingMode${number}`; });
+        card.querySelector(".remove-product").classList.toggle("hidden", cards.length <= 1);
+      });
+    }
+
+    function addProduct(data = null) {
+      const index = els.multiProducts.children.length + 1;
+      els.multiProducts.insertAdjacentHTML("beforeend", productTemplate(index));
+      const card = els.multiProducts.lastElementChild;
+      if (data) setProductCardData(card, data);
+      renumberProducts();
+      updateShipmentUi();
+      render();
+    }
+
+    function setProductCardData(card, data) {
+      card.querySelector(".multi-product").value = data.product || "";
+      card.querySelector(".multi-spec").value = data.spec || "";
+      card.querySelector(".multi-quantity").value = data.quantity ?? 3;
+      card.querySelector(".multi-original-price").value = data.originalPrice ?? "";
+      card.querySelector(".multi-unit-price").value = data.unitPrice ?? "";
+      card.querySelector(".multi-box-fee").value = data.boxFee ?? 300;
+      card.querySelector(".multi-freight-fee").value = data.freightFee ?? 0;
+      const radio = card.querySelector(`input[value="${data.pricingMode || "area"}"]`);
+      if (radio) radio.checked = true;
+    }
+
+    function syncMultiNingboProduct(card) {
+      const product = findNingboProduct(card.querySelector(".multi-product").value);
+      if (!product) return;
+      const specInput = card.querySelector(".multi-spec");
+      const specs = ningboSpecsForProduct(product);
+      if (!specs.includes(formatNingboSpec(specInput.value)) && specs[0]) specInput.value = specs[0];
+    }
+
+    function getProductCards() { return [...els.multiProducts.querySelectorAll(".product-card")]; }
+
+    function readProductCard(card) {
+      const pricingMode = card.querySelector('input[type="radio"]:checked')?.value || "area";
+      const spec = card.querySelector(".multi-spec").value.trim();
+      const specSize = parseSpec(spec);
+      const quantity = money(card.querySelector(".multi-quantity").value);
+      const originalPriceInput = card.querySelector(".multi-original-price").value.trim();
+      const originalPrice = originalPriceInput === "" ? null : money(originalPriceInput);
+      const unitPrice = money(card.querySelector(".multi-unit-price").value);
+      const rawMaterial = pricingMode === "sheet" ? quantity * unitPrice : (specSize ? specSize.width * specSize.height * quantity * unitPrice : 0);
+      const materialFee = sanSheSiRu(rawMaterial);
+      card.querySelector(".multi-original-price-label").textContent = pricingMode === "sheet" ? "原价（元/张，可不填）" : "原价（元/平方，可不填）";
+      card.querySelector(".multi-unit-price-label").textContent = pricingMode === "sheet" ? "折扣优惠价（元/张）" : "折扣优惠价（元/平方）";
+      card.querySelector(".multi-spec-tip").textContent = specSize ? `已识别：宽 ${meterText(specSize.width)} 米，高 ${meterText(specSize.height)} 米` : "未识别宽高，请按 1220*3050 或 1.22*3.05 这类格式填写。";
+      return {
+        product: card.querySelector(".multi-product").value.trim(),
+        spec,
+        quoteSpec: formatSpecForQuote(spec),
+        pricingMode,
+        quantity,
+        originalPrice,
+        unitPrice,
+        boxFee: money(card.querySelector(".multi-box-fee").value),
+        freightFee: money(card.querySelector(".multi-freight-fee").value),
+        rawMaterial,
+        materialFee,
+        widthText: specSize ? meterText(specSize.width) : "?",
+        heightText: specSize ? meterText(specSize.height) : "?",
+      };
+    }
+
+    function isGoldQuoteProduct(product, spec) {
+      const productText = product || "";
+      if (!productText.trim()) return false;
+      if (findNingboProduct(productText)) return false;
+      return productData.isLiujinProductName(productText);
+    }
+
+    function goldFreightSpec(spec) {
+      return window.GoldFreightCore.resolveFreightSpec(spec);
+    }
+
+    function currentGoldFreightItems() {
+      const sourceItems = els.multiMode.checked
+        ? getProductCards().map(readProductCard)
+        : [{
+          product: els.product.value.trim(),
+          spec: els.spec.value.trim(),
+          quantity: money(els.quantity.value)
+        }];
+
+      return sourceItems
+        .filter((item) => isGoldQuoteProduct(item.product, item.spec))
+        .map((item) => {
+          const resolved = goldFreightSpec(item.spec);
+          return {
+            material: resolved?.material || "hard",
+            specKey: resolved?.specKey || null,
+            quantity: item.quantity
+          };
+        })
+        .filter((item) => Number.isFinite(item.quantity) && item.quantity > 0);
+    }
+
+    function setQuoteShunxinResult(result = {}) {
+      els.quoteShunxinTotal.textContent = result.totalText || "-";
+      els.quoteShunxinQuote.textContent = result.quoteText || "请填写鎏金板产品、规格、数量和地址";
+      els.quoteShunxinProcess.textContent = result.processText || "自动显示计算过程";
+      els.quoteShunxinInsuranceFee.textContent = Number.isFinite(result.insuranceFee) ? `保费：${money(result.insuranceFee)}元` : "保费：待计算";
+      els.quoteShunxinUpstairsFee.textContent = Number.isFinite(result.upstairsFee)
+        ? `上门费：${money(result.upstairsFee)}元${els.quoteShunxinIncludeUpstairs.checked ? "（已计入）" : "（未计入）"}`
+        : "上门费：待计算";
+    }
+
+    function setQuoteFreightEmpty(message, notice = "会跟随上方鎏金板报价自动更新。") {
+      els.quoteFreightWeight.textContent = "-";
+      els.quoteFreightPackage.textContent = "-";
+      els.quoteFreightDb.textContent = "-";
+      els.quoteFreightBox.textContent = message;
+      els.quoteFreightNotice.textContent = notice;
+      setQuoteShunxinResult();
+    }
+
+    function updateQuoteFreight() {
+      const items = currentGoldFreightItems();
+      if (!items.length) {
+        setQuoteFreightEmpty("请填写鎏金板产品、规格和数量。", "其它产品不生成鎏金板运费提问。");
+        return;
+      }
+
+      const shipment = window.GoldFreightCore.calculateShipment(items);
+      if (!shipment.ok) {
+        setQuoteFreightEmpty(shipment.message || "请检查鎏金板规格数量。", shipment.message || "请检查鎏金板规格数量。");
+        return;
+      }
+
+      const address = els.quoteFreightAddress.value.trim() || "请粘贴地址";
+      const template = `${address}\n\n${shipment.weightLine}\n${shipment.packageLine}\n${shipment.dbLine}`;
+      els.quoteFreightWeight.innerHTML = `${shipment.weightLine}<span class="shipment-lines">${shipment.detailLine}</span>`;
+      els.quoteFreightPackage.textContent = shipment.packageLine;
+      els.quoteFreightDb.textContent = shipment.dbLine;
+      els.quoteFreightBox.textContent = template;
+      els.quoteFreightNotice.textContent = shipment.notice;
+      setQuoteShunxinResult(window.GoldFreightCore.buildShunxinQuote({
+        address: els.quoteFreightAddress.value.trim(),
+        totalWeight: shipment.totalWeight,
+        pkg: shipment.pkg,
+        weightLine: shipment.weightLine,
+        packageLine: shipment.packageLine,
+        dbLine: shipment.dbLine,
+        db: shipment.db,
+        declaredValue: currentQuoteTotal,
+        includeUpstairsFee: els.quoteShunxinIncludeUpstairs.checked
+      }));
+    }
+
+    function updateModeUi() {
+      const multi = els.multiMode.checked;
+      els.singleProductFields.classList.toggle("hidden", multi);
+      els.singleFeeInputs.classList.toggle("hidden", multi);
+      els.includeFreightRow.classList.toggle("hidden", multi);
+      els.multiProductFields.classList.toggle("hidden", !multi);
+      els.calcLine.classList.toggle("hidden", multi);
+      els.multiCalcLine.classList.toggle("hidden", !multi);
+      updateShipmentUi();
+    }
+
+    function updateShipmentUi() {
+      const sameWarehouse = els.shipmentMode() === "same";
+      els.sameWarehouseFees.classList.toggle("hidden", !sameWarehouse || !els.multiMode.checked);
+      getProductCards().forEach((card) => card.querySelector(".different-fees").classList.toggle("hidden", sameWarehouse));
+    }
+
+    function renderSingle() {
+      syncProductQuickSpecs();
+      const product = els.product.value.trim();
+      const spec = els.spec.value.trim();
+      const quantity = money(els.quantity.value);
+      const originalPriceInput = els.originalPrice.value.trim();
+      const originalPrice = originalPriceInput === "" ? null : money(originalPriceInput);
+      const unitPrice = money(els.unitPrice.value);
+      const pricingMode = els.pricingMode();
+      const isSheetPricing = pricingMode === "sheet";
+      const boxFee = money(els.boxFee.value);
+      const enteredFreightFee = money(els.freightFee.value);
+      const includeFreight = enteredFreightFee > 0;
+      const includeTax = els.includeTax.checked;
+      const freightFee = includeFreight ? enteredFreightFee : 0;
+      const specSize = parseSpec(spec);
+      els.taxBox.hidden = !includeTax;
+      els.includeFreight.checked = includeFreight;
+      els.originalPriceLabel.textContent = isSheetPricing ? "原价（元/张，可不填）" : "原价（元/平方，可不填）";
+      els.unitPriceLabel.textContent = isSheetPricing ? "折扣优惠价（元/张）" : "折扣优惠价（元/平方）";
+      els.specTip.textContent = specSize ? `已识别：宽 ${meterText(specSize.width)} 米，高 ${meterText(specSize.height)} 米` : "未识别宽高，请按 1220*3050 或 1.22*3.05 这类格式填写。";
+      const rawMaterial = isSheetPricing ? quantity * unitPrice : (specSize ? specSize.width * specSize.height * quantity * unitPrice : 0);
+      const materialFee = sanSheSiRu(rawMaterial);
+      const baseTotal = materialFee + boxFee + freightFee;
+      const extraFees = readExtraFees(baseTotal, includeTax);
+      const total = baseTotal + extraFees.processingFee + extraFees.accessoryFee + extraFees.taxFee;
+      currentQuoteTotal = total;
+      const item = { quantity, originalPrice, unitPrice, pricingMode, materialFee, widthText: specSize ? meterText(specSize.width) : "?", heightText: specSize ? meterText(specSize.height) : "?" };
+      const lines = [`产品：${product || ""}`, `数量：${quantity || ""}张`, `规格：${formatSpecForQuote(spec)}`];
+      const priceLine = priceInfoLine(item);
+      if (priceLine) lines.push(priceLine);
+      lines.push(`————————————`, materialLine(item), `木箱费：${boxFee}元`);
+      if (includeFreight) lines.push(`运费：${freightFee}元`);
+      pushExtraFeeLines(lines, extraFees);
+      lines.push(`总计：${total}元`, "", buildNote(extraFees.taxFee > 0 || includeTax, includeFreight));
+      appendExtra(lines);
+      if (!quoteManuallyEdited) els.quote.textContent = lines.join("\n");
+      const calcPrefix = isSheetPricing ? "按张材料原价" : "按平方材料原价";
+      const extraText = extraFeeCalcText(extraFees);
+      els.calcLine.innerHTML = `${calcPrefix}：<strong>${rawMaterial.toFixed(3)}</strong>，取整后：<strong>${materialFee}</strong>${extraText ? `；${extraText}` : ""}；总计：<strong>${total}</strong>`;
+    }
+
+    function renderMulti() {
+      const products = getProductCards().map(readProductCard);
+      const sameWarehouse = els.shipmentMode() === "same";
+      const includeTax = els.includeTax.checked;
+      els.taxBox.hidden = !includeTax;
+      els.includeFreight.checked = false;
+      const materialTotal = products.reduce((sum, item) => sum + item.materialFee, 0);
+      const boxTotal = sameWarehouse ? money(els.multiBoxFee.value) : products.reduce((sum, item) => sum + item.boxFee, 0);
+      const freightTotal = sameWarehouse ? money(els.multiFreightFee.value) : products.reduce((sum, item) => sum + item.freightFee, 0);
+      const baseTotal = materialTotal + boxTotal + freightTotal;
+      const extraFees = readExtraFees(baseTotal, includeTax);
+      const total = baseTotal + extraFees.processingFee + extraFees.accessoryFee + extraFees.taxFee;
+      currentQuoteTotal = total;
+      const lines = [sameWarehouse ? "【以下是同一个仓库发货】" : "【以下是不同仓库发货】", ""];
+      products.forEach((item, index) => {
+        const number = index + 1;
+        lines.push(`产品${number}：${item.product || ""}`, `数量：${item.quantity || ""}张`, `规格：${item.quoteSpec}`);
+        const priceLine = priceInfoLine(item);
+        if (priceLine) lines.push(priceLine);
+        lines.push(materialLine(item, number));
+        if (!sameWarehouse) {
+          lines.push(`木箱费${number}：${item.boxFee}元`, item.freightFee > 0 ? `运费${number}：${item.freightFee}元` : `运费${number}：到付`);
+        }
+        if (index < products.length - 1) lines.push("", "————————————");
+        lines.push("");
+      });
+      if (sameWarehouse) {
+        lines.push(`木箱费：${boxTotal}元`);
+        if (freightTotal > 0) lines.push(`运费：${freightTotal}元`);
+      }
+      pushExtraFeeLines(lines, extraFees);
+      lines.push(`总计：${total}元`, "", buildNote(extraFees.taxFee > 0 || includeTax, freightTotal > 0));
+      appendExtra(lines);
+      if (!quoteManuallyEdited) els.quote.textContent = lines.join("\n");
+      const extraText = extraFeeCalcText(extraFees);
+      els.multiCalcLine.innerHTML = `材料合计：<strong>${materialTotal}</strong>；木箱合计：<strong>${boxTotal}</strong>；运费合计：<strong>${freightTotal}</strong>${extraText ? `；${extraText}` : ""}；总计：<strong>${total}</strong>`;
+    }
+
+    function appendExtra(lines) {
+      const extra = els.noteExtra.value.trim();
+      if (extra) lines.push("", extra);
+    }
+
+    let quoteManuallyEdited = false;
+    function setQuoteManualMode(manual) {
+      quoteManuallyEdited = manual;
+      document.querySelector("#resumeQuoteAuto").hidden = !manual;
+      document.querySelector("#quoteEditStatus").hidden = !manual;
+    }
+
+    function render() {
+      updateModeUi();
+      if (els.multiMode.checked) renderMulti();
+      else renderSingle();
+      updateQuoteFreight();
+    }
+
+    function syncQuickSpec() {
+      const value = els.spec.value.trim();
+      const option = [...els.quickSpec.options].find((item) => item.value === value);
+      els.quickSpec.value = option ? value : "";
+    }
+
+    function applyQuickSpecSelection() {
+      const value = els.quickSpec.value;
+      if (!value) return;
+      els.spec.value = value;
+      render();
+    }
+
+    function getCheckedValue(name) { return document.querySelector(`input[name="${name}"]:checked`)?.value || ""; }
+    function setCheckedValue(name, value) { const radio = document.querySelector(`input[name="${name}"][value="${value}"]`); if (radio) radio.checked = true; }
+
+    function collectState() {
+      return {
+        multiMode: els.multiMode.checked,
+        shipmentMode: els.shipmentMode(),
+        includeTax: els.includeTax.checked,
+        taxType: getCheckedValue("taxType"),
+        customTax: els.customTax.value,
+        noteExtra: els.noteExtra.value,
+        quoteFreightAddress: els.quoteFreightAddress.value,
+        quoteShunxinIncludeUpstairs: els.quoteShunxinIncludeUpstairs.checked,
+        fees: { processingFee: els.processingFee.value, accessoryFee: els.accessoryFee.value, manualTaxFee: els.manualTaxFee.value },
+        single: { product: els.product.value, spec: els.spec.value, quantity: els.quantity.value, originalPrice: els.originalPrice.value, unitPrice: els.unitPrice.value, pricingMode: els.pricingMode(), boxFee: els.boxFee.value, freightFee: els.freightFee.value },
+        multi: { boxFee: els.multiBoxFee.value, freightFee: els.multiFreightFee.value, products: getProductCards().map((card) => ({ product: card.querySelector(".multi-product").value, spec: card.querySelector(".multi-spec").value, quantity: card.querySelector(".multi-quantity").value, originalPrice: card.querySelector(".multi-original-price").value, unitPrice: card.querySelector(".multi-unit-price").value, pricingMode: card.querySelector('input[type="radio"]:checked')?.value || "area", boxFee: card.querySelector(".multi-box-fee").value, freightFee: card.querySelector(".multi-freight-fee").value })) },
+      };
+    }
+
+    function applyState(state) {
+      if (!state) return;
+      setQuoteManualMode(false);
+      els.multiMode.checked = !!state.multiMode;
+      els.includeTax.checked = !!state.includeTax;
+      els.customTax.value = state.customTax ?? 10;
+      els.noteExtra.value = state.noteExtra || "";
+      els.quoteFreightAddress.value = state.quoteFreightAddress || "";
+      els.quoteShunxinIncludeUpstairs.checked = !!state.quoteShunxinIncludeUpstairs;
+      els.processingFee.value = state.fees?.processingFee ?? 0;
+      els.accessoryFee.value = state.fees?.accessoryFee ?? 0;
+      els.manualTaxFee.value = state.fees?.manualTaxFee ?? 0;
+      setCheckedValue("taxType", state.taxType || "10");
+      setCheckedValue("shipmentMode", state.shipmentMode || "same");
+      if (state.single) {
+        els.product.value = state.single.product ?? "";
+        els.spec.value = state.single.spec ?? "";
+        els.quantity.value = state.single.quantity ?? 3;
+        els.originalPrice.value = state.single.originalPrice ?? "";
+        els.unitPrice.value = state.single.unitPrice ?? "";
+        els.boxFee.value = state.single.boxFee ?? 300;
+        els.freightFee.value = state.single.freightFee ?? 0;
+        setCheckedValue("pricingMode", state.single.pricingMode || "area");
+      }
+      els.multiBoxFee.value = state.multi?.boxFee ?? 300;
+      els.multiFreightFee.value = state.multi?.freightFee ?? 0;
+      els.multiProducts.innerHTML = "";
+      const products = state.multi?.products?.length ? state.multi.products : [{}, {}];
+      products.forEach((item) => addProduct(item));
+      syncQuickSpec();
+      render();
+    }
+
+    function readHistory() { try { return JSON.parse(localStorage.getItem(historyKey) || "[]"); } catch { return []; } }
+    function writeHistory(items) { localStorage.setItem(historyKey, JSON.stringify(items.slice(0, 40))); }
+
+    function saveHistorySnapshot() {
+      const quoteText = els.quote.innerText.trim();
+      if (!quoteText) return;
+      const firstLine = quoteText.split("\n").find(Boolean) || "报价记录";
+      const item = {
+        id: String(Date.now()),
+        title: firstLine.replace(/^【|】$/g, "") || "报价记录",
+        createdAt: new Date().toLocaleString("zh-CN", { hour12: false }),
+        quote: quoteText,
+        state: collectState(),
+      };
+      const existing = readHistory().filter((entry) => entry.quote !== quoteText);
+      writeHistory([item, ...existing]);
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function renderHistory() {
+      const items = readHistory();
+      if (!items.length) {
+        els.historyList.innerHTML = `<div class="history-item">暂无保存记录</div>`;
+        return;
+      }
+      els.historyList.innerHTML = items.map((item) => `
+        <div class="history-item" data-id="${item.id}">
+          <div class="history-item-head"><div><div class="history-title">${escapeHtml(item.title)}</div><div class="history-meta">${escapeHtml(item.createdAt)}</div></div><div class="button-row"><button class="small-button load-history" type="button">载入</button><button class="small-button delete-history" type="button">删除</button></div></div>
+          <p class="history-preview">${escapeHtml(item.quote.slice(0, 220))}</p>
+        </div>`).join("");
+    }
+
+    function showHistory() { renderHistory(); document.body.classList.add("history-open"); }
+    function hideHistory() { document.body.classList.remove("history-open"); }
+
+    function resetQuoteForm() {
+      setQuoteManualMode(false);
+      els.multiMode.checked = false;
+      els.includeFreight.checked = false;
+      els.includeTax.checked = false;
+      setCheckedValue("pricingMode", "area");
+      setCheckedValue("shipmentMode", "same");
+      setCheckedValue("taxType", "10");
+      els.product.value = "";
+      els.quickSpec.value = "";
+      els.spec.value = "";
+      els.quantity.value = "";
+      els.originalPrice.value = "";
+      els.unitPrice.value = "";
+      els.boxFee.value = 0;
+      els.freightFee.value = 0;
+      els.processingFee.value = 0;
+      els.accessoryFee.value = 0;
+      els.manualTaxFee.value = 0;
+      els.customTax.value = 10;
+      els.noteExtra.value = "";
+      els.quoteFreightAddress.value = "";
+      els.quoteShunxinIncludeUpstairs.checked = false;
+      els.multiBoxFee.value = 0;
+      els.multiFreightFee.value = 0;
+      els.multiProducts.innerHTML = "";
+      addProduct({ product: "", spec: "", quantity: "", originalPrice: "", unitPrice: "", pricingMode: "area", boxFee: 0, freightFee: 0 });
+      syncQuickSpec();
+      render();
+      els.copyState.textContent = "已重置";
+      setTimeout(() => { els.copyState.textContent = ""; }, 1400);
+    }
+
+    els.product.addEventListener("input", () => {
+      els.unitPrice.value = "";
+      renderProductSuggestions();
+      syncProductQuickSpecs();
+    });
+    els.product.addEventListener("change", () => {
+      els.unitPrice.value = "";
+      syncProductQuickSpecs({ applyFirstSpec: Boolean(findNingboProduct(els.product.value)) && !els.spec.value.trim() });
+    });
+    els.product.addEventListener("blur", () => {
+      window.setTimeout(hideProductSuggestions, 120);
+    });
+    els.productSuggestions.addEventListener("mousedown", (event) => {
+      const button = event.target.closest(".quote-suggestion-item");
+      if (!button) return;
+      event.preventDefault();
+      selectNingboProduct(button.dataset.product || "");
+    });
+
+    els.quote.addEventListener("input", () => setQuoteManualMode(true));
+    document.querySelector("#resumeQuoteAuto").addEventListener("click", () => { setQuoteManualMode(false); render(); });
+    document.addEventListener("input", (event) => { if (event.target === els.quote || els.quote.contains(event.target) || event.target === els.quoteFreightAddress) return; if (event.target === els.spec) syncQuickSpec(); render(); });
+    document.addEventListener("change", (event) => { if (event.target === els.spec) syncQuickSpec(); render(); });
+
+    els.multiProducts.addEventListener("click", (event) => {
+      const button = event.target.closest(".remove-product");
+      if (!button || els.multiProducts.children.length <= 1) return;
+      button.closest(".product-card").remove();
+      renumberProducts();
+      render();
+    });
+    els.multiProducts.addEventListener("input", (event) => {
+      const productInput = event.target.closest(".multi-product");
+      if (productInput) {
+        const card = productInput.closest(".product-card");
+        card.querySelector(".multi-unit-price").value = "";
+        syncMultiNingboProduct(card);
+      }
+    });
+    els.multiProducts.addEventListener("change", (event) => {
+      const productInput = event.target.closest(".multi-product");
+      if (productInput) {
+        const card = productInput.closest(".product-card");
+        card.querySelector(".multi-unit-price").value = "";
+        syncMultiNingboProduct(card);
+      }
+    });
+
+    els.quickSpec.addEventListener("change", applyQuickSpecSelection);
+    els.quickSpec.addEventListener("input", applyQuickSpecSelection);
+    els.quickSpec.addEventListener("blur", applyQuickSpecSelection);
+    els.quickSpec.addEventListener("keyup", (event) => {
+      if (event.key === "Enter" || event.key === " " || event.key === "ArrowUp" || event.key === "ArrowDown") {
+        applyQuickSpecSelection();
+      }
+    });
+    els.addProduct.addEventListener("click", () => addProduct());
+    els.copyBtn.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(els.quote.innerText);
+      saveHistorySnapshot();
+      els.copyState.textContent = "已复制";
+      setTimeout(() => { els.copyState.textContent = ""; }, 1400);
+    });
+    els.copyQuoteFreightBtn.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(els.quoteFreightBox.textContent);
+      els.copyQuoteFreightBtn.textContent = "已复制";
+      setTimeout(() => { els.copyQuoteFreightBtn.textContent = "复制运费提问"; }, 1200);
+    });
+    els.copyQuoteShunxinBtn.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(els.quoteShunxinQuote.textContent);
+      els.copyQuoteShunxinBtn.textContent = "已复制";
+      setTimeout(() => { els.copyQuoteShunxinBtn.textContent = "复制顺心捷达报价"; }, 1200);
+    });
+    els.clearQuoteFreightBtn.addEventListener("click", () => {
+      els.quoteFreightAddress.value = "";
+      updateQuoteFreight();
+      els.quoteFreightAddress.focus();
+    });
+    els.clearQuoteTopBtn.addEventListener("click", resetQuoteForm);
+    els.quoteFreightAddress.addEventListener("input", updateQuoteFreight);
+    els.historyBtn.addEventListener("click", showHistory);
+    els.resetBtn.addEventListener("click", resetQuoteForm);
+    els.backToQuote.addEventListener("click", hideHistory);
+    els.historyList.addEventListener("click", (event) => {
+      const itemEl = event.target.closest(".history-item");
+      if (!itemEl) return;
+      const items = readHistory();
+      const item = items.find((entry) => entry.id === itemEl.dataset.id);
+      if (!item) return;
+      if (event.target.closest(".delete-history")) { writeHistory(items.filter((entry) => entry.id !== item.id)); renderHistory(); return; }
+      if (event.target.closest(".load-history")) { applyState(item.state); els.quote.textContent = item.quote; setQuoteManualMode(true); hideHistory(); }
+    });
+    function preventNumberInputWheelChange() {
+      document.addEventListener("wheel", (event) => {
+        const active = document.activeElement;
+        if (!(active instanceof HTMLInputElement) || active.type !== "number") return;
+        active.blur();
+        event.preventDefault();
+      }, { passive: false, capture: true });
+    }
+
+    preventNumberInputWheelChange();
+    addProduct();
+    addProduct();
+    syncQuickSpec();
+    render();
+  </script>
+</body>
+</html>

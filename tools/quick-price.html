@@ -1,0 +1,1098 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>快速查价</title>
+  <style>
+    :root { color-scheme: light; --bg:#f5f7f4; --panel:#fff; --ink:#17201b; --muted:#65716a; --line:#d8e0da; --accent:#1f7a52; --soft:#e7f4ed; --gold:#b78324; --shadow:0 16px 42px rgba(22,40,30,.11); }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; color:var(--ink); background:linear-gradient(135deg,rgba(31,122,82,.12),transparent 34%),linear-gradient(225deg,rgba(183,131,36,.11),transparent 36%),var(--bg); }
+    main { width:min(1180px,calc(100% - 28px)); margin:0 auto; padding:24px 0 36px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:end; margin-bottom:16px; }
+    h1 { margin:0; font-size:clamp(28px,4vw,44px); line-height:1.12; letter-spacing:0; }
+    .subtitle { margin:8px 0 0; color:var(--muted); font-size:14px; line-height:1.6; }
+    .pill { flex:0 0 auto; border:1px solid rgba(31,122,82,.26); border-radius:999px; background:rgba(255,255,255,.78); color:var(--accent); padding:8px 13px; font-size:13px; font-weight:850; }
+    .panel { background:rgba(255,255,255,.94); border:1px solid var(--line); border-radius:8px; box-shadow:var(--shadow); }
+    .search-panel { padding:18px; position:sticky; top:0; z-index:10; }
+    label { display:block; margin:0 0 8px; font-size:13px; color:#2f3a34; font-weight:850; }
+    .search-wrap { position:relative; }
+    input { width:100%; min-height:58px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--ink); font:inherit; font-size:24px; font-weight:800; padding:12px 16px; outline:none; }
+    #query { padding-right:112px; }
+    .search-clear { position:absolute; right:10px; top:50%; transform:translateY(-50%); z-index:22; min-width:84px; min-height:38px; border:1px solid var(--line); border-radius:8px; background:#f7f7f8; color:var(--ink); font:inherit; font-size:14px; font-weight:850; cursor:pointer; }
+    input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(31,122,82,.13); }
+    .suggestions { position:absolute; left:0; right:0; top:calc(100% + 8px); z-index:20; display:none; max-height:340px; overflow:auto; border:1px solid rgba(15,23,42,.14); border-radius:10px; background:#fff; box-shadow:0 18px 38px rgba(15,23,42,.18); padding:6px; }
+    .suggestions.show { display:block; }
+    .suggestion { width:100%; border:0; border-radius:8px; background:transparent; color:var(--ink); cursor:pointer; font:inherit; text-align:left; padding:11px 12px; display:grid; gap:4px; }
+    .suggestion:hover, .suggestion:focus { background:rgba(31,122,82,.1); outline:none; }
+    .suggestion strong { font-size:16px; line-height:1.25; }
+    .suggestion span { color:var(--muted); font-size:12px; line-height:1.35; }
+    .quick-tags { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+    .tag-btn { border:1px solid rgba(31,122,82,.22); border-radius:999px; background:#fff; color:#145b3d; padding:7px 11px; font:inherit; font-weight:800; cursor:pointer; }
+    .tag-btn:hover { background:var(--soft); }
+    .tag-btn.dragging { opacity:.45; }
+    .results { display:grid; gap:14px; margin-top:16px; }
+    .empty { padding:28px; color:var(--muted); font-size:15px; line-height:1.7; }
+    .card { border:1px solid var(--line); border-radius:8px; background:#fff; overflow:hidden; }
+    .card-head { display:flex; justify-content:space-between; gap:14px; align-items:start; padding:14px 16px; background:#f8fbf8; border-bottom:1px solid var(--line); }
+    .card-title { display:grid; gap:4px; }
+    .card-title strong { font-size:20px; line-height:1.25; }
+    .meta { color:var(--muted); font-size:13px; line-height:1.45; }
+    .badge { flex:0 0 auto; border-radius:999px; background:var(--soft); color:#0c5436; padding:6px 10px; font-size:12px; font-weight:900; }
+    .price-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:14px; }
+    .price-grid.single { grid-template-columns:1fr; }
+    .price-row { border:1px solid rgba(31,122,82,.16); border-radius:8px; background:#fbfdfb; padding:12px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; }
+    .price-row span { color:#2f3a34; font-weight:750; line-height:1.35; }
+    .row-main { display:block; color:#22302a; font-weight:900; line-height:1.3; }
+    .row-sub { display:block; margin-top:4px; color:var(--muted); font-size:12px; font-weight:650; line-height:1.35; }
+    .row-tag { display:inline-flex; align-items:center; border-radius:999px; padding:2px 8px; margin-right:7px; font-size:12px; font-weight:950; line-height:1.25; vertical-align:1px; }
+    .row-tag.hard { background:#dff1e8; color:#075536; }
+    .row-tag.soft { background:#fff1cc; color:#7a4c00; }
+    .sub-price-list { display:flex; flex-wrap:wrap; gap:6px; margin-top:7px; }
+    .sub-price { display:inline-flex; align-items:center; gap:5px; border:1px solid rgba(31,122,82,.18); border-radius:999px; background:#fff; padding:4px 8px; color:#5d6962; font-size:12px; font-weight:800; }
+    .sub-price strong { color:#7a4c00; font-size:11px; font-weight:950; }
+    .sub-price b { color:#0c5436; font-size:18px; line-height:1; }
+    .price-values { display:flex; align-items:center; justify-content:flex-end; gap:18px; }
+    .price-values > b { min-width:72px; }
+    .price-values > b.minimum-price { color:#b42318 !important; }
+    .price-row b { color:#0c5436; font-size:22px; white-space:nowrap; text-align:right; }
+    .price-row b small { display:block; margin-bottom:2px; color:#7a4c00; font-size:11px; font-weight:950; line-height:1; }
+    .note { margin:0; padding:0 14px 14px; color:#6a470f; font-size:13px; line-height:1.6; }
+    @media (max-width:760px) { main{width:min(100% - 18px,1180px); padding-top:16px;} .topbar{display:block;} .pill{display:inline-block; margin-top:10px;} .search-panel{padding:14px;} input{font-size:20px; min-height:54px;} .price-grid{grid-template-columns:1fr;} .card-head{display:grid;} .badge{justify-self:start;} .price-values{gap:12px;} .price-values > b{min-width:64px;} }
+
+    /* iPhone-style refinement aligned with the quote module. */
+    :root { --bg:#f5f6f8; --panel:#fff; --ink:#1f2937; --muted:#687385; --line:#d9dee7; --accent:#146c94; --soft:#e9f4f8; --gold:#a8842e; --shadow:0 18px 44px rgba(20,36,55,.08); }
+    body { background:var(--bg); }
+    main { width:min(1180px,calc(100% - 40px)); padding:28px 0 40px; }
+    .topbar { align-items:flex-end; margin-bottom:18px; }
+    .panel, .card { border-radius:22px; box-shadow:var(--shadow); }
+    .search-panel { padding:22px; top:12px; }
+    input { min-height:58px; border-radius:18px; border-color:#cfd6e2; font-size:22px; }
+    .suggestions { border-radius:18px; padding:8px; }
+    .suggestion { min-height:58px; border-radius:16px; padding:13px 14px; }
+    .tag-btn { min-height:44px; border-radius:999px; padding:8px 14px; }
+    .card-head { padding:18px; border-radius:22px 22px 0 0; }
+    .price-grid { gap:12px; padding:16px; }
+    .price-row { min-height:72px; border-radius:18px; padding:14px; }
+    @media (max-width:760px) { main{width:min(100% - 18px,1180px);} .search-panel{padding:16px;} input{font-size:19px;} }
+  
+
+    /* Codex / ChatGPT unified tool theme. Keep one accent color only. */
+    :root {
+      color-scheme: light !important;
+      --bg: #ffffff !important;
+      --panel: #ffffff !important;
+      --surface: #f7f7f8 !important;
+      --surface-strong: #ececf1 !important;
+      --text: #1a1c1f !important;
+      --ink: #1a1c1f !important;
+      --muted: #6b7280 !important;
+      --line: #e5e5e5 !important;
+      --accent: #339cff !important;
+      --accent-soft: rgba(51, 156, 255, 0.12) !important;
+      --soft: rgba(51, 156, 255, 0.12) !important;
+      --gold: #339cff !important;
+      --warn: #339cff !important;
+      --aux: #339cff !important;
+      --shadow: 0 18px 44px rgba(0, 0, 0, 0.06) !important;
+      --system-gray: #f7f7f8 !important;
+      --system-gray-2: #ececf1 !important;
+    }
+    html,
+    body {
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif !important;
+      letter-spacing: 0 !important;
+      -webkit-font-smoothing: antialiased;
+    }
+    main,
+    .page,
+    .app,
+    .workspace,
+    .container {
+      background: #ffffff !important;
+    }
+    h1, h2, h3, h4,
+    .section-title,
+    .field-label,
+    label,
+    b,
+    strong {
+      color: #1a1c1f !important;
+      letter-spacing: 0 !important;
+    }
+    .subtitle,
+    .muted,
+    small,
+    .hint,
+    .desc {
+      color: #6b7280 !important;
+    }
+    .panel,
+    .panel-inner,
+    .card,
+    .product-card,
+    .payment-panel,
+    .freight-panel,
+    .order-panel,
+    .metric,
+    .total-field,
+    .notice,
+    .payment-deduction,
+    .freight-question,
+    .quote-card,
+    .result-panel,
+    .search-card,
+    .preview-card,
+    .input-card,
+    .output-card,
+    .tool-card,
+    .summary-card,
+    .concrete-extra-options,
+    .concrete-match-tools,
+    .ningbo-match-tools,
+    .unit-price-field,
+    .cement-label,
+    .readonly-pill {
+      background: #ffffff !important;
+      border-color: #e5e5e5 !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+    }
+    .panel,
+    .card,
+    .product-card,
+    .payment-panel,
+    .freight-panel,
+    .order-panel,
+    .result-panel,
+    .search-card,
+    .preview-card,
+    .input-card,
+    .output-card,
+    .tool-card,
+    .summary-card {
+      border-radius: 18px !important;
+    }
+    input,
+    select,
+    textarea {
+      background: #ffffff !important;
+      border: 1px solid #d9d9e3 !important;
+      border-radius: 14px !important;
+      color: #1a1c1f !important;
+      font-family: inherit !important;
+      box-shadow: none !important;
+    }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #339cff !important;
+      box-shadow: 0 0 0 4px rgba(51, 156, 255, 0.16) !important;
+      outline: none !important;
+    }
+    input::placeholder,
+    textarea::placeholder {
+      color: #9ca3af !important;
+    }
+    button,
+    .button,
+    .btn,
+    .tool-button,
+    .action-button,
+    .copy-button {
+      border-radius: 14px !important;
+      border: 1px solid #d9d9e3 !important;
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+      font-family: inherit !important;
+      font-weight: 650 !important;
+    }
+    button.primary,
+    button:not(.secondary):not(.ghost),
+    #copyBtn,
+    #copyFreightQuestionBtn,
+    .result-actions button,
+    .freight-actions button,
+    .actions button:first-child {
+      background: #1a1c1f !important;
+      border-color: #1a1c1f !important;
+      color: #ffffff !important;
+    }
+    .suggestions,
+    .ningbo-suggestions,
+    .search-suggestions,
+    .autocomplete,
+    .dropdown,
+    .dropdown-menu {
+      background: #ffffff !important;
+      border: 1px solid #d9d9e3 !important;
+      color: #1a1c1f !important;
+      box-shadow: 0 16px 38px rgba(0, 0, 0, 0.12) !important;
+    }
+    .product,
+    button.product,
+    button.product:not(.secondary):not(.ghost),
+    .suggestion,
+    .suggestion:not(.secondary):not(.ghost),
+    button.suggestion,
+    button.suggestion:not(.secondary):not(.ghost),
+    .suggestion-item,
+    .suggestion-item:not(.secondary):not(.ghost),
+    button.suggestion-item,
+    button.suggestion-item:not(.secondary):not(.ghost),
+    .ningbo-suggestion-item,
+    .ningbo-suggestion-item:not(.secondary):not(.ghost),
+    button.ningbo-suggestion-item,
+    button.ningbo-suggestion-item:not(.secondary):not(.ghost),
+    .search-result,
+    .search-result:not(.secondary):not(.ghost),
+    button.search-result,
+    button.search-result:not(.secondary):not(.ghost),
+    .result-item,
+    .result-item:not(.secondary):not(.ghost),
+    button.result-item,
+    button.result-item:not(.secondary):not(.ghost) {
+      background: #ffffff !important;
+      border: 1px solid #e5e5e5 !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+      text-align: left !important;
+    }
+    .product.active,
+    button.product.active,
+    button.product.active:not(.secondary):not(.ghost) {
+      background: rgba(51, 156, 255, 0.10) !important;
+      border-color: rgba(51, 156, 255, 0.72) !important;
+      color: #1a1c1f !important;
+      box-shadow: 0 0 0 4px rgba(51, 156, 255, 0.14) !important;
+    }
+    .product-name,
+    .product .product-name,
+    button.product .product-name {
+      color: #1a1c1f !important;
+    }
+    .product-meta,
+    .product .product-meta,
+    button.product .product-meta,
+    .product-meta span,
+    .product .product-meta span,
+    button.product .product-meta span {
+      color: #6b7280 !important;
+    }
+    .suggestion strong,
+    .suggestion-item strong,
+    .ningbo-suggestion-item strong,
+    .search-result strong,
+    .result-item strong {
+      color: #1a1c1f !important;
+    }
+    .suggestion span,
+    .suggestion-item span,
+    .ningbo-suggestion-item span,
+    .search-result span,
+    .result-item span {
+      color: #6b7280 !important;
+    }
+    .product:hover,
+    .product:focus,
+    .suggestion:hover,
+    .suggestion:focus,
+    .suggestion-item:hover,
+    .suggestion-item:focus,
+    .ningbo-suggestion-item:hover,
+    .ningbo-suggestion-item:focus,
+    .search-result:hover,
+    .search-result:focus,
+    .result-item:hover,
+    .result-item:focus {
+      background: rgba(51, 156, 255, 0.10) !important;
+      border-color: rgba(51, 156, 255, 0.55) !important;
+      color: #1a1c1f !important;
+    }
+    button.secondary,
+    .secondary,
+    .ghost {
+      background: #f7f7f8 !important;
+      border-color: #e5e5e5 !important;
+      color: #1a1c1f !important;
+    }
+    .option span,
+    .checkline,
+    .pill,
+    .chip,
+    .tag,
+    .preset,
+    .tab,
+    .segment,
+    .quick-chip {
+      background: #ffffff !important;
+      border-color: #d9d9e3 !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+    }
+    .option input:checked + span,
+    .checkline:has(input:checked),
+    .option.default-option input:checked + span,
+    .option.default-option span,
+    .active,
+    .selected,
+    .is-active,
+    .chip.active,
+    .tab.active,
+    .segment.active {
+      background: rgba(51, 156, 255, 0.12) !important;
+      border-color: #339cff !important;
+      color: #1a1c1f !important;
+      box-shadow: inset 0 0 0 1px rgba(51, 156, 255, 0.22) !important;
+    }
+    .notice,
+    .payment-deduction,
+    .total-field {
+      background: #f7f7f8 !important;
+      border-color: #e5e5e5 !important;
+      color: #1a1c1f !important;
+    }
+    .total-field {
+      background: rgba(51, 156, 255, 0.18) !important;
+      border: 2px solid #339cff !important;
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.58),
+        0 10px 30px rgba(51, 156, 255, 0.16) !important;
+    }
+    .total-field .field-label {
+      color: #1a1c1f !important;
+      font-weight: 850 !important;
+      font-size: 17px !important;
+    }
+    .total-field input {
+      background: rgba(255, 255, 255, 0.94) !important;
+      border: 2px solid rgba(51, 156, 255, 0.72) !important;
+      color: #1a1c1f !important;
+      font-size: 28px !important;
+      font-weight: 900 !important;
+      box-shadow: 0 0 0 4px rgba(51, 156, 255, 0.08) !important;
+    }
+    .result-box,
+    .freight-question-box,
+    pre,
+    code,
+    .code,
+    .output,
+    .preview-output {
+      background: #1a1c1f !important;
+      color: #ffffff !important;
+      border-color: #1a1c1f !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
+    .freight-question-box {
+      background: #f7f7f8 !important;
+      color: #1a1c1f !important;
+      border-color: #e5e5e5 !important;
+      font-family: inherit !important;
+    }
+    .segmented {
+      background: #f7f7f8 !important;
+      border: 0 !important;
+      border-radius: 15px !important;
+      padding: 3px !important;
+      gap: 3px !important;
+      overflow: visible !important;
+      box-shadow: none !important;
+    }
+    .segmented button {
+      min-height: 38px !important;
+      border: 0 !important;
+      border-radius: 12px !important;
+      background: transparent !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+      font-weight: 650 !important;
+    }
+    .segmented button.active {
+      background: #1a1c1f !important;
+      color: #ffffff !important;
+      box-shadow: none !important;
+    }
+    .segmented.three {
+      gap: 3px !important;
+    }
+    .toolbar button:not(.primary) {
+      background: #f7f7f8 !important;
+      color: #1a1c1f !important;
+      border-color: #e5e5e5 !important;
+    }
+    .concrete-fee-list {
+      display: grid !important;
+      gap: 14px !important;
+      margin-bottom: 16px !important;
+    }
+    .concrete-fee-row {
+      display: grid !important;
+      grid-template-columns: minmax(280px, 1fr) minmax(180px, 0.6fr) 104px !important;
+      gap: 14px !important;
+      align-items: end !important;
+    }
+    .concrete-fee-row > div {
+      min-width: 0 !important;
+    }
+    .concrete-promo-delete {
+      min-height: 46px !important;
+      width: 104px !important;
+    }
+    #addConcretePromoBtn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      min-height: 46px !important;
+      min-width: 150px !important;
+      margin-top: 2px !important;
+    }
+    #addConcretePromoBtn + .hint {
+      display: block !important;
+      margin-top: 14px !important;
+      clear: both !important;
+    }
+    @media (max-width: 760px) {
+      .concrete-fee-row {
+        grid-template-columns: 1fr !important;
+      }
+      .concrete-promo-delete,
+      #addConcretePromoBtn {
+        width: 100% !important;
+      }
+    }
+    header {
+      background: transparent !important;
+      border-color: transparent !important;
+      color: #1a1c1f !important;
+    }
+    header h1,
+    .topbar h1,
+    main > h1 {
+      font-size: clamp(30px, 3.5vw, 42px) !important;
+      line-height: 1.08 !important;
+      font-weight: 800 !important;
+      color: #1a1c1f !important;
+    }
+    header .hint,
+    header p,
+    header small,
+    .topbar .subtitle {
+      color: #6b7280 !important;
+    }
+    @media (max-width: 760px) {
+      header h1,
+      .topbar h1,
+      main > h1 {
+        font-size: 26px !important;
+      }
+    }
+    header input,
+    header select {
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      border-color: #d9d9e3 !important;
+    }
+    .stage {
+      background: #f7f7f8 !important;
+      border-color: #d9d9e3 !important;
+    }
+    .plate,
+    .hole {
+      stroke: #1a1c1f !important;
+    }
+    .dim {
+      stroke: #1a1c1f !important;
+    }
+    .dimText,
+    .smallText {
+      fill: #1a1c1f !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
+    svg,
+    canvas {
+      color: #1a1c1f !important;
+    }
+    #query {
+      padding-right: 112px !important;
+    }
+    .search-wrap #clearSearchBtn.search-clear {
+      position: absolute !important;
+      right: 10px !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+      z-index: 22 !important;
+      min-width: 84px !important;
+      min-height: 38px !important;
+      border: 1px solid #e5e5e5 !important;
+      border-radius: 12px !important;
+      background: #f7f7f8 !important;
+      color: #1a1c1f !important;
+      font-size: 14px !important;
+      font-weight: 850 !important;
+      box-shadow: none !important;
+      padding: 0 14px !important;
+    }
+    @media (max-width: 760px) {
+      #query {
+        padding-right: 92px !important;
+      }
+      .search-wrap #clearSearchBtn.search-clear {
+        min-width: 72px !important;
+        padding: 0 10px !important;
+      }
+    }
+    * {
+      text-shadow: none !important;
+      letter-spacing: 0 !important;
+    }
+
+</style>
+  <link rel="stylesheet" href="apple-ui.css?v=20260908-2">
+</head>
+<body class="apple-ui" data-page="quick-price">
+  <main>
+    <div class="topbar"><div><h1>快速查价</h1><p class="subtitle">输入产品关键词，快速查看鎏金板、宁波柔岩、美利来和混凝土各规格价格；鎏金板同时显示底价与最低售价。</p></div><div class="pill">按关键词查价格</div></div>
+    <section class="panel search-panel"><label for="query">产品关键词</label><div class="search-wrap"><input id="query" autocomplete="off" placeholder="例如 雪岩 / 拉丝 / 仿金属 / 星月石"><button id="clearSearchBtn" class="search-clear" type="button">清空</button><div id="suggestions" class="suggestions"></div></div><div class="quick-tags" id="quickTags"></div></section>
+    <section id="results" class="results"><div class="panel empty">输入关键词后显示价格。比如输入“仿”会出现“仿金属”，点击后显示硬质、软质各规格的底价与最低售价。</div></section>
+  </main>
+  <script src="product-data.js?v=20260905-1"></script>
+  <script>
+    const productData = window.JieGeProductData;
+    const specs = productData.liujinSpecs;
+    const liujinSeriesPriceGroups = productData.liujinSeriesPriceGroups;
+    const sandstoneSpecs = productData.sandstoneSpecs;
+    const ningboProductCatalog = productData.ningboProductCatalog;
+    const concrete168ExtraFeeNote = `打孔+5元/㎡；倒边+5元/米；干挂孔1元/个；干挂件8元/个；30种规格以上另加10元/㎡；${productData.concrete168PackagingNote}`;
+    const concretePriceTable = productData.concretePriceTable;
+    const cementBoardTables = [
+      {
+        title: '雪岩（浅灰/深灰）',
+        aliases: ['雪岩', '雪岩浅灰', '雪岩深灰', '浅灰', '深灰', '福建雪岩'],
+        brand: '福建',
+        warehouses: ['上海仓', '武汉仓', '淮海仓', '昌盛'],
+        rows: [
+          { spec: '1220*2440*5mm', prices: { '上海仓': 70, '武汉仓': 70, '淮海仓': 70 } },
+          { spec: '1220*2440*6mm', prices: { '上海仓': 75, '武汉仓': 75, '淮海仓': 75, '昌盛': 80 } },
+          { spec: '1220*2440*8mm', prices: { '上海仓': 95, '武汉仓': 95, '淮海仓': 95, '昌盛': 100 } },
+          { spec: '1220*2440*9mm', prices: { '上海仓': 120, '武汉仓': 120, '淮海仓': 120 } },
+          { spec: '1220*2440*10mm', prices: { '上海仓': 140, '武汉仓': 140, '淮海仓': 140, '昌盛': 145 } },
+          { spec: '1220*2440*12mm', prices: { '上海仓': 170, '武汉仓': 170, '淮海仓': 170 } },
+          { spec: '1220*2440*15mm', prices: { '上海仓': 245, '武汉仓': 245, '淮海仓': 245, '昌盛': 250 } },
+          { spec: '1220*2440*20mm', prices: { '上海仓': 345, '武汉仓': 345, '淮海仓': 345 } }
+        ]
+      },
+      {
+        title: '拉丝',
+        aliases: ['拉丝', '福建拉丝'],
+        brand: '福建',
+        warehouses: ['上海仓', '武汉仓', '淮海仓', '昌盛'],
+        rows: [
+          { spec: '1220*2440*6mm', prices: { '上海仓': 75, '武汉仓': 75, '淮海仓': 75 } },
+          { spec: '1220*2440*8mm', prices: { '上海仓': 95, '武汉仓': 95, '淮海仓': 95 } },
+          { spec: '1220*2440*10mm', prices: { '上海仓': 140, '武汉仓': 140, '淮海仓': 140 } }
+        ]
+      },
+      {
+        title: '雪岩（浅/中/深）',
+        aliases: ['雪岩', '雪岩浅', '雪岩中', '雪岩深', '贝厂雪岩'],
+        brand: '贝厂',
+        warehouses: ['上海仓', '武汉仓', '淮海仓'],
+        rows: [
+          { spec: '1220*2440*6mm', prices: { '上海仓': 70, '武汉仓': 70, '淮海仓': 70 }, extra: '实际厚度 5-5.4；拉丝足厚 65' },
+          { spec: '1220*2440*8mm', prices: { '上海仓': 90, '武汉仓': 90, '淮海仓': 90 }, extra: '实际厚度 7-7.4；拉丝足厚 85' },
+          { spec: '1220*2440*9mm', prices: { '上海仓': 105, '武汉仓': 105, '淮海仓': 105 }, extra: '实际厚度 8-8.4；拉丝足厚 100' },
+          { spec: '1220*2440*10mm', prices: { '上海仓': 125, '武汉仓': 125, '淮海仓': 125 }, extra: '实际厚度 9-9.4；拉丝足厚 120' },
+          { spec: '1220*2440*12mm', prices: { '上海仓': 160, '武汉仓': 160, '淮海仓': 160 }, extra: '实际厚度 11-11.4；拉丝足厚 150' },
+          { spec: '1220*2440*15mm', prices: { '上海仓': 245, '武汉仓': 245, '淮海仓': 245 }, extra: '实际厚度 14-14.4；拉丝足厚 230' },
+          { spec: '1220*2440*18mm', prices: { '上海仓': 290, '武汉仓': 290, '淮海仓': 290 }, extra: '实际厚度 18-18.4；拉丝足厚 275' },
+          { spec: '1220*2440*20mm', prices: { '上海仓': 345, '武汉仓': 345, '淮海仓': 345 }, extra: '实际厚度 19-19.4；拉丝足厚 330' }
+        ]
+      },
+      {
+        title: '拉丝',
+        aliases: ['拉丝', '贝厂拉丝'],
+        brand: '贝厂',
+        warehouses: ['上海仓', '武汉仓', '淮海仓'],
+        rows: [
+          { spec: '1220*2440*6mm', prices: { '上海仓': 53, '武汉仓': 53, '淮海仓': 53 }, extra: '实际厚度 5-5.4；拉丝足厚 65' },
+          { spec: '1220*2440*8mm', prices: { '上海仓': 70, '武汉仓': 70, '淮海仓': 70 }, extra: '实际厚度 7-7.4；拉丝足厚 85' },
+          { spec: '1220*2440*9mm', prices: { '上海仓': 90, '武汉仓': 90, '淮海仓': 90 }, extra: '实际厚度 8-8.4；拉丝足厚 100' },
+          { spec: '1220*2440*10mm', prices: { '上海仓': 105, '武汉仓': 105, '淮海仓': 105 }, extra: '实际厚度 9-9.4；拉丝足厚 120' },
+          { spec: '1220*2440*12mm', prices: { '上海仓': 135, '武汉仓': 135, '淮海仓': 135 }, extra: '实际厚度 11-11.4；拉丝足厚 150' },
+          { spec: '1220*2440*15mm', prices: { '上海仓': 200, '武汉仓': 200, '淮海仓': 200 }, extra: '实际厚度 14-14.4；拉丝足厚 230' },
+          { spec: '1220*2440*18mm', prices: { '上海仓': 245, '武汉仓': 245, '淮海仓': 245 }, extra: '实际厚度 18-18.4；拉丝足厚 275' },
+          { spec: '1220*2440*20mm', prices: { '上海仓': 300, '武汉仓': 300, '淮海仓': 300 }, extra: '实际厚度 19-19.4；拉丝足厚 330' }
+        ]
+      }
+    ];
+    const meiyanPriceTables = [
+      {
+        title: '美岩 秀士板',
+        aliases: ['美岩', '秀士板', '美岩秀士板', '美岩芬士板'],
+        category: '美岩',
+        sortOrder: 10,
+        note: '单位：元/片；备注为图片表格中的返点比例。',
+        rows: [
+          { spec: '1200*2400*8mm', min: 235, remark: '3%' },
+          { spec: '1200*2400*11mm', min: 280, remark: '3%' },
+          { spec: '1200*2400*16mm', min: 420, remark: '5%' },
+          { spec: '1200*2400*20mm', min: 480, remark: '5%' }
+        ]
+      },
+      {
+        title: '美岩 水泥板',
+        aliases: ['美岩', '美岩水泥板', '水泥板'],
+        category: '美岩',
+        sortOrder: 20,
+        note: '单位：元/片；以最新图片为准，无零售价。',
+        rows: [
+          { spec: '1220*2440*4mm', min: 95, remark: '3%' },
+          { spec: '1220*2440*6mm', min: 130, remark: '3%' },
+          { spec: '1220*2440*8mm', min: 155, remark: '3%' },
+          { spec: '1220*2440*10mm', min: 250, remark: '5%' },
+          { spec: '1220*2440*12mm', min: 340, remark: '5%' },
+          { spec: '1220*2440*16mm', min: 580, remark: '5%' }
+        ]
+      },
+      {
+        title: '新美岩 水泥板',
+        aliases: ['新美岩', '新美岩水泥板', '水泥板'],
+        category: '美岩',
+        sortOrder: 30,
+        note: '单位：元/片；备注为图片表格中的返点比例。',
+        rows: [
+          { spec: '1200*2400*4mm', min: 95, remark: '3%' },
+          { spec: '1200*2400*6mm', min: 130, remark: '3%' },
+          { spec: '1200*2400*8mm', min: 155, remark: '3%' },
+          { spec: '1220*2440*4mm', min: 95, remark: '3%' },
+          { spec: '1220*2440*6mm', min: 130, remark: '3%' },
+          { spec: '1220*2440*8mm', min: 155, remark: '3%' }
+        ]
+      },
+      {
+        title: '美岩 辅料',
+        aliases: ['美岩', '辅料', '保护剂', '胶水', '密封胶', 'SEL', '渗透性', '结膜型'],
+        category: '辅料',
+        sortOrder: 90,
+        note: '图片备注：只提取差价。',
+        rows: [
+          { spec: '保护剂(结膜型) · 1kg', min: 40 },
+          { spec: '保护剂二合一(通用) · 5kg', min: 145 },
+          { spec: 'SEL 专用胶水 · 360g', min: 17 },
+          { spec: '防火密封胶 · 900g', min: 25 },
+          { spec: '保护剂（渗透性） · 1kg', min: 45 },
+          { spec: '保护剂（渗透性） · 5kg', min: 185 }
+        ]
+      }
+    ];
+    const translucentBoardRows = [
+      { thickness: '10mm', style: '满天星', sales: 250, min: 280, note: '包邮+40元/㎡，量大运费直接问工厂' },
+      { thickness: '20mm', style: '满天星', sales: 320, min: 350, note: '包邮+50元/㎡，量大运费直接问工厂' },
+      { thickness: '30mm', style: '满天星', sales: 500, min: 550, note: '包邮+50元/㎡，量大运费直接问工厂' },
+      { thickness: '50mm', style: '满天星', sales: 800, min: 900, note: '包邮+50元/㎡，量大运费直接问工厂' },
+      { thickness: '20mm', style: '水波纹', sales: 350, min: 380, note: '包邮+50元/㎡，量大运费直接问工厂' },
+      { thickness: '坐凳50mm', style: '常规', sales: 1100, min: '正常提点', note: '异形定制+100元/㎡' }
+    ];
+    const translucentBoardNote = '偏远地区除外（新疆、西藏、内蒙古、甘肃、青海、宁夏、海南、黑龙江、辽宁及香港、澳门、台湾等），偏远地区运费咨询厂家，3平方以内运费统一按100元/平方收费。提点：高于最低售价3%，低于最低售价提2%。工费：定制图案+150元，弧形曲面+150（超过15平定制图案+75元，弧形曲面+75元），倒角5元/米，拉槽+25/平方，打孔1元/个，干挂件5元/套。';
+    const translucentBenchRows = [
+      { thickness: '40mm', prices: { '矩形透光坐凳': 900, '异形透光坐凳': 1050, '矩形清水坐凳': 650, '异形清水坐凳': 850, '矩形水磨石坐凳': 700, '异形水磨石坐凳': 900 } },
+      { thickness: '50mm', prices: { '矩形透光坐凳': 1000, '异形透光坐凳': 1100, '矩形清水坐凳': 700, '异形清水坐凳': 900, '矩形水磨石坐凳': 750, '异形水磨石坐凳': 950 } },
+      { thickness: '60mm', prices: { '矩形透光坐凳': 1100, '异形透光坐凳': 1150, '矩形清水坐凳': 750, '异形清水坐凳': 950, '矩形水磨石坐凳': 800, '异形水磨石坐凳': 1000 } }
+    ];
+    const translucentBenchNote = '利润：5:5分，不做提成。其它定制另行定价执行。透光坐凳为常规光点，表面没有装饰形状；透光为常规白色与灰色，其他颜色重新报价；以上报价为国内产品，定制产品重新报价。矩形为能共用模具，异形为一件产品一件模具；清水为白色或者灰色，其他颜色重新报价。石子为常规石子，定制石子重新报价。';
+    const rammedEarthRows = [
+      { style: '夯土A（细夯土）', specs: ['2360*580mm', '2360*1160mm'], thickness: '3-5mm', price: 70 },
+      { style: '细夯土Y', specs: ['2360*600mm'], thickness: '3mm', price: 62 },
+      { style: '夯土B（粗夯土）', specs: ['2900*1160mm', '2800*1030mm', '2680*930mm'], thickness: '3-5mm', price: 75 },
+      { style: '夯土C（新夯土）', specs: ['2800*530mm', '2800*1060mm'], thickness: '3-5mm', price: 80 },
+      { style: '夯土D（窑变夯土）', specs: ['2800*560mm'], thickness: '3-5mm', price: 75 },
+      { style: '夯土E（A7夯土）', specs: ['2800*1030mm'], thickness: '3-5mm', price: 75 }
+    ];
+    const meteoriteBoardRows = [
+      { series: '砂岩系列', specs: [{ size:'1200*600', sales:130 }, { size:'2400*1200', sales:140 }] },
+      { series: '仿清水混凝土', specs: [{ size:'1200*600', sales:135 }, { size:'2400*1200', sales:150 }] }
+    ];
+    const meililaiRows = productData.meililaiProductCatalog;
+    const els = { query: document.querySelector('#query'), clearSearchBtn: document.querySelector('#clearSearchBtn'), suggestions: document.querySelector('#suggestions'), results: document.querySelector('#results'), quickTags: document.querySelector('#quickTags') };
+    const quickWordsDefault = ['鎏金板', 'NB柔岩板', '美利来', '混凝土', '陨石板', '雪岩', '美岩', '夯土板', '透光板', '坐凳', '拉丝', '洞石'];
+    function esc(value) { return String(value ?? '').replace(/[&<>"']/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+    function normalize(value) { return String(value || '').replace(/[\s（）()、/·-]+/g, '').toLowerCase(); }
+    function money(value) { const num = Number(value); if (value === '' || value === null || value === undefined || Number.isNaN(num)) return String(value ?? ''); return Number.isInteger(num) ? String(num) : String(num).replace(/\.?0+$/, ''); }
+    function specLabel(value) {
+      const text = String(value || '').trim();
+      const clean = text.replace(/\s+/g, '').replace(/[xX×]/g, '*').replace(/mm(?![a-z])/ig, '');
+      const noteMatch = clean.match(/([（(][^）)]*[）)])$/);
+      const note = noteMatch ? noteMatch[1] : '';
+      const main = note ? clean.slice(0, -note.length) : clean;
+      return `${main}mm${note}`;
+    }
+    const liujinMinimumPriceGroups = [
+      { 'hard-2440':85, 'hard-3050':85, 'soft-2440':95, 'soft-3000':95 },
+      { 'hard-2440':90, 'hard-3050':90, 'soft-2440':100, 'soft-3000':100 },
+      { 'hard-2440':95, 'hard-3050':95, 'soft-2440':110, 'soft-3000':110 },
+      { 'hard-2440':100, 'hard-3050':100, 'soft-2440':115, 'soft-3000':115 },
+      { 'hard-2440':115, 'hard-3050':115, 'soft-2440':125, 'soft-3000':125 },
+      { 'hard-2440':125, 'hard-3050':125, 'soft-2440':140, 'soft-3000':140 },
+      { 'hard-2440':220, 'hard-3050':220, 'soft-2440':235, 'soft-3000':235 },
+      { 'hard-2440':140 }
+    ];
+    function liujinMinimumPrice(groupIndex, key) {
+      return liujinMinimumPriceGroups[groupIndex]?.[key];
+    }
+    function liujinEntries() {
+      const specNames = { 'hard-2440':'硬质 1220*2440*6mm', 'hard-3050':'硬质 1220*3050*6mm', 'hard-600':'硬质 1200*600*6mm（按硬质短板底价）', 'soft-2440':'软质 1200*2440*2~3mm', 'soft-3000':'软质 1200*3000*2~3mm' };
+      const order = ['hard-2440','hard-3050','soft-2440','soft-3000'];
+      return liujinSeriesPriceGroups.map((group, groupIndex) => ({ type:'liujin', title:group.names[0], aliases:group.names, warehouse:'浙江仓', category:'鎏金板', unit:'底价与最低售价 / 元每平', note:'款式：' + group.names.join('、') + '。销售不得低于规定最低成交价；特殊项目需审批。', rows:order.map((key) => ({ label:'款式 ' + group.names.join(' / ') + ' · 规格 ' + specNames[key], price:group.prices[key], minimumPrice:liujinMinimumPrice(groupIndex, key) })).filter((row) => row.price) }));
+    }
+    function liujinTableEntries() {
+      const rows = [];
+      liujinSeriesPriceGroups.forEach((group, groupIndex) => {
+        const styles = group.names.join(' / ');
+        const hardPrice = group.prices['hard-2440'] || group.prices['hard-3050'];
+        const softPrice = group.prices['soft-2440'] || group.prices['soft-3000'];
+        if (hardPrice) rows.push({ label:styles, tag:'硬质', tagClass:'hard', subLabel:'1220*2440 / 3050mm', price:hardPrice, minimumPrice:liujinMinimumPrice(groupIndex, 'hard-2440') });
+        if (softPrice) rows.push({ label:styles, tag:'软质', tagClass:'soft', subLabel:'1200*2440 / 3000mm', price:softPrice, minimumPrice:liujinMinimumPrice(groupIndex, 'soft-2440') });
+      });
+      return [{
+        type:'liujin-table',
+        title:'鎏金板价格表',
+        aliases:['鎏金板', '鎏金板价格表', '鎏金价格表', '鎏金完整价格表'],
+        warehouse:'浙江仓',
+        category:'鎏金板',
+        unit:'底价与最低售价 / 元每平',
+        note:'硬质同组 1220*2440mm 和 1220*3050mm 同价；软质同组 1200*2440mm 和 1200*3000mm 同价。',
+        rows
+      }];
+    }
+    function sandstoneEntries() { return [{ type:'sandstone', title:'砂岩板', aliases:['砂岩','砂岩板'], warehouse:'浙江仓', category:'砂岩板', note:'', rows:sandstoneSpecs.map((item) => ({ label:specLabel(item.label), price:item.defaultSqmPrice })) }]; }
+    function ningboEntries() { const map = new Map(); ningboProductCatalog.forEach((item) => { if (!map.has(item.name)) map.set(item.name, { type:'ningbo', title:item.name, aliases:[item.name, '宁波' + item.name, '柔岩板' + item.name], warehouse:'宁波仓', category:'柔岩板', unit:'单价 / 元每平', note:'打印+10元/平。', rows:[] }); const entry = map.get(item.name); item.specs.forEach((spec) => entry.rows.push({ label:'规格 ' + specLabel(spec), price:item.price })); }); return Array.from(map.values()); }
+    function ningboTableEntries() {
+      const rows = [];
+      ningboProductCatalog.forEach((item) => {
+        item.specs.forEach((spec) => {
+          rows.push({ label:item.name + ' · 规格 ' + specLabel(spec), subLabel:'宁波仓 · 柔岩板', price:item.price });
+        });
+      });
+      return [{
+        type:'ningbo-table',
+        title:'NB柔岩板价格表',
+        aliases:['NB柔岩板', 'NB柔岩板价格表', '宁波柔岩板价格表', '宁波价格表', '柔岩板价格表', 'NB价格表'],
+        warehouse:'宁波仓',
+        category:'柔岩板',
+        unit:'单价 / 元每平',
+        layout:'single',
+        note:'价格来自宁波柔岩板表；打印+10元/平。搜索洞石、星月石等仍显示对应单品。',
+        rows
+      }];
+    }
+    function concreteEntries() {
+      const labels = { flat:{ title:'清水平板', aliases:['混凝土','清水','平板','清水平板'], sizes:{ small:'600*1200', large:'1200*2400' } }, cave:{ title:'清水虫洞板', aliases:['混凝土','虫洞','清水虫洞','清水虫洞板'], sizes:{ small:'600*1200', large:'1200*2400' } }, texture:{ title:'木纹板 / 竹纹板', aliases:['混凝土','木纹','木纹板','竹纹','竹纹板','竹模'], sizes:{ short:'1200*600 / 2400*600', long:'3000*600' } } };
+      const bands = { thin:'10-12mm最低售价', medium:'20-25mm最低售价', combo:'10-25mm最低售价', thick:'30mm最低售价' };
+      const notes = {
+        "松诺": {
+          default:'单件面积：1.5㎡以下、20种规格内，执行600*1200mm的价格；打孔+7元/㎡；倒边+10元/米；超过20种规格另加10元/㎡。其它超大规格另行核算。',
+          texture:'硅胶模+20元/㎡。'
+        },
+        "168": {
+          default:concrete168ExtraFeeNote
+        }
+      };
+      const entries = [];
+      Object.entries(concretePriceTable).forEach(([warehouse, products]) => {
+        Object.entries(products).forEach(([type, sizes]) => {
+          const info = labels[type];
+          const rows = [];
+          Object.entries(sizes).forEach(([sizeKey, bandPrices]) => {
+            if (bandPrices.thin === bandPrices.medium) {
+              rows.push({ label:info.sizes[sizeKey] + ' · ' + bands.combo, price:bandPrices.thin });
+              if (bandPrices.thick) rows.push({ label:info.sizes[sizeKey] + ' · ' + bands.thick, price:bandPrices.thick });
+              return;
+            }
+            Object.entries(bandPrices).forEach(([band, price]) => rows.push({ label:info.sizes[sizeKey] + ' · ' + bands[band], price }));
+          });
+          const note = [notes[warehouse].default, type === 'texture' ? notes[warehouse].texture : ''].filter(Boolean).join(' ');
+          entries.push({ type:'concrete', title:warehouse + info.title, aliases:[warehouse, warehouse + '清水', info.title, ...info.aliases], warehouse, category:'混凝土', note, rows });
+        });
+      });
+      return entries;
+    }
+    function concreteTableEntries() {
+      const labels = { flat:'清水平板', cave:'清水虫洞板', texture:'木纹板 / 竹纹板' };
+      const sizes = { small:'600*1200', large:'1200*2400', short:'1200*600 / 2400*600', long:'3000*600' };
+      const bands = { thin:'10-12mm', medium:'20-25mm', combo:'10-25mm', thick:'30mm' };
+      const notes = {
+        '松诺':'单件面积：1.5㎡以下、20种规格内，执行600*1200mm的价格；打孔+7元/㎡；倒边+10元/米；超过20种规格另加10元/㎡。其它超大规格另行核算。木纹板 / 竹纹板：硅胶模+20元/㎡。',
+        '168':concrete168ExtraFeeNote
+      };
+      return ['松诺', '168'].map((warehouse) => {
+        const rows = [];
+        const products = concretePriceTable[warehouse];
+        Object.entries(products).forEach(([type, sizeGroups]) => {
+          Object.entries(sizeGroups).forEach(([sizeKey, bandPrices]) => {
+            rows.push({
+              label:labels[type] + ' · 尺寸 ' + sizes[sizeKey],
+              priceItems:Object.entries(bandPrices).map(([band, price]) => ({ label:bands[band], price })),
+              price:''
+            });
+          });
+        });
+        return {
+        type:'concrete-table',
+        title:warehouse + '厂 混凝土价格表',
+        aliases:['混凝土', '混凝土价格表', '混凝土完整价格表', '清水价格表', warehouse + '混凝土价格表', warehouse + '厂混凝土价格表'],
+        warehouse:warehouse + '厂',
+        category:'混凝土',
+        unit:'最低售价 / 元每平',
+        layout:'single',
+        note:notes[warehouse],
+        rows
+        };
+      });
+    }
+    function cementBoardEntries() {
+      const brandOrder = { '福建': 10, '贝厂': 20 };
+      return cementBoardTables.map((item) => {
+        const rows = [];
+        item.rows.forEach((row) => {
+          const groupedByPrice = new Map();
+          item.warehouses.forEach((warehouse) => {
+            const price = row.prices[warehouse];
+            if (!price) return;
+            if (!groupedByPrice.has(price)) groupedByPrice.set(price, []);
+            groupedByPrice.get(price).push(warehouse);
+          });
+          groupedByPrice.forEach((warehouses, price) => {
+            rows.push({ label:row.spec + ' · ' + warehouses.join(' / ') + (row.extra ? ' · ' + row.extra : ''), price });
+          });
+        });
+        return {
+          type:'cement',
+          title:item.brand + ' ' + item.title,
+          aliases:[item.brand, item.title, ...item.aliases],
+          warehouse:item.warehouses.join(' / '),
+          category:'水泥板',
+          unit:'底价 / 元每片',
+          note:item.brand + '仓：' + item.warehouses.join('、') + '；空白仓位不显示价格。',
+          sortOrder:brandOrder[item.brand] || 50,
+          rows
+        };
+      });
+    }
+    function meiyanEntries() {
+      return meiyanPriceTables.map((item) => ({
+        type:'meiyan',
+        title:item.title,
+        aliases:item.aliases,
+        warehouse:'美岩',
+        category:item.category,
+        unit:'最低成交价 / 元每片',
+        note:item.note,
+        sortOrder:item.sortOrder,
+        rows:item.rows.map((row) => {
+          const parts = [row.spec, '最低成交价 ' + money(row.min)];
+          if (row.remark) parts.push('备注 ' + row.remark);
+          return { label:parts.join(' · '), price:row.min };
+        })
+      }));
+    }
+    function translucentBoardEntries() {
+      return [{
+        type:'translucent',
+        title:'透光混凝土板 168',
+        aliases:['透光板', '透光混凝土板', '透光混凝土板168', '168透光板', '满天星', '水波纹'],
+        warehouse:'168',
+        category:'透光板',
+        unit:'最低成交价 / 元每平',
+        layout:'single',
+        note:translucentBoardNote,
+        rows:translucentBoardRows.map((row) => {
+          const parts = [row.thickness, row.style, '销售底价 ' + money(row.sales), '最低成交价 ' + money(row.min)];
+          if (row.note) parts.push(row.note);
+          return { label:parts.join(' · '), price:row.min };
+        })
+      }];
+    }
+    function translucentBenchEntries() {
+      const rows = [];
+      translucentBenchRows.forEach((thicknessRow) => {
+        Object.entries(thicknessRow.prices).forEach(([style, price]) => {
+          rows.push({ label:thicknessRow.thickness + ' · ' + style, price });
+        });
+      });
+      return [{
+        type:'translucent-bench',
+        title:'透光坐凳价格表',
+        aliases:['坐凳', '透光坐凳', '矩形透光坐凳', '异形透光坐凳', '清水坐凳', '矩形清水坐凳', '异形清水坐凳', '水磨石坐凳', '矩形水磨石坐凳', '异形水磨石坐凳'],
+        warehouse:'168',
+        category:'透光坐凳',
+        unit:'报价',
+        note:translucentBenchNote,
+        sortOrder:5,
+        rows
+      }];
+    }
+    function rammedEarthEntries() {
+      return [{
+        type:'rammed-earth',
+        title:'夯土板价格表',
+        aliases:['夯土板', '夯土', '夯土A', '夯土B', '夯土C', '夯土D', '夯土E', '细夯土', '细夯土Y', '粗夯土', '新夯土', '窑变夯土', 'A7夯土'],
+        warehouse:'夯土板',
+        category:'夯土板',
+        unit:'平方单价 / 元每平',
+        rows:rammedEarthRows.map((row) => ({ label:row.style + ' · 规格 ' + row.specs.join(' / ') + ' · 厚度 ' + row.thickness, price:row.price }))
+      }];
+    }
+    function meteoriteBoardEntries() {
+      const rows = [];
+      meteoriteBoardRows.forEach((item) => {
+        item.specs.forEach((spec) => {
+          rows.push({
+            label:item.series + ' · 尺寸 ' + spec.size,
+            subLabel:'厚度 6mm',
+            price:spec.sales
+          });
+        });
+      });
+      return [{
+        type:'meteorite',
+        title:'陨石板价格表',
+        aliases:['陨石板', '陨石', '砂岩系列', '仿清水混凝土'],
+        warehouse:'陨石板',
+        category:'陨石板',
+        unit:'销售底价 / 元每平',
+        note:'单位：元/㎡。以最新图片为准，只显示有销售底价的系列。',
+        rows
+      }];
+    }
+    function meililaiEntries() {
+      return productData.groupedMeililaiCatalog().map((item) => ({
+        type:'meililai',
+        title:item.name,
+        aliases:[item.name, 'MLL' + item.name, '美利来' + item.name, '美丽来' + item.name, ...(item.aliases || [])],
+        warehouse:'美利来',
+        category:'柔岩板',
+        unit:'平方单价 / 元每平',
+        note:[...new Set(item.variants.flatMap((variant) => [variant.condition, variant.note]).filter(Boolean))].join('；'),
+        rows:item.variants.map((variant) => ({
+          label:'规格 ' + specLabel(variant.spec) + (variant.condition ? ' · ' + variant.condition : ''),
+          subLabel:[variant.thickness ? '厚度 ' + variant.thickness : '', variant.weight ? '重量 ' + variant.weight : '', variant.note || ''].filter(Boolean).join(' · '),
+          price:variant.price
+        }))
+      }));
+    }
+    function meililaiTableEntries() {
+      const rows = [];
+      meililaiRows.forEach((item) => {
+        rows.push({
+          label:item.name + ' · 规格 ' + specLabel(item.spec) + (item.condition ? ' · ' + item.condition : ''),
+          subLabel:[item.thickness ? '厚度 ' + item.thickness : '', item.weight ? '重量 ' + item.weight : '', item.note || ''].filter(Boolean).join(' · '),
+          price:item.price
+        });
+      });
+      return [{
+        type:'meililai-table',
+        title:'美利来价格表',
+        aliases:['MLL', 'MLL柔岩板', 'MLL价格表', '美利来', '美丽来', '美利来价格表', '美丽来价格表'],
+        warehouse:'美利来',
+        category:'柔岩板',
+        unit:'平方单价 / 元每平',
+        note:'价格统一读取《美利来价格明细表2026.4.13》；打印另加10元/㎡。搜索具体产品可查看规格、底价和备注。',
+        rows
+      }];
+    }
+    const priceEntries = [...liujinTableEntries(), ...liujinEntries(), ...sandstoneEntries(), ...ningboTableEntries(), ...ningboEntries(), ...concreteTableEntries(), ...concreteEntries(), ...cementBoardEntries(), ...meiyanEntries(), ...translucentBoardEntries(), ...translucentBenchEntries(), ...rammedEarthEntries(), ...meteoriteBoardEntries(), ...meililaiTableEntries(), ...meililaiEntries()];
+    function scoreEntry(entry, query) { const q = normalize(query); if (!q) return 0; const hay = [entry.title, entry.warehouse, entry.category, ...entry.aliases].map(normalize); let score = 0; hay.forEach((text) => { if (!text) return; if (text === q) score = Math.max(score,100); else if (text.startsWith(q)) score = Math.max(score,80); else if (text.includes(q)) score = Math.max(score,60 - Math.min(text.indexOf(q),20)); else if (q.includes(text) && text.length >= 2) score = Math.max(score,45 + Math.min(text.length,20)); }); return score; }
+    function matchingEntries(query) {
+      const scored = priceEntries.map((entry) => ({ entry, score:scoreEntry(entry, query) })).filter((item) => item.score > 0);
+      const q = normalize(query);
+      const exactTable = scored.filter((item) => ['meililai-table', 'liujin-table', 'concrete-table', 'ningbo-table'].includes(item.entry.type) && [item.entry.title, ...item.entry.aliases].map(normalize).includes(q));
+      if (exactTable.length && (q.includes('价格表') || ['鎏金板', 'nb柔岩板', '混凝土', 'mll', 'mll柔岩板', '美利来', '美丽来'].includes(q))) return exactTable.map((item) => item.entry);
+      if (q === normalize('洞石')) {
+        const exactNingboDongshi = scored.filter((item) => item.entry.type === 'ningbo' && normalize(item.entry.title) === q);
+        const meililaiDongshi = scored.filter((item) => item.entry.type === 'meililai' && [item.entry.title, ...item.entry.aliases].map(normalize).some((text) => text.includes(q)));
+        const combined = [...exactNingboDongshi, ...meililaiDongshi];
+        if (combined.length) return combined.sort((a,b) => {
+          const typeOrder = { ningbo:10, meililai:20 };
+          return (typeOrder[a.entry.type] || 100) - (typeOrder[b.entry.type] || 100) || b.score - a.score || a.entry.title.localeCompare(b.entry.title, 'zh-Hans-CN');
+        }).map((item) => item.entry);
+      }
+      const sameNameNingboAndMeililai = scored.filter((item) => ['ningbo', 'meililai'].includes(item.entry.type) && [item.entry.title, ...item.entry.aliases].map(normalize).includes(q));
+      if (sameNameNingboAndMeililai.some((item) => item.entry.type === 'ningbo') && sameNameNingboAndMeililai.some((item) => item.entry.type === 'meililai')) {
+        const typeOrder = { ningbo:10, meililai:20 };
+        return sameNameNingboAndMeililai.sort((a,b) => (typeOrder[a.entry.type] || 100) - (typeOrder[b.entry.type] || 100) || a.entry.title.localeCompare(b.entry.title, 'zh-Hans-CN')).map((item) => item.entry);
+      }
+      const exactMeililai = scored.filter((item) => item.entry.type === 'meililai' && [item.entry.title, ...item.entry.aliases].map(normalize).includes(q));
+      if (exactMeililai.length) return exactMeililai.sort((a,b) => a.entry.title.localeCompare(b.entry.title, 'zh-Hans-CN')).map((item) => item.entry);
+      const exactNingbo = scored.filter((item) => item.entry.type === 'ningbo' && [item.entry.title, ...item.entry.aliases].map(normalize).includes(q));
+      if (exactNingbo.length) return exactNingbo.sort((a,b) => a.entry.title.localeCompare(b.entry.title, 'zh-Hans-CN')).map((item) => item.entry);
+      const exactLiujin = scored.filter((item) => item.entry.type === 'liujin' && [item.entry.title, ...item.entry.aliases].map(normalize).includes(q));
+      if (exactLiujin.length) return exactLiujin.sort((a,b) => (a.entry.sortOrder || 100) - (b.entry.sortOrder || 100) || a.entry.title.localeCompare(b.entry.title, 'zh-Hans-CN')).map((item) => item.entry);
+      const maxScore = scored.reduce((max, item) => Math.max(max, item.score), 0);
+      const filtered = maxScore >= 80 ? scored.filter((item) => item.score >= 60) : scored;
+      const focused = q.includes('夯土') && !q.includes('3d') && filtered.some((item) => item.entry.type === 'rammed-earth') ? filtered.filter((item) => item.entry.type === 'rammed-earth') : filtered;
+      return focused.sort((a,b) => b.score - a.score || (a.entry.sortOrder || 100) - (b.entry.sortOrder || 100) || a.entry.title.localeCompare(b.entry.title, 'zh-Hans-CN')).map((item) => item.entry);
+    }
+    function renderSuggestions(query) { const matches = matchingEntries(query).slice(0,12); els.suggestions.classList.toggle('show', Boolean(query.trim()) && matches.length > 0); els.suggestions.innerHTML = matches.map((entry,index) => '<button class="suggestion" type="button" data-index="' + index + '"><strong>' + esc(entry.title) + '</strong><span>' + esc(entry.warehouse) + ' · ' + esc(entry.category) + (entry.aliases.length ? ' · ' + esc(entry.aliases.join(' / ')) : '') + '</span></button>').join(''); els.suggestions.querySelectorAll('.suggestion').forEach((button) => { button.addEventListener('click', () => { const entry = matches[Number(button.dataset.index)]; els.query.value = entry.aliases[0] || entry.title; els.suggestions.classList.remove('show'); renderResults([entry]); }); }); }
+    function renderRowPrices(row) {
+      if (row.price === '' || row.price === null || row.price === undefined) return '';
+      const minimumPrice = row.minimumPrice === '' || row.minimumPrice === null || row.minimumPrice === undefined ? '' : '<b class="minimum-price"><small>最低售价</small>' + esc(money(row.minimumPrice)) + '</b>';
+      return '<span class="price-values"><b><small>底价</small>' + esc(money(row.price)) + '</b>' + minimumPrice + '</span>';
+    }
+    function renderResults(entries) { if (!entries.length) { els.results.innerHTML = '<div class="panel empty">没有匹配到价格。换一个关键词试试，例如“陨石板”“夯土板”“透光板”“坐凳”。</div>'; return; } els.results.innerHTML = entries.map((entry) => '<article class="card"><div class="card-head"><div class="card-title"><strong>' + esc(entry.title) + '</strong><span class="meta">' + esc(entry.warehouse) + ' · ' + esc(entry.category) + (entry.aliases.length ? ' · 关键词：' + esc(entry.aliases.join('、')) : '') + '</span></div><span class="badge">' + esc(entry.unit || '底价 / 元每平') + '</span></div><div class="price-grid' + (entry.layout === 'single' ? ' single' : '') + '">' + entry.rows.map((row) => '<div class="price-row"><span><strong class="row-main">' + esc(row.label) + '</strong>' + (row.subLabel ? '<small class="row-sub">' + (row.tag ? '<mark class="row-tag ' + esc(row.tagClass || '') + '">' + esc(row.tag) + '</mark>' : '') + esc(row.subLabel) + '</small>' : '') + (row.priceItems ? '<span class="sub-price-list">' + row.priceItems.map((item) => '<span class="sub-price">' + esc(item.label) + '<strong>底价</strong><b>' + esc(money(item.price)) + '</b></span>').join('') + '</span>' : '') + '</span>' + renderRowPrices(row) + '</div>').join('') + '</div>' + (entry.note ? '<p class="note">' + esc(entry.note) + '</p>' : '') + '</article>').join(''); }
+    function searchNow() { const q = els.query.value.trim(); renderSuggestions(q); if (!q) { els.results.innerHTML = '<div class="panel empty">输入关键词后显示价格。鎏金板同时显示底价与最低售价，其他产品保持原有价格展示。</div>'; return; } renderResults(matchingEntries(q).slice(0,20)); }
+    els.query.addEventListener('input', searchNow); els.query.addEventListener('focus', () => renderSuggestions(els.query.value)); els.clearSearchBtn.addEventListener('click', () => { els.query.value = ''; els.suggestions.classList.remove('show'); searchNow(); els.query.focus(); }); document.addEventListener('click', (event) => { if (!event.target.closest('.search-wrap')) els.suggestions.classList.remove('show'); });
+    function loadQuickWords() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('quickPriceTags') || '[]');
+        if (!Array.isArray(saved)) return quickWordsDefault;
+        return [...saved.filter((word) => quickWordsDefault.includes(word)), ...quickWordsDefault.filter((word) => !saved.includes(word))];
+      } catch (error) {
+        return quickWordsDefault;
+      }
+    }
+    let quickWords = loadQuickWords();
+    function saveQuickWords() { localStorage.setItem('quickPriceTags', JSON.stringify(quickWords)); }
+    function renderQuickTags() {
+      els.quickTags.innerHTML = quickWords.map((word, index) => '<button class="tag-btn" type="button" draggable="true" data-index="' + index + '">' + esc(word) + '</button>').join('');
+      els.quickTags.querySelectorAll('.tag-btn').forEach((button) => {
+        let didDrag = false;
+        button.addEventListener('click', () => {
+          if (didDrag) { didDrag = false; return; }
+          els.query.value = button.textContent;
+          els.suggestions.classList.remove('show');
+          searchNow();
+          els.query.focus();
+        });
+        button.addEventListener('dragstart', (event) => {
+          didDrag = true;
+          button.classList.add('dragging');
+          event.dataTransfer.effectAllowed = 'move';
+          event.dataTransfer.setData('text/plain', button.dataset.index);
+        });
+        button.addEventListener('dragend', () => button.classList.remove('dragging'));
+        button.addEventListener('dragover', (event) => {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = 'move';
+        });
+        button.addEventListener('drop', (event) => {
+          event.preventDefault();
+          const from = Number(event.dataTransfer.getData('text/plain'));
+          const to = Number(button.dataset.index);
+          if (!Number.isInteger(from) || !Number.isInteger(to) || from === to) return;
+          const [word] = quickWords.splice(from, 1);
+          quickWords.splice(to, 0, word);
+          saveQuickWords();
+          renderQuickTags();
+        });
+      });
+    }
+    renderQuickTags();
+    els.query.focus();
+  </script>
+</body>
+</html>

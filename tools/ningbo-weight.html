@@ -1,0 +1,2605 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>宁波重量快速计算</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --ink: #17202a;
+      --muted: #667085;
+      --line: #d9dee7;
+      --accent: #0f766e;
+      --accent-soft: #e2f3f0;
+      --warn: #c2410c;
+      --shadow: 0 18px 44px rgba(20, 30, 45, .09);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      overflow-x: hidden;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 28px));
+      margin: 20px auto 36px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    header {
+      width: min(1180px, calc(100% - 28px));
+      margin: 24px auto 0;
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(24px, 3vw, 34px);
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .source {
+      color: var(--muted);
+      font-size: 14px;
+      text-align: right;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .left {
+      padding: 16px;
+      min-height: auto;
+      min-width: 0;
+    }
+
+    .right {
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+      align-content: start;
+      min-width: 0;
+    }
+
+    .right > * { min-width: 0; }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 0 7px;
+    }
+
+    input, select, button, textarea {
+      font: inherit;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #cbd3df;
+      border-radius: 7px;
+      background: #fff;
+      color: var(--ink);
+      padding: 11px 12px;
+      outline: none;
+    }
+
+    input, select { height: 44px; padding-top: 0; padding-bottom: 0; }
+    textarea { min-height: 88px; resize: vertical; line-height: 1.55; }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, .16);
+    }
+
+    .search-row {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--panel);
+      padding-bottom: 12px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      margin-top: 8px;
+      overflow-wrap: anywhere;
+    }
+
+    .list {
+      display: grid;
+      gap: 8px;
+      max-height: 360px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .product {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 11px 12px;
+      text-align: left;
+      cursor: pointer;
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .product:hover, .product.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .product-name {
+      font-weight: 700;
+      font-size: 17px;
+      overflow-wrap: anywhere;
+    }
+
+    .product-meta {
+      color: var(--muted);
+      font-size: 13px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .product-meta span {
+      min-width: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .chip {
+      border: 1px solid #b9c3d2;
+      background: #fff;
+      border-radius: 999px;
+      min-height: 38px;
+      padding: 0 15px;
+      cursor: pointer;
+      font-weight: 650;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+
+    .chip.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 13px;
+      background: #fbfcfe;
+      min-height: 92px;
+      min-width: 0;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 25px;
+      line-height: 1.08;
+    }
+
+    .metric small {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .result-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .result-card,
+    .crate {
+      background: #111827;
+      color: #fff;
+      border-radius: 8px;
+      padding: 18px 20px;
+      display: grid;
+      gap: 12px;
+      min-height: 142px;
+      border: 2px solid #22c55e;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, .18);
+      min-width: 0;
+    }
+
+    .result-card {
+      background: #0f766e;
+      border-color: #fbbf24;
+    }
+
+    .result-card .label,
+    .crate .label {
+      color: rgba(255, 255, 255, .82);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .result-value,
+    .crate-size {
+      line-height: 1;
+      font-weight: 800;
+    }
+
+    .result-value {
+      font-size: clamp(30px, 4vw, 46px);
+      white-space: normal;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+
+    .result-value.small {
+      font-size: clamp(26px, 3.3vw, 38px);
+    }
+
+    .result-value.compact {
+      font-size: clamp(22px, 2.8vw, 32px);
+    }
+
+    .crate-size {
+      font-size: clamp(26px, 4vw, 42px);
+      overflow-wrap: anywhere;
+      word-break: normal;
+    }
+
+    .result-note {
+      color: rgba(255, 255, 255, .82);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .formula {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      line-height: 1.7;
+      background: #fff;
+      color: #334155;
+    }
+
+    .formula code {
+      background: #eef2f7;
+      border-radius: 5px;
+      padding: 2px 6px;
+      color: #0f172a;
+    }
+
+    .warn {
+      color: var(--warn);
+      font-weight: 650;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .option-panel {
+      border: 1px solid rgba(15, 118, 110, .2);
+      border-radius: 8px;
+      background: #f4fbf9;
+      padding: 13px;
+    }
+
+    .option-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .option {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .option input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .option span {
+      display: grid;
+      place-items: center;
+      min-height: 42px;
+      border: 1px solid #b9c3d2;
+      border-radius: 7px;
+      background: #fff;
+      font-weight: 750;
+    }
+
+    .option input:checked + span {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: #075e57;
+    }
+
+    .freight-panel {
+      display: grid;
+      gap: 12px;
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+    }
+
+    .shipment-panel {
+      display: grid;
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #f7f7f8;
+    }
+
+    .shipment-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .shipment-head strong { font-size: 16px; }
+
+    .shipment-items {
+      display: grid;
+      gap: 8px;
+    }
+
+    .shipment-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 11px 12px;
+      background: #fff;
+    }
+
+    .shipment-item-main {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+    }
+
+    .shipment-item-main strong,
+    .shipment-item-main span { overflow-wrap: anywhere; }
+
+    .shipment-item-main span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .shipment-delete {
+      min-height: 40px !important;
+      padding: 0 14px !important;
+      color: #1a1c1f !important;
+      background: #fff !important;
+    }
+
+    .freight-output {
+      min-height: 170px;
+      border-radius: 8px;
+      background: #111827;
+      color: #fff;
+      padding: 16px;
+      white-space: pre-wrap;
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+    }
+
+    .hidden { display: none !important; }
+
+    .copy {
+      border: 1px solid var(--accent);
+      color: #fff;
+      background: var(--accent);
+      border-radius: 7px;
+      min-height: 42px;
+      padding: 0 14px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .copy.secondary {
+      color: var(--accent);
+      background: #fff;
+    }
+
+    .empty {
+      color: var(--muted);
+      text-align: center;
+      padding: 24px 10px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+    }
+
+    @media (max-width: 860px) {
+      header {
+        align-items: start;
+        flex-direction: column;
+      }
+      .source { text-align: left; }
+      main {
+        grid-template-columns: 1fr;
+      }
+      .left {
+        min-height: auto;
+      }
+      .list {
+        max-height: 320px;
+      }
+      .grid, .grid.two, .metric-row, .result-row {
+        grid-template-columns: 1fr;
+      }
+      .right { padding: 14px; }
+      .option-row { grid-template-columns: 1fr 1fr; }
+      .shipment-head .copy { width: 100%; }
+    }
+
+    /* iPhone-style refinement aligned with the quote module. */
+    :root {
+      --bg: #f5f6f8;
+      --panel: #ffffff;
+      --ink: #1f2937;
+      --muted: #687385;
+      --line: #d9dee7;
+      --accent: #146c94;
+      --accent-soft: #e9f4f8;
+      --shadow: 0 18px 44px rgba(20, 36, 55, 0.08);
+    }
+
+    header,
+    main {
+      width: min(1180px, calc(100% - 40px));
+    }
+
+    .panel,
+    .metric,
+    .result-card,
+    .product-item,
+    .freight-question {
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .left,
+    .right {
+      padding: 22px;
+    }
+
+    input,
+    textarea,
+    select {
+      min-height: 52px;
+      border-radius: 14px;
+      border-color: #cfd6e2;
+      padding: 12px 14px;
+      font-size: 16px;
+    }
+
+    button,
+    .spec-btn,
+    .option-btn,
+    .product-item {
+      min-height: 52px;
+      border-radius: 16px;
+    }
+
+    .grid,
+    .grid.two,
+    .metric-row,
+    .result-row {
+      gap: 14px;
+    }
+
+    .result-row {
+      grid-template-columns: 1fr;
+    }
+
+    .result-card {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .result-card strong,
+    .result-card .big {
+      overflow-wrap: anywhere;
+      font-size: clamp(34px, 7vw, 58px);
+    }
+
+    @media (max-width: 860px) {
+      header,
+      main {
+        width: min(100% - 18px, 1180px);
+      }
+
+      .left,
+      .right {
+        padding: 16px;
+      }
+    }
+  
+
+    /* Codex / ChatGPT unified tool theme. Keep one accent color only. */
+    :root {
+      color-scheme: light !important;
+      --bg: #ffffff !important;
+      --panel: #ffffff !important;
+      --surface: #f7f7f8 !important;
+      --surface-strong: #ececf1 !important;
+      --text: #1a1c1f !important;
+      --ink: #1a1c1f !important;
+      --muted: #6b7280 !important;
+      --line: #e5e5e5 !important;
+      --accent: #339cff !important;
+      --accent-soft: rgba(51, 156, 255, 0.12) !important;
+      --soft: rgba(51, 156, 255, 0.12) !important;
+      --gold: #339cff !important;
+      --warn: #339cff !important;
+      --aux: #339cff !important;
+      --shadow: 0 18px 44px rgba(0, 0, 0, 0.06) !important;
+      --system-gray: #f7f7f8 !important;
+      --system-gray-2: #ececf1 !important;
+    }
+    html,
+    body {
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif !important;
+      letter-spacing: 0 !important;
+      -webkit-font-smoothing: antialiased;
+    }
+    main,
+    .page,
+    .app,
+    .workspace,
+    .container {
+      background: #ffffff !important;
+    }
+    h1, h2, h3, h4,
+    .section-title,
+    .field-label,
+    label,
+    b,
+    strong {
+      color: #1a1c1f !important;
+      letter-spacing: 0 !important;
+    }
+    .subtitle,
+    .muted,
+    small,
+    .hint,
+    .desc {
+      color: #6b7280 !important;
+    }
+    .panel,
+    .panel-inner,
+    .card,
+    .product-card,
+    .payment-panel,
+    .freight-panel,
+    .order-panel,
+    .metric,
+    .total-field,
+    .notice,
+    .payment-deduction,
+    .freight-question,
+    .quote-card,
+    .result-panel,
+    .search-card,
+    .preview-card,
+    .input-card,
+    .output-card,
+    .tool-card,
+    .summary-card,
+    .concrete-extra-options,
+    .concrete-match-tools,
+    .ningbo-match-tools,
+    .unit-price-field,
+    .cement-label,
+    .readonly-pill {
+      background: #ffffff !important;
+      border-color: #e5e5e5 !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+    }
+    .panel,
+    .card,
+    .product-card,
+    .payment-panel,
+    .freight-panel,
+    .order-panel,
+    .result-panel,
+    .search-card,
+    .preview-card,
+    .input-card,
+    .output-card,
+    .tool-card,
+    .summary-card {
+      border-radius: 18px !important;
+    }
+    input,
+    select,
+    textarea {
+      background: #ffffff !important;
+      border: 1px solid #d9d9e3 !important;
+      border-radius: 14px !important;
+      color: #1a1c1f !important;
+      font-family: inherit !important;
+      box-shadow: none !important;
+    }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #339cff !important;
+      box-shadow: 0 0 0 4px rgba(51, 156, 255, 0.16) !important;
+      outline: none !important;
+    }
+    input::placeholder,
+    textarea::placeholder {
+      color: #9ca3af !important;
+    }
+    button,
+    .button,
+    .btn,
+    .tool-button,
+    .action-button,
+    .copy-button {
+      border-radius: 14px !important;
+      border: 1px solid #d9d9e3 !important;
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+      font-family: inherit !important;
+      font-weight: 650 !important;
+    }
+    button.primary,
+    button:not(.secondary):not(.ghost),
+    #copyBtn,
+    #copyFreightQuestionBtn,
+    .result-actions button,
+    .freight-actions button,
+    .actions button:first-child {
+      background: #1a1c1f !important;
+      border-color: #1a1c1f !important;
+      color: #ffffff !important;
+    }
+    .suggestions,
+    .ningbo-suggestions,
+    .search-suggestions,
+    .autocomplete,
+    .dropdown,
+    .dropdown-menu {
+      background: #ffffff !important;
+      border: 1px solid #d9d9e3 !important;
+      color: #1a1c1f !important;
+      box-shadow: 0 16px 38px rgba(0, 0, 0, 0.12) !important;
+    }
+    .product,
+    button.product,
+    button.product:not(.secondary):not(.ghost),
+    .suggestion,
+    .suggestion:not(.secondary):not(.ghost),
+    button.suggestion,
+    button.suggestion:not(.secondary):not(.ghost),
+    .suggestion-item,
+    .suggestion-item:not(.secondary):not(.ghost),
+    button.suggestion-item,
+    button.suggestion-item:not(.secondary):not(.ghost),
+    .ningbo-suggestion-item,
+    .ningbo-suggestion-item:not(.secondary):not(.ghost),
+    button.ningbo-suggestion-item,
+    button.ningbo-suggestion-item:not(.secondary):not(.ghost),
+    .search-result,
+    .search-result:not(.secondary):not(.ghost),
+    button.search-result,
+    button.search-result:not(.secondary):not(.ghost),
+    .result-item,
+    .result-item:not(.secondary):not(.ghost),
+    button.result-item,
+    button.result-item:not(.secondary):not(.ghost) {
+      background: #ffffff !important;
+      border: 1px solid #e5e5e5 !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+      text-align: left !important;
+    }
+    .product.active,
+    button.product.active,
+    button.product.active:not(.secondary):not(.ghost) {
+      background: rgba(51, 156, 255, 0.10) !important;
+      border-color: rgba(51, 156, 255, 0.72) !important;
+      color: #1a1c1f !important;
+      box-shadow: 0 0 0 4px rgba(51, 156, 255, 0.14) !important;
+    }
+    .product-name,
+    .product .product-name,
+    button.product .product-name {
+      color: #1a1c1f !important;
+    }
+    .product-meta,
+    .product .product-meta,
+    button.product .product-meta,
+    .product-meta span,
+    .product .product-meta span,
+    button.product .product-meta span {
+      color: #6b7280 !important;
+    }
+    .suggestion strong,
+    .suggestion-item strong,
+    .ningbo-suggestion-item strong,
+    .search-result strong,
+    .result-item strong {
+      color: #1a1c1f !important;
+    }
+    .suggestion span,
+    .suggestion-item span,
+    .ningbo-suggestion-item span,
+    .search-result span,
+    .result-item span {
+      color: #6b7280 !important;
+    }
+    .product:hover,
+    .product:focus,
+    .suggestion:hover,
+    .suggestion:focus,
+    .suggestion-item:hover,
+    .suggestion-item:focus,
+    .ningbo-suggestion-item:hover,
+    .ningbo-suggestion-item:focus,
+    .search-result:hover,
+    .search-result:focus,
+    .result-item:hover,
+    .result-item:focus {
+      background: rgba(51, 156, 255, 0.10) !important;
+      border-color: rgba(51, 156, 255, 0.55) !important;
+      color: #1a1c1f !important;
+    }
+    button.secondary,
+    .secondary,
+    .ghost {
+      background: #f7f7f8 !important;
+      border-color: #e5e5e5 !important;
+      color: #1a1c1f !important;
+    }
+    .option span,
+    .checkline,
+    .pill,
+    .chip,
+    .tag,
+    .preset,
+    .tab,
+    .segment,
+    .quick-chip {
+      background: #ffffff !important;
+      border-color: #d9d9e3 !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+    }
+    .option input:checked + span,
+    .checkline:has(input:checked),
+    .option.default-option input:checked + span,
+    .option.default-option span,
+    .active,
+    .selected,
+    .is-active,
+    .chip.active,
+    .tab.active,
+    .segment.active {
+      background: rgba(51, 156, 255, 0.12) !important;
+      border-color: #339cff !important;
+      color: #1a1c1f !important;
+      box-shadow: inset 0 0 0 1px rgba(51, 156, 255, 0.22) !important;
+    }
+    .notice,
+    .payment-deduction,
+    .total-field {
+      background: #f7f7f8 !important;
+      border-color: #e5e5e5 !important;
+      color: #1a1c1f !important;
+    }
+    .total-field {
+      background: rgba(51, 156, 255, 0.18) !important;
+      border: 2px solid #339cff !important;
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.58),
+        0 10px 30px rgba(51, 156, 255, 0.16) !important;
+    }
+    .total-field .field-label {
+      color: #1a1c1f !important;
+      font-weight: 850 !important;
+      font-size: 17px !important;
+    }
+    .total-field input {
+      background: rgba(255, 255, 255, 0.94) !important;
+      border: 2px solid rgba(51, 156, 255, 0.72) !important;
+      color: #1a1c1f !important;
+      font-size: 28px !important;
+      font-weight: 900 !important;
+      box-shadow: 0 0 0 4px rgba(51, 156, 255, 0.08) !important;
+    }
+    .result-box,
+    .freight-question-box,
+    pre,
+    code,
+    .code,
+    .output,
+    .preview-output {
+      background: #1a1c1f !important;
+      color: #ffffff !important;
+      border-color: #1a1c1f !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
+    .freight-question-box {
+      background: #f7f7f8 !important;
+      color: #1a1c1f !important;
+      border-color: #e5e5e5 !important;
+      font-family: inherit !important;
+    }
+    .segmented {
+      background: #f7f7f8 !important;
+      border: 0 !important;
+      border-radius: 15px !important;
+      padding: 3px !important;
+      gap: 3px !important;
+      overflow: visible !important;
+      box-shadow: none !important;
+    }
+    .segmented button {
+      min-height: 38px !important;
+      border: 0 !important;
+      border-radius: 12px !important;
+      background: transparent !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+      font-weight: 650 !important;
+    }
+    .segmented button.active {
+      background: #1a1c1f !important;
+      color: #ffffff !important;
+      box-shadow: none !important;
+    }
+    .segmented.three {
+      gap: 3px !important;
+    }
+    .toolbar button:not(.primary) {
+      background: #f7f7f8 !important;
+      color: #1a1c1f !important;
+      border-color: #e5e5e5 !important;
+    }
+    .concrete-fee-list {
+      display: grid !important;
+      gap: 14px !important;
+      margin-bottom: 16px !important;
+    }
+    .concrete-fee-row {
+      display: grid !important;
+      grid-template-columns: minmax(280px, 1fr) minmax(180px, 0.6fr) 104px !important;
+      gap: 14px !important;
+      align-items: end !important;
+    }
+    .concrete-fee-row > div {
+      min-width: 0 !important;
+    }
+    .concrete-promo-delete {
+      min-height: 46px !important;
+      width: 104px !important;
+    }
+    #addConcretePromoBtn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      min-height: 46px !important;
+      min-width: 150px !important;
+      margin-top: 2px !important;
+    }
+    #addConcretePromoBtn + .hint {
+      display: block !important;
+      margin-top: 14px !important;
+      clear: both !important;
+    }
+    @media (max-width: 760px) {
+      .concrete-fee-row {
+        grid-template-columns: 1fr !important;
+      }
+      .concrete-promo-delete,
+      #addConcretePromoBtn {
+        width: 100% !important;
+      }
+    }
+    header {
+      background: transparent !important;
+      border-color: transparent !important;
+      color: #1a1c1f !important;
+    }
+    header h1,
+    .topbar h1,
+    main > h1 {
+      font-size: clamp(30px, 3.5vw, 42px) !important;
+      line-height: 1.08 !important;
+      font-weight: 800 !important;
+      color: #1a1c1f !important;
+    }
+    header .hint,
+    header p,
+    header small,
+    .topbar .subtitle {
+      color: #6b7280 !important;
+    }
+    @media (max-width: 760px) {
+      header h1,
+      .topbar h1,
+      main > h1 {
+        font-size: 26px !important;
+      }
+    }
+    header input,
+    header select {
+      background: #ffffff !important;
+      color: #1a1c1f !important;
+      border-color: #d9d9e3 !important;
+    }
+    .stage {
+      background: #f7f7f8 !important;
+      border-color: #d9d9e3 !important;
+    }
+    .plate,
+    .hole {
+      stroke: #1a1c1f !important;
+    }
+    .dim {
+      stroke: #1a1c1f !important;
+    }
+    .dimText,
+    .smallText {
+      fill: #1a1c1f !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
+    svg,
+    canvas {
+      color: #1a1c1f !important;
+    }
+    * {
+      text-shadow: none !important;
+      letter-spacing: 0 !important;
+    }
+
+    .chips .chip,
+    #sizeChips .chip {
+      background: #ffffff !important;
+      border: 1px solid #d9d9e3 !important;
+      color: #1a1c1f !important;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+    .chips .chip:hover,
+    #sizeChips .chip:hover {
+      background: rgba(51, 156, 255, 0.06) !important;
+      border-color: rgba(51, 156, 255, 0.45) !important;
+    }
+    .chips .chip.active,
+    #sizeChips .chip.active {
+      background: rgba(51, 156, 255, 0.14) !important;
+      border-color: #339cff !important;
+      color: #1a1c1f !important;
+      box-shadow:
+        inset 0 0 0 1px rgba(51, 156, 255, 0.35),
+        0 0 0 4px rgba(51, 156, 255, 0.12) !important;
+    }
+    .formula code {
+      background: transparent !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      padding: 0 !important;
+      color: #1a1c1f !important;
+      font-family: inherit !important;
+      font-weight: 750 !important;
+    }
+
+</style>
+  <link rel="stylesheet" href="apple-ui.css?v=20260908-2">
+</head>
+<body class="apple-ui" data-page="ningbo-weight">
+  <header>
+    <div>
+      <h1>宁波重量快速计算</h1>
+      <div class="hint">输入产品关键字，选择规格和数量后自动计算板重、总重和木箱尺寸。</div>
+    </div>
+    <div class="source">重量依据：平方重量厚度；规格同步最新价格表</div>
+  </header>
+
+  <main>
+    <section class="panel left">
+      <div class="search-row">
+        <label for="search">产品搜索</label>
+        <input id="search" autocomplete="off" placeholder="例如：脉、脉络石、圆线石">
+        <div class="hint">支持产品名称和旧名称搜索；输入“脉”或“圆线石”会匹配“脉络石”。</div>
+      </div>
+      <div id="productList" class="list"></div>
+    </section>
+
+    <section class="panel right">
+      <div>
+        <label>当前产品</label>
+        <div id="currentName" style="font-size:26px;font-weight:800;">请选择产品</div>
+        <div id="currentMeta" class="hint"></div>
+      </div>
+
+      <div>
+        <label>规格</label>
+        <div id="sizeChips" class="chips"></div>
+      </div>
+
+      <div id="finishPanel" class="option-panel hidden">
+        <label>加工方式（莱姆石、洞石、平板需要确认）</label>
+        <div class="option-row">
+          <label class="option"><input type="radio" name="finishType" value="color"><span>上色</span></label>
+          <label class="option"><input type="radio" name="finishType" value="print" checked><span>打印</span></label>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <label for="qty">数量（张）</label>
+          <input id="qty" type="number" min="1" step="1" placeholder="请输入张数" inputmode="numeric">
+        </div>
+        <div>
+          <label for="crateThickness">木箱按厚度（mm）</label>
+          <input id="crateThickness" type="number" min="0" step="0.1">
+        </div>
+        <div>
+          <label for="kgPerSqm">平方重量（kg/㎡）</label>
+          <input id="kgPerSqm" type="number" min="0" step="0.1">
+        </div>
+      </div>
+
+      <section class="shipment-panel">
+        <div class="shipment-head">
+          <div>
+            <strong>本次询价产品</strong>
+            <div class="hint">填写当前产品数量后加入明细，可继续搜索并添加其它产品。</div>
+          </div>
+          <button type="button" class="copy" id="addShipmentItem">加入本次询价</button>
+        </div>
+        <div id="shipmentItems" class="shipment-items">
+          <div class="empty">还没有加入产品；未加入时仍按当前产品单独核算。</div>
+        </div>
+      </section>
+
+      <section class="freight-panel">
+        <div>
+          <label for="address">收货地址</label>
+          <textarea id="address" placeholder="粘贴省市区和详细地址"></textarea>
+        </div>
+        <div>
+          <label>宁波运费询价模板</label>
+          <div id="freightOutput" class="freight-output">请选择产品、规格并填写数量和地址。</div>
+        </div>
+        <div class="actions">
+          <button class="copy" id="copyFreight">复制运费询价模板</button>
+          <button class="copy secondary" id="clearAddress">清空地址</button>
+        </div>
+        <div class="hint">宁波运费模板不生成 DB。木箱重量会自动加入询价总重量。</div>
+      </section>
+
+      <div class="metric-row">
+        <div class="metric">
+          <span>单张理论重量</span>
+          <strong id="rawWeight">-</strong>
+          <small id="rawFormula">长 * 宽 * 平方重量</small>
+        </div>
+        <div class="metric">
+          <span>单张取整重量</span>
+          <strong id="sheetWeight">-</strong>
+          <small>向上取整</small>
+        </div>
+        <div class="metric">
+          <span>产品尺寸</span>
+          <strong id="sizeMetric">-</strong>
+          <small>单位：mm</small>
+        </div>
+        <div class="metric">
+          <span>木箱类型</span>
+          <strong id="crateType">-</strong>
+          <small id="crateRule">按产品、规格和数量判断</small>
+        </div>
+        <div class="metric">
+          <span>木箱重量</span>
+          <strong id="crateWeight">-</strong>
+          <small>大夹板按用量核算 / 夹板 10KG / 小木箱 30KG / 大木箱 65KG</small>
+        </div>
+        <div class="metric">
+          <span>含包装总重量</span>
+          <strong id="shippingWeight">-</strong>
+          <small>产品重量 + 木箱重量</small>
+        </div>
+      </div>
+
+      <div class="result-row">
+        <div class="result-card">
+          <div class="label">总重量</div>
+          <div id="totalWeight" class="result-value">-</div>
+          <div class="result-note">单张取整重量 * 数量</div>
+        </div>
+        <div class="crate">
+          <div class="label">木箱尺寸（宽 * 长 * 高，单位 mm）</div>
+          <div id="crateSize" class="crate-size">-</div>
+          <div id="crateFormula" class="label"></div>
+        </div>
+      </div>
+
+      <div class="formula" id="detailFormula">
+        选择产品后显示计算过程。
+      </div>
+
+      <div class="actions">
+        <button class="copy" id="copySummary">复制计算结果</button>
+        <button class="copy secondary" id="resetBtn">重置数量</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="product-data.js?v=20260905-1"></script>
+  <script src="ningbo-freight-core.js?v=20260905-1"></script>
+  <script>
+    const products = [
+      {
+            "no": 1,
+            "name": "夯土A(细夯土）",
+            "thickness": "4",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "2360*1160",
+                  "2360*580"
+            ]
+      },
+      {
+            "no": 2,
+            "name": "夯土B（粗夯土）",
+            "thickness": "4",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "3000*1200",
+                  "2900*1160",
+                  "2800*1030",
+                  "2680*930"
+            ]
+      },
+      {
+            "no": 3,
+            "name": "夯土C（大夯土）",
+            "thickness": "5",
+            "kgPerSqm": 7.5,
+            "sizes": [
+                  "2800*1060"
+            ]
+      },
+      {
+            "no": 4,
+            "name": "夯土D（新夯土）",
+            "thickness": "4",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "2800*560"
+            ]
+      },
+      {
+            "no": 5,
+            "name": "夯土砖",
+            "thickness": "7",
+            "kgPerSqm": 8.5,
+            "sizes": [
+                  "2800*1000"
+            ]
+      },
+      {
+            "no": 6,
+            "name": "A7夯土",
+            "thickness": "4",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "2800*1050"
+            ]
+      },
+      {
+            "no": 7,
+            "name": "水泥板",
+            "thickness": "3-5",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "3100*1180"
+            ]
+      },
+      {
+            "no": 8,
+            "name": "木纹板",
+            "thickness": "3-5",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "2830*1140",
+                  "3000*1200"
+            ]
+      },
+      {
+            "no": 9,
+            "name": "大波纹",
+            "thickness": "3-9",
+            "kgPerSqm": 8.5,
+            "sizes": [
+                  "3000*1150",
+                  "2750*1060"
+            ]
+      },
+      {
+            "no": 10,
+            "name": "小波纹",
+            "thickness": "3-7",
+            "kgPerSqm": 7.5,
+            "sizes": [
+                  "3000*1200",
+                  "2850*990"
+            ]
+      },
+      {
+            "no": 11,
+            "name": "波浪石",
+            "thickness": "3-6",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "1200*2750"
+            ]
+      },
+      {
+            "no": 12,
+            "name": "麻编",
+            "thickness": "5",
+            "kgPerSqm": 8,
+            "sizes": [
+                  "1420*560",
+                  "2650*1160"
+            ]
+      },
+      {
+            "no": 13,
+            "name": "碳化木",
+            "thickness": "4",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "2850*930"
+            ]
+      },
+      {
+            "no": 14,
+            "name": "布纹石",
+            "thickness": "3-5",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "2500*1160"
+            ]
+      },
+      {
+            "no": 15,
+            "name": "粗线石",
+            "thickness": "3-7",
+            "kgPerSqm": 7.5,
+            "sizes": [
+                  "2380*1180",
+                  "2360*580"
+            ]
+      },
+      {
+            "no": 16,
+            "name": "B款粗线石",
+            "thickness": "3-7",
+            "kgPerSqm": 7.5,
+            "sizes": [
+                  "2800*1200"
+            ]
+      },
+      {
+            "no": 17,
+            "name": "凸竹纹",
+            "thickness": "3-8",
+            "kgPerSqm": 9,
+            "sizes": [
+                  "2950*1000",
+                  "2880*580"
+            ]
+      },
+      {
+            "no": 18,
+            "name": "凹竹纹",
+            "thickness": "3-10",
+            "kgPerSqm": 11,
+            "sizes": [
+                  "2800*980"
+            ]
+      },
+      {
+            "no": 19,
+            "name": "方线石 阡陌石",
+            "thickness": "3-8",
+            "kgPerSqm": 10,
+            "sizes": [
+                  "2800*1000",
+                  "2800*580"
+            ]
+      },
+      {
+            "no": 20,
+            "name": "圆线石 脉络石",
+            "thickness": "3-9",
+            "kgPerSqm": 10,
+            "sizes": [
+                  "2800*1200",
+                  "2800*995",
+                  "2800*600"
+            ],
+            "crateThickness": 8
+      },
+      {
+            "no": 21,
+            "name": "双线石",
+            "thickness": "3*8",
+            "kgPerSqm": 10,
+            "sizes": [
+                  "2650*1180"
+            ]
+      },
+      {
+            "no": 22,
+            "name": "锈石",
+            "thickness": "4",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "2850*950"
+            ]
+      },
+      {
+            "no": 23,
+            "name": "泡沫铝",
+            "thickness": "5",
+            "kgPerSqm": 8,
+            "sizes": [
+                  "2800*1130"
+            ]
+      },
+      {
+            "no": 24,
+            "name": "圆铝",
+            "thickness": "4",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "2360*1160"
+            ]
+      },
+      {
+            "no": 25,
+            "name": "新洞石",
+            "thickness": "4",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "2380*1160"
+            ]
+      },
+      {
+            "no": 26,
+            "name": "新线石",
+            "thickness": "4",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "2950*1200",
+                  "2700*1200"
+            ]
+      },
+      {
+            "no": 27,
+            "name": "洞石",
+            "thickness": "4",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "2800*1200",
+                  "2400*1200"
+            ]
+      },
+      {
+            "no": 28,
+            "name": "小洞石",
+            "thickness": "3",
+            "kgPerSqm": 5,
+            "sizes": [
+                  "1200*600"
+            ]
+      },
+      {
+            "no": 29,
+            "name": "新款洞石",
+            "thickness": "4.5",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "3000*1200",
+                  "2400*1200"
+            ]
+      },
+      {
+            "no": 30,
+            "name": "海洞石",
+            "thickness": "4.5",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "2400*1200"
+            ]
+      },
+      {
+            "no": 31,
+            "name": "花岗岩",
+            "thickness": "3-5",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "3000*1150"
+            ]
+      },
+      {
+            "no": 32,
+            "name": "玄武岩",
+            "thickness": "3-5",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "3000*600"
+            ]
+      },
+      {
+            "no": 33,
+            "name": "方形马赛克",
+            "thickness": "4",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "2950*1180"
+            ]
+      },
+      {
+            "no": 34,
+            "name": "星月石",
+            "thickness": "3-8",
+            "kgPerSqm": 10,
+            "sizes": [
+                  "3100*1160",
+                  "2830*1150"
+            ]
+      },
+      {
+            "no": 35,
+            "name": "洞石马赛克",
+            "thickness": "3-7",
+            "kgPerSqm": 9,
+            "sizes": [
+                  "2990*1190"
+            ]
+      },
+      {
+            "no": 36,
+            "name": "锯木纹",
+            "thickness": "3-7",
+            "kgPerSqm": 8.5,
+            "sizes": [
+                  "3100*1160"
+            ]
+      },
+      {
+            "no": 37,
+            "name": "大斧开石",
+            "thickness": "3-13",
+            "kgPerSqm": 11,
+            "sizes": [
+                  "3000*1200"
+            ]
+      },
+      {
+            "no": 38,
+            "name": "黑山岩",
+            "thickness": "3-12",
+            "kgPerSqm": 10,
+            "sizes": [
+                  "3100*1160"
+            ]
+      },
+      {
+            "no": 39,
+            "name": "叠纹",
+            "thickness": "3-12",
+            "kgPerSqm": 11,
+            "sizes": [
+                  "3100*1160"
+            ]
+      },
+      {
+            "no": 40,
+            "name": "莱姆石",
+            "thickness": "4",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "2800*1200"
+            ]
+      },
+      {
+            "no": 41,
+            "name": "沉积岩",
+            "thickness": "3-13",
+            "kgPerSqm": 11,
+            "sizes": [
+                  "2850*1100"
+            ]
+      },
+      {
+            "no": 42,
+            "name": "页岩",
+            "thickness": "3-15",
+            "kgPerSqm": 13,
+            "sizes": [
+                  "3100*1160"
+            ]
+      },
+      {
+            "no": 43,
+            "name": "溶积岩",
+            "thickness": "3-15",
+            "kgPerSqm": 11,
+            "sizes": [
+                  "2950*1160"
+            ]
+      },
+      {
+            "no": 44,
+            "name": "山岩石",
+            "thickness": "3-10",
+            "kgPerSqm": 10,
+            "sizes": [
+                  "3000*1200"
+            ]
+      },
+      {
+            "no": 45,
+            "name": "古木细纹",
+            "thickness": "3-5",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "2950*1200"
+            ]
+      },
+      {
+            "no": 46,
+            "name": "古木粗纹",
+            "thickness": "3-5",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "3000*1200"
+            ]
+      },
+      {
+            "no": 47,
+            "name": "条石纹",
+            "thickness": "3-5",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "2850*990"
+            ]
+      },
+      {
+            "no": 48,
+            "name": "芭蕉叶",
+            "thickness": "3-6",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "2900*1150"
+            ]
+      },
+      {
+            "no": 49,
+            "name": "齿木纹",
+            "thickness": "3-6",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "2950*1180"
+            ]
+      },
+      {
+            "no": 50,
+            "name": "大齿木",
+            "thickness": "3-7",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "2360*1160"
+            ]
+      },
+      {
+            "no": 51,
+            "name": "积木",
+            "thickness": "3-5",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "2950*1180"
+            ]
+      },
+      {
+            "no": 52,
+            "name": "苹果叶",
+            "thickness": "3-6",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "2950*1160"
+            ]
+      },
+      {
+            "no": 53,
+            "name": "山竹",
+            "thickness": "3-5",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "2950*1160"
+            ]
+      },
+      {
+            "no": 54,
+            "name": "水立方",
+            "thickness": "3-5",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "3000*1140"
+            ]
+      },
+      {
+            "no": 55,
+            "name": "71线石",
+            "thickness": "3-7",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "2950*1160"
+            ]
+      },
+      {
+            "no": 56,
+            "name": "15线石",
+            "thickness": "3-7",
+            "kgPerSqm": 7.5,
+            "sizes": [
+                  "2950*1180"
+            ]
+      },
+      {
+            "no": 57,
+            "name": "23线石",
+            "thickness": "3-7",
+            "kgPerSqm": 7.5,
+            "sizes": [
+                  "2950*1160"
+            ]
+      },
+      {
+            "no": 58,
+            "name": "35线石",
+            "thickness": "3-7",
+            "kgPerSqm": 7.5,
+            "sizes": [
+                  "2950*1160"
+            ]
+      },
+      {
+            "no": 59,
+            "name": "摩洛石",
+            "thickness": "3-6",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "2950*1160"
+            ]
+      },
+      {
+            "no": 60,
+            "name": "云丘",
+            "thickness": "3-5",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "2950*1160"
+            ]
+      },
+      {
+            "no": 61,
+            "name": "山丘",
+            "thickness": "3-5",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "2680*1180"
+            ]
+      },
+      {
+            "no": 62,
+            "name": "环形石",
+            "thickness": "3-7",
+            "kgPerSqm": 8,
+            "sizes": [
+                  "3000*1200"
+            ]
+      },
+      {
+            "no": 63,
+            "name": "粗布纹",
+            "thickness": "3-5",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "2800*1200"
+            ]
+      },
+      {
+            "no": 64,
+            "name": "中线石",
+            "thickness": "3-8",
+            "kgPerSqm": 9,
+            "sizes": [
+                  "3000*1200"
+            ]
+      },
+      {
+            "no": 65,
+            "name": "5号波浪石",
+            "thickness": "3-7",
+            "kgPerSqm": 7.5,
+            "sizes": [
+                  "3000*1200"
+            ]
+      },
+      {
+            "no": 66,
+            "name": "脊线石",
+            "thickness": "3-5",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "3000*1200"
+            ]
+      },
+      {
+            "no": 67,
+            "name": "人字编",
+            "thickness": "3-5",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "2360*1160"
+            ]
+      },
+      {
+            "no": 68,
+            "name": "20圆柱",
+            "thickness": "3-7",
+            "kgPerSqm": 8,
+            "sizes": [
+                  "3000*1190"
+            ]
+      },
+      {
+            "no": 69,
+            "name": "30内圆",
+            "thickness": "3-7",
+            "kgPerSqm": 8,
+            "sizes": [
+                  "3000*1190"
+            ]
+      },
+      {
+            "no": 70,
+            "name": "22马赛克",
+            "thickness": "3-6",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "1190*590"
+            ]
+      },
+      {
+            "no": 71,
+            "name": "50马赛克",
+            "thickness": "3-6",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "1190*590"
+            ]
+      },
+      {
+            "no": 72,
+            "name": "流水石",
+            "thickness": "3-10",
+            "kgPerSqm": 9,
+            "sizes": [
+                  "1180*580"
+            ]
+      },
+      {
+            "no": 73,
+            "name": "花岗岩",
+            "thickness": "3-5",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "1200*600"
+            ]
+      },
+      {
+            "no": 74,
+            "name": "星月石",
+            "thickness": "3-8",
+            "kgPerSqm": 8,
+            "sizes": [
+                  "1200*600"
+            ]
+      },
+      {
+            "no": 75,
+            "name": "黑山岩",
+            "thickness": "3-8",
+            "kgPerSqm": 8,
+            "sizes": [
+                  "1200*600"
+            ]
+      },
+      {
+            "no": 76,
+            "name": "板岩",
+            "thickness": "3-5",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "1190*590"
+            ]
+      },
+      {
+            "no": 77,
+            "name": "斧开石",
+            "thickness": "3-12",
+            "kgPerSqm": 12,
+            "sizes": [
+                  "2300*560"
+            ]
+      },
+      {
+            "no": 78,
+            "name": "峭壁岩",
+            "thickness": "3-10",
+            "kgPerSqm": 9,
+            "sizes": [
+                  "1050*590"
+            ]
+      },
+      {
+            "no": 79,
+            "name": "洞石拼接",
+            "thickness": "3-6",
+            "kgPerSqm": 7.5,
+            "sizes": [
+                  "3000*1200"
+            ]
+      },
+      {
+            "no": 80,
+            "name": "岁月痕",
+            "thickness": "3-6",
+            "kgPerSqm": 7.5,
+            "sizes": [
+                  "3000*1200"
+            ]
+      },
+      {
+            "no": 81,
+            "name": "斧凿石",
+            "thickness": "3-6",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "3000*1200"
+            ]
+      },
+      {
+            "no": 82,
+            "name": "缩编",
+            "thickness": "3-5",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "3000*1200"
+            ]
+      },
+      {
+            "no": 83,
+            "name": "大峭壁岩",
+            "thickness": "3-6",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "3000*1200"
+            ]
+      },
+      {
+            "no": 84,
+            "name": "大板岩",
+            "thickness": "3-5",
+            "kgPerSqm": 6.5,
+            "sizes": [
+                  "3000*1200"
+            ]
+      },
+      {
+            "no": 85,
+            "name": "100圆柱",
+            "thickness": "3-10",
+            "kgPerSqm": 9,
+            "sizes": [
+                  "3000*590"
+            ]
+      },
+      {
+            "no": 86,
+            "name": "荔枝面",
+            "thickness": "3-5",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "3000*1200"
+            ]
+      },
+      {
+            "no": 87,
+            "name": "火烧面",
+            "thickness": "3-5",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "3000*1200"
+            ]
+      },
+      {
+            "no": 88,
+            "name": "方布纹",
+            "thickness": "3-5",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "2950*1200"
+            ]
+      },
+      {
+            "no": 89,
+            "name": "圆布纹",
+            "thickness": "3-5",
+            "kgPerSqm": 7,
+            "sizes": [
+                  "2950*1200"
+            ]
+      },
+      {
+            "no": 90,
+            "name": "文化石拼接",
+            "thickness": "3*8",
+            "kgPerSqm": 8,
+            "sizes": [
+                  "2800*1200"
+            ]
+      },
+      {
+            "no": 91,
+            "name": "条石拼接",
+            "thickness": "3-8",
+            "kgPerSqm": 8,
+            "sizes": [
+                  "2800*1200"
+            ]
+      }
+];
+
+    // 开单模板使用的是新版商品名称，重量表仍保留部分旧名称。
+    // 这里显式复用已确认的重量参数，并始终采用开单模板中的最新规格。
+    const weightProductAliases = {
+      "洞石": { default: "洞石", sizeSources: { "1200*600": "小洞石" } },
+      "水泥浇筑板": "水泥板",
+      "水波纹板": "大波纹",
+      "木浇筑板": "木纹板",
+      "新洞石（密孔）": "新洞石",
+      "新版洞石": "新款洞石",
+      "3D洞石": { default: "洞石", sizeSources: { "1200*600": "小洞石" } },
+      "3D新版洞石": "新款洞石",
+      "粗纹线石": "粗线石",
+      "粗纹线石B款": "B款粗线石",
+      "炭烧木": "碳化木",
+      "大竹纹（凸模）": "凸竹纹",
+      "大竹纹（凹模）": "凹竹纹",
+      "波浪": "波浪石",
+      "环型石": "环形石",
+      "星云石": "星月石",
+      "星云石B款": "星月石",
+      "阡陌石（方线石）": "方线石 阡陌石",
+      "脉络石": "圆线石 脉络石",
+      "锯木板": "锯木纹",
+      "50马赛克小板1": "50马赛克",
+      "22马赛克小板2": "22马赛克",
+      "黑山岩、劈开岩": "黑山岩",
+      "黑山岩小板": "黑山岩",
+      "叠纹石（山岳石）": "叠纹",
+      "古木纹细": "古木细纹",
+      "古木纹粗": "古木粗纹",
+      "大布纹石": "布纹石",
+      "麻编（小）": "麻编",
+      "麻编（大）": "麻编",
+      "竹编/人字编": "人字编",
+      "积木纹": "积木",
+      "木立方（山竹板）": "山竹",
+      "15线石（金属色）": "15线石",
+      "35线石（金属色）": "35线石",
+      "23线石（金属色）": "23线石",
+      "71线石（金属色）": "71线石",
+      "摩洛石（金属色）": "摩洛石",
+      "莱姆石3D": "莱姆石",
+      "粗夯土3D": "夯土B（粗夯土）",
+      "100内圆": "100圆柱",
+      "腾编": "缩编",
+      "拼接文化石": "文化石拼接",
+      "条形文化石": "条石拼接"
+    };
+
+    const ningboCatalog = window.JieGeProductData?.groupedNingboCatalog?.() || [];
+    const weightSourceProducts = [...products];
+    ningboCatalog.forEach((catalogProduct) => {
+      const alias = weightProductAliases[catalogProduct.name] || catalogProduct.name;
+      const sourceName = typeof alias === "string" ? alias : alias.default;
+      const exactCandidates = weightSourceProducts.filter((product) => product.name === catalogProduct.name);
+      const sourceCandidates = weightSourceProducts.filter((product) => product.name === sourceName);
+      const candidates = [...exactCandidates, ...sourceCandidates.filter((item) => !exactCandidates.includes(item))];
+      const source = candidates.find((product) =>
+        product.sizes.some((size) => catalogProduct.specs.includes(size))
+      ) || candidates[0];
+      if (!source) {
+        products.push({
+          no: "待确认",
+          name: catalogProduct.name,
+          thickness: "",
+          kgPerSqm: "",
+          sizes: [...catalogProduct.specs],
+          unsupported: true
+        });
+        return;
+      }
+      const sizeProfiles = Object.fromEntries(catalogProduct.specs.map((spec) => {
+        const specSourceName = typeof alias === "string" ? alias : (alias.sizeSources?.[spec] || alias.default);
+        const specCandidates = weightSourceProducts.filter((product) => product.name === specSourceName);
+        const specSource = [...exactCandidates, ...specCandidates].find((product) => product.sizes.includes(spec)) || specCandidates[0] || source;
+        return [spec, { kgPerSqm: specSource.kgPerSqm, thickness: specSource.thickness }];
+      }));
+      const synchronized = {
+        ...source,
+        no: `同步-${source.no}`,
+        name: catalogProduct.name,
+        sizes: [...catalogProduct.specs],
+        sourceName,
+        sizeProfiles
+      };
+      const firstExactIndex = products.findIndex((product) => product.name === catalogProduct.name);
+      if (firstExactIndex >= 0) {
+        products[firstExactIndex] = synchronized;
+        for (let index = products.length - 1; index > firstExactIndex; index -= 1) {
+          if (products[index].name === catalogProduct.name) products.splice(index, 1);
+        }
+      } else {
+        products.push(synchronized);
+      }
+    });
+
+    // 旧名称继续作为检索别名，不再作为可选产品暴露过期尺寸。
+    const catalogNames = new Set(ningboCatalog.map((item) => item.name));
+    const supersededNames = new Set(Object.values(weightProductAliases)
+      .filter((name) => typeof name === "string" && !name.includes("洞石") && !catalogNames.has(name)));
+    for (let index = products.length - 1; index >= 0; index -= 1) {
+      if (supersededNames.has(products[index].name)) products.splice(index, 1);
+    }
+
+    const els = {
+      search: document.querySelector("#search"),
+      productList: document.querySelector("#productList"),
+      currentName: document.querySelector("#currentName"),
+      currentMeta: document.querySelector("#currentMeta"),
+      sizeChips: document.querySelector("#sizeChips"),
+      qty: document.querySelector("#qty"),
+      crateThickness: document.querySelector("#crateThickness"),
+      kgPerSqm: document.querySelector("#kgPerSqm"),
+      rawWeight: document.querySelector("#rawWeight"),
+      rawFormula: document.querySelector("#rawFormula"),
+      sheetWeight: document.querySelector("#sheetWeight"),
+      totalWeight: document.querySelector("#totalWeight"),
+      sizeMetric: document.querySelector("#sizeMetric"),
+      finishPanel: document.querySelector("#finishPanel"),
+      finishTypes: document.querySelectorAll('input[name="finishType"]'),
+      crateType: document.querySelector("#crateType"),
+      crateRule: document.querySelector("#crateRule"),
+      crateWeight: document.querySelector("#crateWeight"),
+      shippingWeight: document.querySelector("#shippingWeight"),
+      crateSize: document.querySelector("#crateSize"),
+      crateFormula: document.querySelector("#crateFormula"),
+      detailFormula: document.querySelector("#detailFormula"),
+      copySummary: document.querySelector("#copySummary"),
+      resetBtn: document.querySelector("#resetBtn"),
+      address: document.querySelector("#address"),
+      freightOutput: document.querySelector("#freightOutput"),
+      copyFreight: document.querySelector("#copyFreight"),
+      clearAddress: document.querySelector("#clearAddress"),
+      addShipmentItem: document.querySelector("#addShipmentItem"),
+      shipmentItems: document.querySelector("#shipmentItems")
+    };
+
+    let selectedProduct = products.find(item => item.name.includes("脉络石")) || products[0];
+    let selectedSize = selectedProduct.sizes[0];
+    let productListCollapsed = false;
+    let shipmentItems = [];
+    let shipmentSequence = 0;
+
+    function normalize(text) {
+      return String(text || "").toLowerCase().replace(/\s+/g, "").replace(/[()（）]/g, "");
+    }
+
+    function fuzzyMatch(text, query) {
+      const cleanText = normalize(text);
+      const cleanQuery = normalize(query);
+      if (!cleanQuery) return true;
+      if (cleanText.includes(cleanQuery)) return true;
+      let index = 0;
+      for (const char of cleanText) {
+        if (char === cleanQuery[index]) index += 1;
+        if (index === cleanQuery.length) return true;
+      }
+      return false;
+    }
+
+    function maxThickness(thickness) {
+      const nums = String(thickness || "").match(/\d+(?:\.\d+)?/g);
+      if (!nums) return 0;
+      return Math.max(...nums.map(Number));
+    }
+
+    function sizeProfile(product, size) {
+      if (catalogNames.has(product.name) && !product.name.includes("洞石")) {
+        return window.JieGeProductData.findNingboWeightProfile(product.name, size) || { kgPerSqm: "", thickness: "" };
+      }
+      return product.sizeProfiles?.[size] || { kgPerSqm: product.kgPerSqm, thickness: product.thickness };
+    }
+
+    function defaultCrateThickness(product, size) {
+      return product.crateThickness ?? maxThickness(sizeProfile(product, size).thickness);
+    }
+
+    function applySelectedSizeDefaults() {
+      const profile = sizeProfile(selectedProduct, selectedSize);
+      els.crateThickness.value = defaultCrateThickness(selectedProduct, selectedSize);
+      els.kgPerSqm.value = profile.kgPerSqm;
+    }
+
+    function parseSize(size) {
+      const parts = String(size).replace("×", "*").split("*").map(part => Number(part.trim()));
+      return { length: parts[0] || 0, width: parts[1] || 0 };
+    }
+
+    function formatNumber(num, digits = 2) {
+      if (!Number.isFinite(num)) return "-";
+      return Number(num.toFixed(digits)).toLocaleString("zh-CN");
+    }
+
+    function formatPlainNumber(num, digits = 0) {
+      if (!Number.isFinite(num)) return "-";
+      return String(Number(num.toFixed(digits)));
+    }
+
+    function productFamily(name) {
+      if (name.includes("花岗岩")) return "花岗岩";
+      if (name.includes("星月石")) return "星月石";
+      if (name.includes("黑山岩")) return "黑山岩";
+      if (name.includes("洞石")) return "洞石";
+      return "";
+    }
+
+    function requiresFinishChoice(product, size) {
+      if (normalize(size) === "1200*600") return false;
+      return ["莱姆石", "洞石", "平板"].some(keyword => product.name.includes(keyword));
+    }
+
+    function selectedFinishType() {
+      return document.querySelector('input[name="finishType"]:checked')?.value || "print";
+    }
+
+    function roundUpHalf(value) {
+      return Math.ceil(value * 2) / 2;
+    }
+
+    function crateInfo(product, size, qty, calculation) {
+      const family = productFamily(product.name);
+      const isSmallSize = normalize(size) === "1200*600";
+      const plywoodLimits = { "洞石": 10, "花岗岩": 10, "星月石": 6, "黑山岩": 6 };
+      const smallCrateLimits = { "洞石": 240, "花岗岩": 160, "星月石": 80, "黑山岩": 80 };
+
+      if (isSmallSize && family) {
+        if (qty > 0 && qty <= plywoodLimits[family]) {
+          return { type: "夹板", weight: 10, rule: `${family} 1200*600，${plywoodLimits[family]}片以内` };
+        }
+        if (qty > 0 && qty <= smallCrateLimits[family]) {
+          return { type: "小木箱", weight: 30, rule: `${family} 1200*600，${smallCrateLimits[family]}片以内` };
+        }
+        return { type: "大木箱", weight: 65, rule: `${family} 1200*600，超过${smallCrateLimits[family]}片` };
+      }
+
+      if (!isSmallSize && family && qty === 1 && calculation.kgPerSqm <= 7.5 && qty <= plywoodLimits[family]) {
+        const standardPlywoodArea = 1.22 * 2.44;
+        const plywoodSheets = roundUpHalf(calculation.area * 2 / standardPlywoodArea);
+        const plywoodWeight = plywoodSheets * 20;
+        const packedWeight = calculation.totalWeight + plywoodWeight;
+        if (packedWeight <= 80) {
+          return {
+            type: "大夹板",
+            weight: plywoodWeight,
+            plywoodSheets,
+            packedWeight,
+            rule: `${family}非1200*600单张，${calculation.kgPerSqm}kg/㎡；夹板${formatNumber(plywoodSheets, 1)}张，共${formatNumber(plywoodWeight)}KG，含产品${formatNumber(packedWeight)}KG≤80KG`
+          };
+        }
+      }
+
+      if (requiresFinishChoice(product, size)) {
+        if (selectedFinishType() === "color") {
+          return { type: "大木箱", weight: 65, rule: "不符合大夹板条件的上色产品使用大木箱" };
+        }
+        if (qty > 0 && qty <= 6) {
+          return { type: "小木箱", weight: 30, rule: "打印产品 6片以内" };
+        }
+        return { type: "大木箱", weight: 65, rule: "打印产品超过6片" };
+      }
+
+      return { type: "大木箱", weight: 65, rule: "其他产品统一使用大木箱" };
+    }
+
+    function currentShipmentItem() {
+      const qty = Math.max(0, Math.floor(Number(els.qty.value) || 0));
+      const thickness = Number(els.crateThickness.value) || 0;
+      const kgPerSqm = Number(els.kgPerSqm.value) || 0;
+      if (!qty || thickness <= 0 || kgPerSqm <= 0) return null;
+      return {
+        name: selectedProduct.name,
+        spec: selectedSize,
+        qty,
+        thickness,
+        kgPerSqm,
+        family: productFamily(selectedProduct.name),
+        finishType: selectedFinishType()
+      };
+    }
+
+    function shipmentItemsForCalculation() {
+      const draft = currentShipmentItem();
+      return draft ? [...shipmentItems, draft] : [...shipmentItems];
+    }
+
+    function renderShipmentItems() {
+      if (!shipmentItems.length) {
+        els.shipmentItems.innerHTML = '<div class="empty">还没有加入产品；未加入时仍按当前产品单独核算。</div>';
+        return;
+      }
+      els.shipmentItems.innerHTML = shipmentItems.map((item, index) => {
+        const single = window.NingboFreightCore.calculateShipment([item]);
+        const sheetWeight = single?.items[0]?.sheetWeight || 0;
+        return `
+          <div class="shipment-item">
+            <div class="shipment-item-main">
+              <strong>明细 ${index + 1} · ${item.name}</strong>
+              <span>${item.spec} · ${item.qty}张 · 单张${sheetWeight}KG · 厚度累计${formatPlainNumber(item.thickness * item.qty)}mm</span>
+            </div>
+            <button type="button" class="shipment-delete secondary" data-shipment-id="${item.id}">删除</button>
+          </div>
+        `;
+      }).join("");
+      els.shipmentItems.querySelectorAll("[data-shipment-id]").forEach((button) => {
+        button.addEventListener("click", () => {
+          shipmentItems = shipmentItems.filter((item) => item.id !== button.dataset.shipmentId);
+          renderShipmentItems();
+          calculate();
+        });
+      });
+    }
+
+    function addCurrentShipmentItem() {
+      const item = currentShipmentItem();
+      if (!item) {
+        els.qty.focus();
+        return;
+      }
+      shipmentSequence += 1;
+      shipmentItems.push({ ...item, id: `shipment-${shipmentSequence}` });
+      els.qty.value = "";
+      renderShipmentItems();
+      calculate();
+      els.search.value = "";
+      productListCollapsed = false;
+      renderProducts();
+      els.search.focus();
+    }
+
+    function freightText(calculation) {
+      const address = els.address.value.trim();
+      if (!calculation?.items?.length) return "请选择产品、规格并填写数量和地址。";
+      return [
+        address || "请填写收货地址",
+        "",
+        calculation.expression,
+        ...calculation.crateLines
+      ].join("\n");
+    }
+
+    function renderProducts() {
+      const query = els.search.value;
+      const matches = productListCollapsed ? [selectedProduct] : products.filter(product => fuzzyMatch(`${product.name} ${product.sourceName || ""}`, query));
+      els.productList.innerHTML = "";
+      if (!matches.length) {
+        els.productList.innerHTML = '<div class="empty">没有找到匹配产品</div>';
+        return;
+      }
+      matches.forEach(product => {
+        const profile = sizeProfile(product, product.sizes[0]);
+        const button = document.createElement("button");
+        button.className = `product${product === selectedProduct ? " active" : ""}`;
+        button.innerHTML = `
+          <div class="product-name">${product.name}</div>
+          <div class="product-meta">
+            <span>${profile.thickness ? `厚度 ${profile.thickness}mm` : "厚度待人工填写"}</span>
+            <span>${profile.kgPerSqm ? `${profile.kgPerSqm}kg/㎡（首个规格）` : "重量待人工填写"}</span>
+            <span>${product.sizes.join("、")}</span>
+          </div>
+        `;
+        button.addEventListener("click", () => selectProduct(product));
+        els.productList.appendChild(button);
+      });
+      els.productList.style.maxHeight = productListCollapsed ? "120px" : "";
+    }
+
+    function renderSizes() {
+      els.sizeChips.innerHTML = "";
+      selectedProduct.sizes.forEach(size => {
+        const button = document.createElement("button");
+        button.className = `chip${size === selectedSize ? " active" : ""}`;
+        button.textContent = size;
+        button.addEventListener("click", () => {
+          selectedSize = size;
+          applySelectedSizeDefaults();
+          renderSizes();
+          calculate();
+        });
+        els.sizeChips.appendChild(button);
+      });
+    }
+
+    function selectProduct(product) {
+      selectedProduct = product;
+      selectedSize = product.sizes[0];
+      productListCollapsed = true;
+      applySelectedSizeDefaults();
+      renderProducts();
+      renderSizes();
+      calculate();
+    }
+
+    function calculate() {
+      const qty = Math.max(0, Math.floor(Number(els.qty.value) || 0));
+      const kgPerSqm = Number(els.kgPerSqm.value) || 0;
+      const crateThickness = Number(els.crateThickness.value) || 0;
+      const { length, width } = parseSize(selectedSize);
+      const area = length / 1000 * width / 1000;
+      const rawWeight = area * kgPerSqm;
+      const sheetWeight = Math.ceil(rawWeight);
+      const showFinish = requiresFinishChoice(selectedProduct, selectedSize);
+      const calculation = window.NingboFreightCore.calculateShipment(shipmentItemsForCalculation());
+      const totalWeight = calculation?.productWeight || 0;
+      const shippingWeight = calculation?.shippingWeight || 0;
+      const crate = calculation?.crate || null;
+
+      els.currentName.textContent = selectedProduct.name;
+      const selectedProfile = sizeProfile(selectedProduct, selectedSize);
+      const missingManualParameters = qty > 0 && (kgPerSqm <= 0 || crateThickness <= 0);
+      els.currentMeta.innerHTML = selectedProduct.unsupported
+        ? `编号 ${selectedProduct.no} · 缺少权威重量资料，请人工填写 kg/㎡ 和厚度后再计算 · 规格 ${selectedProduct.sizes.join("、")}`
+        : `编号 ${selectedProduct.no} · 表格厚度 ${selectedProfile.thickness}mm · 规格 ${selectedProduct.sizes.join("、")}`;
+      els.rawWeight.textContent = missingManualParameters ? "待人工填写" : `${formatNumber(rawWeight)} KG`;
+      els.rawFormula.textContent = `${formatNumber(length / 1000, 3)} * ${formatNumber(width / 1000, 3)} * ${kgPerSqm}`;
+      els.sheetWeight.textContent = missingManualParameters ? "-" : `${sheetWeight.toLocaleString("zh-CN")} KG`;
+      els.totalWeight.textContent = missingManualParameters ? "-" : `${totalWeight.toLocaleString("zh-CN")} KG`;
+      els.totalWeight.classList.toggle("small", totalWeight >= 1000 && totalWeight < 10000);
+      els.totalWeight.classList.toggle("compact", totalWeight >= 10000);
+      els.sizeMetric.textContent = selectedSize;
+      els.finishPanel.classList.toggle("hidden", !showFinish);
+      els.crateType.textContent = crate ? crate.type : "-";
+      els.crateRule.textContent = crate ? crate.rule : "填写数量后自动判断";
+      els.crateWeight.textContent = crate ? `${crate.weight} KG` : "-";
+      els.shippingWeight.textContent = calculation ? `${shippingWeight.toLocaleString("zh-CN")} KG` : "-";
+      els.crateSize.textContent = calculation ? `${calculation.crateWidth}*${calculation.crateLength}*${calculation.crateHeight}` : "-";
+      els.crateFormula.textContent = calculation
+        ? `长取最大 ${calculation.crateLength - 100}+100，宽取最大 ${calculation.crateWidth - 100}+100，高 ${formatPlainNumber(calculation.contentThickness)}+200`
+        : "填写数量后自动计算";
+      els.detailFormula.innerHTML = calculation ? `
+        ${calculation.items.map((item, index) => `
+          <div><strong>明细 ${index + 1}：${item.name}</strong> / ${item.spec} / ${item.qty}张</div>
+          <div>单张重量：<code>${item.length / 1000} * ${item.width / 1000} * ${item.kgPerSqm} = ${formatNumber(item.rawWeight)}KG</code>，向上取整为 <code>${item.sheetWeight}KG</code></div>
+        `).join("")}
+        <div>产品总重量：<code>${calculation.items.map((item) => `${item.qty}*${item.sheetWeight}`).join("+")}=${totalWeight}KG</code></div>
+        <div>合装规则：<code>${crate.rule}</code>，包装重量：<code>${crate.weight}KG</code></div>
+        <div>询价总重量：<code>${calculation.expression}</code></div>
+        <div>木箱：最长和最宽各加 100mm，高度累计 = <code>${formatPlainNumber(calculation.contentThickness)}+200=${calculation.crateHeight}mm</code></div>
+      ` : "请选择产品、规格并填写数量。";
+      els.freightOutput.textContent = missingManualParameters
+        ? "当前产品缺少权威重量或厚度资料，请人工填写 kg/㎡ 和厚度后再生成运费询价。"
+        : freightText(calculation);
+    }
+
+    async function copySummary() {
+      const calculation = window.NingboFreightCore.calculateShipment(shipmentItemsForCalculation());
+      const text = calculation ? [
+        ...calculation.items.map((item, index) => `明细${index + 1}：${item.name} ${item.spec} ${item.qty}张，单张${item.sheetWeight}KG`),
+        `产品总重量：${calculation.productWeight}KG`,
+        `木箱类型：${calculation.crate.type}`,
+        `木箱重量：${calculation.packageWeight}KG`,
+        `含包装总重量：${calculation.shippingWeight}KG`,
+        `木箱尺寸：${calculation.crateWidth}*${calculation.crateLength}*${calculation.crateHeight}mm`
+      ].join("\n") : "请先填写产品数量";
+      await copyText(text, els.copySummary, "复制计算结果");
+    }
+
+    function copyByTextarea(text) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      textarea.style.top = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      const ok = document.execCommand("copy");
+      textarea.remove();
+      return ok;
+    }
+
+    async function copyText(text, button, originalLabel) {
+      let copied = false;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          copied = true;
+        }
+      } catch {
+        copied = false;
+      }
+      if (!copied) copied = copyByTextarea(text);
+      button.textContent = copied ? "已复制" : "复制失败";
+      setTimeout(() => { button.textContent = originalLabel; }, 1200);
+    }
+
+    els.search.addEventListener("input", () => {
+      productListCollapsed = false;
+      renderProducts();
+    });
+    els.qty.addEventListener("input", calculate);
+    els.crateThickness.addEventListener("input", calculate);
+    els.kgPerSqm.addEventListener("input", calculate);
+    els.finishTypes.forEach(input => input.addEventListener("change", calculate));
+    els.address.addEventListener("input", calculate);
+    els.addShipmentItem.addEventListener("click", addCurrentShipmentItem);
+    els.copySummary.addEventListener("click", copySummary);
+    els.copyFreight.addEventListener("click", () => copyText(els.freightOutput.textContent, els.copyFreight, "复制运费询价模板"));
+    els.clearAddress.addEventListener("click", () => {
+      els.address.value = "";
+      calculate();
+      els.address.focus();
+    });
+    els.resetBtn.addEventListener("click", () => {
+      els.qty.value = "";
+      shipmentItems = [];
+      renderShipmentItems();
+      calculate();
+    });
+
+    function applyUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      const query = params.get("q") || "";
+      const productQuery = params.get("product");
+      const sizeQuery = params.get("size");
+      const qty = params.get("qty");
+      const crateThickness = params.get("crateThickness");
+      const kgPerSqm = params.get("kgPerSqm");
+
+      if (productQuery) {
+        const found = products.find(product => fuzzyMatch(`${product.name} ${product.sourceName || ""}`, productQuery) && (!sizeQuery || product.sizes.includes(sizeQuery)))
+          || products.find(product => fuzzyMatch(`${product.name} ${product.sourceName || ""}`, productQuery));
+        if (found) selectedProduct = found;
+      }
+      els.search.value = query;
+      selectProduct(selectedProduct);
+      if (selectedProduct.sizes.includes(sizeQuery)) {
+        selectedSize = sizeQuery;
+        applySelectedSizeDefaults();
+      }
+      if (qty) els.qty.value = qty;
+      if (crateThickness) els.crateThickness.value = crateThickness;
+      if (kgPerSqm) els.kgPerSqm.value = kgPerSqm;
+      renderProducts();
+      renderSizes();
+      renderShipmentItems();
+      calculate();
+    }
+
+    function preventNumberInputWheelChange() {
+      document.addEventListener("wheel", (event) => {
+        const active = document.activeElement;
+        if (!(active instanceof HTMLInputElement) || active.type !== "number") return;
+        active.blur();
+        event.preventDefault();
+      }, { passive: false, capture: true });
+    }
+
+    preventNumberInputWheelChange();
+    applyUrlParams();
+  </script>
+</body>
+</html>

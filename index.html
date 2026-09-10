@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="icon" href="data:,">
+  <title>杰哥工具表</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f3f5f7;
+      --ink: #111827;
+      --line: #d8dee8;
+      --panel: #fff;
+      --sidebar: #111820;
+      --accent: #d94722;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    }
+    button, select { font: inherit; }
+    .app {
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      display: grid;
+      grid-template-columns: 112px minmax(0, 1fr);
+      overflow: hidden;
+    }
+    .sidebar {
+      height: 100%;
+      min-width: 0;
+      overflow: auto;
+      overscroll-behavior: contain;
+      background: var(--sidebar);
+      color: #fff;
+      border-right: 1px solid rgba(255,255,255,.08);
+      padding: 7px;
+    }
+    .brand {
+      padding: 3px 1px 8px;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      margin-bottom: 8px;
+    }
+    .brand h1 { margin: 0; font-size: 14px; line-height: 1.22; letter-spacing: 0; text-align: center; }
+    .brand-version { display: block; margin-top: 3px; color: rgba(255,255,255,.58); font-size: 9px; line-height: 1; text-align: center; }
+    .nav { display: grid; gap: 5px; }
+    .tool-button {
+      width: 100%;
+      min-width: 0;
+      min-height: 40px;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 10px;
+      background: rgba(255,255,255,.06);
+      color: #fff;
+      cursor: pointer;
+      text-align: center;
+      padding: 6px 5px;
+      font-weight: 800;
+      font-size: 14px;
+      line-height: 1.2;
+      display: grid;
+      place-items: center;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tool-button.active { background: #fff; color: #101820; border-color: #fff; box-shadow: 0 8px 22px rgba(0,0,0,.18); }
+    .button-title { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .content { min-width: 0; min-height: 0; height: 100%; }
+    .frame-shell { width: 100%; height: 100%; min-width: 0; min-height: 0; padding: 8px; }
+    .frame-wrap {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+    iframe,
+    .tool-frame { display: block; width: 100%; height: 100%; border: 0; background: #fff; }
+    .tool-frame { position: absolute; inset: 0; }
+    .tool-frame.hidden { display: none; }
+    .loading {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: #64748b;
+      font-size: 14px;
+      background: #fff;
+      pointer-events: none;
+    }
+    .loading.hidden { display: none; }
+    @media (max-width: 920px) {
+      .app { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+      .sidebar {
+        height: auto;
+        overflow: hidden;
+        border-right: 0;
+        border-bottom: 1px solid rgba(255,255,255,.1);
+        padding: calc(7px + var(--safe-top)) 8px 7px;
+      }
+      .brand { padding: 0 1px 6px; margin-bottom: 6px; }
+      .brand h1 { font-size: 16px; }
+      .nav {
+        display: flex;
+        gap: 6px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      .nav::-webkit-scrollbar { display: none; }
+      .tool-button { flex: 0 0 auto; width: auto; min-width: 92px; min-height: 34px; padding: 7px 10px; text-align: center; font-size: 13px; }
+      .frame-shell { padding: 5px; padding-bottom: calc(5px + var(--safe-bottom)); }
+      .frame-wrap { border-radius: 6px; }
+    }
+    @media (max-width: 430px) {
+      .sidebar { padding-left: 6px; padding-right: 6px; }
+      .brand h1 { font-size: 15px; }
+      .tool-button { min-width: 84px; font-size: 12px; padding: 7px 8px; }
+      .frame-shell { padding-left: 3px; padding-right: 3px; }
+    }
+  
+
+    /* Codex / ChatGPT visual refresh: neutral surfaces, one blue accent. */
+    :root {
+      --bg: #ffffff;
+      --surface: #f7f7f8;
+      --surface-strong: #ececf1;
+      --text: #1a1c1f;
+      --muted: #6b7280;
+      --line: #e5e5e5;
+      --accent: #339cff;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .app { grid-template-columns: 108px minmax(0, 1fr); background: var(--bg); }
+    .sidebar {
+      background: rgba(247, 247, 248, 0.82);
+      color: var(--text);
+      border-right: 1px solid var(--line);
+      padding: 12px 5px;
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .brand {
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 10px;
+      padding: 8px 2px 13px;
+    }
+    .brand h1 {
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 750;
+      text-align: center;
+    }
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: stretch;
+    }
+    .tool-button {
+      min-height: 40px;
+      justify-content: center;
+      place-items: center;
+      border: 0;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--text);
+      box-shadow: none;
+      font-size: 15px;
+      font-weight: 650;
+      padding: 8px 5px;
+      text-align: center;
+      user-select: none;
+    }
+    .tool-button[draggable="true"] { cursor: grab; }
+    .tool-button.dragging {
+      opacity: 0.46;
+      background: rgba(236, 236, 241, 0.96);
+    }
+    .tool-button.drag-over {
+      background: rgba(51, 156, 255, 0.12);
+      box-shadow: inset 0 0 0 1px rgba(51, 156, 255, 0.28);
+    }
+    .tool-button:hover { background: rgba(236, 236, 241, 0.72); }
+    .tool-button.active {
+      background: var(--surface-strong);
+      color: var(--text);
+      border-color: transparent;
+      box-shadow: none;
+    }
+    .frame-shell { padding: 0; background: var(--bg); }
+    .frame-wrap {
+      border: 0;
+      border-radius: 0;
+      background: var(--bg);
+    }
+    iframe,
+    .tool-frame { background: var(--bg); }
+    .loading {
+      color: var(--muted);
+      background: var(--bg);
+    }
+    @media (max-width: 920px) {
+      .app {
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto minmax(0, 1fr) !important;
+        min-height: 100dvh;
+      }
+      .sidebar {
+        width: 100%;
+        max-width: none;
+        padding: calc(8px + var(--safe-top)) 10px 8px;
+        background: rgba(247, 247, 248, 0.92);
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        overflow-x: auto;
+        overflow-y: hidden;
+      }
+      .brand {
+        border-bottom: 0;
+        flex: 0 0 auto;
+        margin: 0 8px 0 0;
+        padding: 0;
+      }
+      .brand h1 {
+        font-size: 16px;
+        text-align: left;
+        white-space: nowrap;
+      }
+      .nav {
+        flex-direction: row;
+        gap: 6px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      .nav::-webkit-scrollbar { display: none; }
+      .tool-button {
+        flex: 0 0 auto;
+        min-width: 88px;
+        min-height: 36px;
+        justify-content: center;
+        place-items: center;
+        padding: 7px 10px;
+        font-size: 15px;
+        text-align: center;
+      }
+      .frame-shell {
+        min-height: 0;
+        height: 100%;
+        padding-bottom: var(--safe-bottom);
+      }
+      .frame-wrap { height: 100%; }
+    }
+    @media (max-width: 430px) {
+      .sidebar { padding-left: 8px; padding-right: 8px; }
+      .brand h1 { font-size: 15px; }
+      .tool-button {
+        min-width: 76px;
+        min-height: 34px;
+        padding: 6px 8px;
+        font-size: 14px;
+      }
+    }
+
+</style>
+  <link rel="stylesheet" href="tools/apple-shell.css?v=20260907-3">
+</head>
+<body class="apple-shell">
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand" title="v2026.09.08.2"><div class="brand-symbol" aria-hidden="true">杰</div><h1>杰哥工具</h1><small class="brand-version">5.1 · 苹果风版</small><span class="build-version">v2026.09.08.2</span></div>
+      <nav class="nav" id="toolNav" aria-label="工具列表"></nav>
+      <div class="sidebar-footer">日常开单工作台<br><span>开单 · 查价 · 排版</span></div>
+    </aside>
+    <main class="content">
+      <section class="frame-shell">
+        <div class="frame-wrap" id="frameWrap">
+          <div class="loading" id="loading">正在加载工具...</div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>
+    const defaultTools = [{"id":"order-template","title":"开单模板","short":"开单模板","tag":"开单","desc":"鎏金板每日文字开单模板，快速生成可复制开单内容。"},{"id":"quote-generator","title":"文字报价","short":"文字报价","tag":"快速报价","desc":"输入产品、规格、数量和费用，自动生成可复制或打印的文字报价。"},{"id":"quick-price","title":"快速查价","short":"快速查价","tag":"查底价","desc":"输入产品关键词，快速查看鎏金板、宁波柔岩、美利来和混凝土各规格底价。"},{"id":"report-template","title":"报备模板","short":"报备模板","tag":"项目报备","desc":"快速填写项目报备信息，生成可复制的报备模板。"},{"id":"hole-1200","title":"1200×600 孔心排版","short":"孔心排版","tag":"孔位图","desc":"快速设置板宽、板高、孔数、孔径和边距，导出 SVG。"},{"id":"freight-gold","title":"鎏金板快速运费提交","short":"鎏金运费","tag":"运费模板","desc":"填写地址、规格和张数，自动生成重量、包装和 DB 模板。"},{"id":"ningbo-weight","title":"宁波重量木箱快速计算","short":"宁波重量","tag":"重量木箱","desc":"搜索产品，选择规格和数量，计算总重及木箱尺寸。"},{"id":"full-board-cut","title":"整板切割计算","short":"整板切割","tag":"切割排版","desc":"输入小板规格数量，自动估算整板用量并生成排版图。"},{"id":"wall-panel","title":"水泥板/混凝土上墙排版","short":"上墙排版","tag":"墙面排版","desc":"多墙面排版、孔位示意、裁切统计，并支持导出 SVG/PNG。"}];
+    const toolOrderKey = 'jiege-tool-order-v1';
+    let storedOrder = [];
+    try {
+      storedOrder = JSON.parse(localStorage.getItem(toolOrderKey) || '[]');
+    } catch (error) {
+      storedOrder = [];
+    }
+    const tools = storedOrder.length
+      ? storedOrder.map(function (id) { return defaultTools.find(function (tool) { return tool.id === id; }); }).filter(Boolean)
+        .concat(defaultTools.filter(function (tool) { return !storedOrder.includes(tool.id); }))
+      : defaultTools.slice();
+
+    function saveToolOrder() {
+      try {
+        localStorage.setItem(toolOrderKey, JSON.stringify(tools.map(function (tool) { return tool.id; })));
+      } catch (error) {}
+    }
+
+    function moveTool(fromId, toId) {
+      if (!fromId || !toId || fromId === toId) return;
+      const fromIndex = tools.findIndex(function (tool) { return tool.id === fromId; });
+      const toIndex = tools.findIndex(function (tool) { return tool.id === toId; });
+      if (fromIndex < 0 || toIndex < 0) return;
+      const moved = tools.splice(fromIndex, 1)[0];
+      tools.splice(toIndex, 0, moved);
+      saveToolOrder();
+      renderNav();
+      activate(activeId || moved.id);
+    }
+
+    function attachDragHandlers(button) {
+      button.addEventListener('dragstart', function (event) {
+        button.classList.add('dragging');
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', button.dataset.tool);
+      });
+      button.addEventListener('dragend', function () {
+        button.classList.remove('dragging');
+        nav.querySelectorAll('.drag-over').forEach(function (item) { item.classList.remove('drag-over'); });
+      });
+      button.addEventListener('dragover', function (event) {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+        button.classList.add('drag-over');
+      });
+      button.addEventListener('dragleave', function () {
+        button.classList.remove('drag-over');
+      });
+      button.addEventListener('drop', function (event) {
+        event.preventDefault();
+        button.classList.remove('drag-over');
+        moveTool(event.dataTransfer.getData('text/plain'), button.dataset.tool);
+      });
+    }
+
+    const toolPaths = {"order-template":"tools/order-template.html","quote-generator":"tools/quote-generator.html","quick-price":"tools/quick-price.html","report-template":"tools/report-template.html","hole-1200":"tools/hole-1200.html","freight-gold":"tools/freight-gold.html","ningbo-weight":"tools/ningbo-weight.html","full-board-cut":"tools/full-board-cut.html","wall-panel":"tools/wall-panel.html"};
+    const nav = document.getElementById('toolNav');
+    const frameWrap = document.getElementById('frameWrap');
+    const loading = document.getElementById('loading');
+    const frames = {};
+    let activeId = '';
+
+    function esc(value) {
+      return String(value).replace(/[&<>"']/g, function (ch) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
+      });
+    }
+
+    function renderNav() {
+      nav.innerHTML = tools.map(function (tool) {
+        return '<button class="tool-button" type="button" draggable="true" data-tool="' + esc(tool.id) + '" aria-label="拖动排序：' + esc(tool.short) + '"><span class="button-title">' + esc(tool.short) + '</span></button>';
+      }).join('');
+      nav.querySelectorAll('.tool-button').forEach(function (button) {
+        button.addEventListener('click', function () { activate(button.dataset.tool); });
+        attachDragHandlers(button);
+      });
+    }
+
+    function getFrame(tool) {
+      if (frames[tool.id]) return frames[tool.id];
+      const frame = document.createElement('iframe');
+      frame.className = 'tool-frame hidden';
+      frame.title = tool.title;
+      frame.allow = 'clipboard-read; clipboard-write';
+      frame.src = toolPaths[tool.id];
+      frame.addEventListener('load', function () {
+        if (activeId === tool.id) loading.classList.add('hidden');
+      });
+      frameWrap.insertBefore(frame, loading);
+      frames[tool.id] = frame;
+      return frame;
+    }
+
+    function activate(id) {
+      const tool = tools.find(function (item) { return item.id === id; }) || tools[0];
+      if (!tool || activeId === tool.id) return;
+      activeId = tool.id;
+      nav.querySelectorAll('.tool-button').forEach(function (button) {
+        button.classList.toggle('active', button.dataset.tool === tool.id);
+      });
+      Object.keys(frames).forEach(function (frameId) {
+        frames[frameId].classList.toggle('hidden', frameId !== tool.id);
+      });
+      const frame = getFrame(tool);
+      frame.classList.remove('hidden');
+      if (!frame.dataset.loaded) {
+        loading.classList.remove('hidden');
+      } else {
+        loading.classList.add('hidden');
+      }
+      try {
+        history.replaceState(null, '', location.pathname + '?tool=' + encodeURIComponent(tool.id));
+      } catch (error) {}
+      const activeButton = nav.querySelector('[data-tool="' + tool.id + '"]');
+      if (activeButton) activeButton.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+
+    frameWrap.addEventListener('load', function (event) {
+      if (event.target && event.target.classList && event.target.classList.contains('tool-frame')) {
+        event.target.dataset.loaded = '1';
+      }
+    }, true);
+    renderNav();
+    const initial = new URLSearchParams(location.search).get('tool') || tools[0].id;
+    activate(tools.some(function (tool) { return tool.id === initial; }) ? initial : tools[0].id);
+  </script>
+</body>
+</html>
