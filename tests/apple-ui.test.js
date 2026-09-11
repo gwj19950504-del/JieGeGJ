@@ -13,7 +13,7 @@ test('首页及九个子工具接入各自最新苹果风样式，完整包不�
   assert.ok(fs.existsSync(path.join(root, 'tools/apple-shell.css')));
   for (const page of pages) {
     const html = read(`tools/${page}.html`);
-    assert.match(html, /apple-ui\.css\?v=20260908-2/);
+    assert.match(html, /apple-ui\.css\?v=20260911-6/);
     assert.ok(html.includes(`class="apple-ui" data-page="${page}"`), page);
     assert.ok(html.indexOf('apple-ui.css') < html.indexOf('</head>'), page);
   }
@@ -23,6 +23,42 @@ test('全工具占位提示统一半透明，不覆盖实际输入内容或使�
   assert.match(css, /body\.apple-ui :is\(input, textarea\)::placeholder\s*\{[^}]*color: #74747d !important;[^}]*opacity: 0\.5 !important;[^}]*font-weight: 400 !important;/);
   assert.equal((css.match(/::placeholder/g) || []).length, 1);
   assert.doesNotMatch(css, /#totalAmount::placeholder/);
+});
+
+test('报备两处复制重置及局部对齐规则保持完整', () => {
+  const report = read('tools/report-template.html');
+  for (const id of ['copyTop', 'copyBtn']) assert.match(report, new RegExp(`id="${id}"[^>]*>复制</button>`));
+  for (const id of ['resetTop', 'resetSide']) assert.match(report, new RegExp(`id="${id}"[^>]*>重置</button>`));
+  assert.match(report, /\$\("#copyTop"\)\.addEventListener\("click", copyOutput\)/);
+  assert.match(css, /\.section-actions \.btn\s*\{[^}]*width: 72px !important/);
+  assert.match(css, /\.concrete-hole-card\s*\{ align-items: end !important/);
+  assert.match(css, /button\.product\.active:not\(\.secondary\):not\(\.ghost\)\s*\{[^}]*box-shadow: inset/);
+});
+
+test('水泥板四字段同行、单价无嵌套框且空追加容器不占位', () => {
+  assert.match(css, /\.cement-card\s*\{[^}]*grid-template-columns: minmax\(0,2fr\) repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(css, /\.cement-card > \.wide\s*\{ grid-column: auto/);
+  assert.match(css, /\.cement-card > \.unit-price-field\s*\{[^}]*padding: 0 !important;[^}]*border: 0 !important/);
+  assert.match(css, /#cementAdditionalProducts:empty\s*\{ display: none !important/);
+});
+
+test('开单各仓分组不叠加底部留白，空产品容器隐藏且混凝土字段铺满网格', () => {
+  assert.match(css, /\.form-grid\s*\{ gap: 12px 16px;/);
+  assert.match(css, /padding: 12px 0 0 !important; margin-block: 0 !important/);
+  assert.match(css, /:is\(#additionalProducts, #otherAdditionalProducts, #concreteAdditionalProducts\):empty \{ display: none !important/);
+  assert.match(css, /\[data-concrete-product-row\] > div \{ grid-column: span 2;/);
+  assert.match(css, /\[data-concrete-product-row\] > \.concrete-match-tools \{ grid-column: 1 \/ -1;/);
+});
+
+test('报备重置采用中性灰次级按钮，不再使用橙色装饰', () => {
+  assert.match(css, /:is\(#resetTop, #resetSide\)\s*\{[^}]*background: #f2f2f7 !important;[^}]*color: #48484a !important;[^}]*font-weight: 500 !important/);
+  assert.doesNotMatch(css, /#fff0e3|#934400|#e9c8a9|#ffe3ca/);
+});
+
+test('混凝土打孔说明贴合输入行，附加费用说明利用右列', () => {
+  assert.match(css, /\.concrete-hole-card > \.hint\s*\{[^}]*align-self: end; min-height: 44px; display: flex; align-items: center/);
+  assert.match(css, /\.concrete-surface-options\s*\{[^}]*grid-template-columns: minmax\(0,2fr\) minmax\(0,1fr\)/);
+  assert.match(read('tools/order-template.html'), /class="concrete-extra-options concrete-surface-options"/);
 });
 
 test('苹果风保留语义色、键盘焦点及减少动态效果选项', () => {
@@ -58,10 +94,11 @@ test('完整包所有 HTML 的本地脚本、样式与图片引用都可找到',
   }
 });
 
-test('修补剂卡片独立两行，数量框固定宽度且保留展开与原控件绑定', () => {
+test('修补剂单项同行，数量框固定宽度且保留展开与原控件绑定', () => {
   assert.match(css, /\.repair-agent-card\s*\{\s*display:\s*grid;/);
-  assert.match(css, /\.repair-agent-qty-row\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\) 80px/);
-  assert.match(css, /input\.repair-agent-qty\s*\{[^}]*width:\s*80px/);
+  assert.match(css, /\.repair-agent-grid\s*\{[^}]*grid-template-columns: repeat\(4,minmax\(0,1fr\)\)/);
+  assert.match(css, /\.repair-agent-qty-row\s*\{[^}]*grid-template-columns:\s*auto 48px/);
+  assert.match(css, /input\.repair-agent-qty\s*\{[^}]*width:\s*48px/);
   assert.match(css, /\.repair-agent-card \.checkline\s*\{[^}]*border:\s*0 !important/);
   const order = read('tools/order-template.html');
   for (const weight of [50, 100, 200, 500]) {

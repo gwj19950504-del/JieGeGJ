@@ -1168,7 +1168,7 @@
     }
 
 </style>
-  <link rel="stylesheet" href="apple-ui.css?v=20260908-2">
+  <link rel="stylesheet" href="apple-ui.css?v=20260911-6">
 </head>
 <body class="apple-ui" data-page="report-template">
   <main class="app">
@@ -1185,7 +1185,10 @@
         <section class="section">
           <div class="section-title">
             <h2>基础信息</h2>
-            <button class="btn section-reset-btn" id="resetTop" type="button">一键重置</button>
+            <div class="section-actions">
+              <button class="btn primary-copy" id="copyTop" type="button">复制</button>
+              <button class="btn section-reset-btn" id="resetTop" type="button">重置</button>
+            </div>
           </div>
           <div class="grid three">
             <div class="field">
@@ -1338,8 +1341,8 @@
             <div class="status" id="statusText">左侧填写时，这里会实时变化。</div>
           </div>
           <div class="preview-tools">
-            <button class="btn primary-copy" id="copyBtn" type="button">一键复制</button>
-            <button class="btn secondary" id="resetSide" type="button">一键重置</button>
+            <button class="btn primary-copy" id="copyBtn" type="button">复制</button>
+            <button class="btn secondary" id="resetSide" type="button">重置</button>
           </div>
         </div>
         <textarea id="output" spellcheck="false"></textarea>
@@ -1991,6 +1994,7 @@
     $("#resetTop").addEventListener("click", resetForm);
     $("#resetSide").addEventListener("click", resetForm);
     $("#copyBtn").addEventListener("click", copyOutput);
+    $("#copyTop").addEventListener("click", copyOutput);
   </script>
 </body>
 </html>
