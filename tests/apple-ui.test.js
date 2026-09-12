@@ -13,7 +13,7 @@ test('首页及九个子工具接入各自最新苹果风样式，完整包不�
   assert.ok(fs.existsSync(path.join(root, 'tools/apple-shell.css')));
   for (const page of pages) {
     const html = read(`tools/${page}.html`);
-    assert.match(html, /apple-ui\.css\?v=20260911-6/);
+    assert.match(html, /apple-ui\.css\?v=20260912-1/);
     assert.ok(html.includes(`class="apple-ui" data-page="${page}"`), page);
     assert.ok(html.indexOf('apple-ui.css') < html.indexOf('</head>'), page);
   }
@@ -59,6 +59,13 @@ test('混凝土打孔说明贴合输入行，附加费用说明利用右列', ()
   assert.match(css, /\.concrete-hole-card > \.hint\s*\{[^}]*align-self: end; min-height: 44px; display: flex; align-items: center/);
   assert.match(css, /\.concrete-surface-options\s*\{[^}]*grid-template-columns: minmax\(0,2fr\) minmax\(0,1fr\)/);
   assert.match(read('tools/order-template.html'), /class="concrete-extra-options concrete-surface-options"/);
+});
+
+test('开单14种付款方式含三个个体户，桌面五列三行', () => {
+  const order = read('tools/order-template.html');
+  assert.equal((order.match(/name="paymentMethod"/g) || []).length, 14);
+  for (const name of ['云苗个体户', '安苗个体户', '悦苗个体户']) assert.ok(order.includes(`name="paymentMethod" value="${name}"><span>${name}</span>`));
+  assert.match(css, /#paymentMethodGroup \{ grid-template-columns: repeat\(5,minmax\(0,1fr\)\)/);
 });
 
 test('苹果风保留语义色、键盘焦点及减少动态效果选项', () => {

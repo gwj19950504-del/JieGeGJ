@@ -328,6 +328,11 @@
   body.apple-ui[data-page="order-template"] .tax-field .checkline { padding: 10px 8px !important; white-space: nowrap !important; font-size: 13px !important; }
   body.apple-ui[data-page="order-template"] .payment-panel .option { display: flex; align-items: stretch; }
   body.apple-ui[data-page="order-template"] .payment-panel .option span { width: 100%; height: 100%; }
+  body.apple-ui[data-page="order-template"] #paymentMethodGroup { grid-template-columns: repeat(5,minmax(0,1fr)); gap: 8px; }
+  body.apple-ui[data-page="order-template"] #paymentMethodGroup .option span { padding: 8px 4px !important; font-size: 13px !important; }
+  @media (max-width: 680px) {
+    body.apple-ui[data-page="order-template"] #paymentMethodGroup { grid-template-columns: repeat(3,minmax(0,1fr)) !important; }
+  }
   body.apple-ui .concrete-fee-row { grid-template-columns: minmax(0,1fr) minmax(120px,.5fr) 88px !important; }
   body.apple-ui .concrete-promo-delete { width: 88px !important; }
   body.apple-ui .shunxin-options { gap: 16px; }
