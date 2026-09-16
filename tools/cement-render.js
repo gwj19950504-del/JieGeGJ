@@ -5,7 +5,7 @@
   else root.CementRender = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  const palette = Object.freeze({ full:'#c4c6c8', cut:'#969b9f', ink:'#1d1d1f', blue:'#0066cc', line:'#555b60' });
+  const palette = Object.freeze({ board:'#b8bbbe', ink:'#1d1d1f', blue:'#0066cc', line:'#555b60' });
   function key(prefix) {
     if (!/^[A-Za-z][\w-]*$/.test(prefix)) throw new TypeError('Invalid SVG gradient prefix');
     return prefix;

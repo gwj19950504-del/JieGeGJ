@@ -7,8 +7,7 @@ const cement=require('../tools/cement-render.js');
 const read=name=>fs.readFileSync(path.join(__dirname,'../tools',name),'utf8');
 
 test('共用水泥灰凹孔保持中心和半径，不接受无效几何或SVG标识注入',()=>{
-  assert.equal(cement.palette.full,'#c4c6c8');
-  assert.equal(cement.palette.cut,'#969b9f');
+  assert.equal(cement.palette.board,'#b8bbbe');
   assert.match(cement.defs('sample'),/id="sample-rim"/);
   const hole=cement.hole(200,150,20,'sample');
   assert.match(hole,/<circle cx="200" cy="150" r="20" fill="url\(#sample-rim\)"/);
@@ -27,6 +26,19 @@ test('上墙采用已确认黑字凹孔深蓝按钮，屏幕及导出均共用SV
   assert.match(html,/class: "copy-wall-button",[\s\S]{0,200}role: "button"/);
   assert.match(css,/\[data-page="wall-panel"\] \.summary\s*\{[^}]*background: #eceef0 !important/);
   assert.match(css,/\[data-page="wall-panel"\] \.summary strong\s*\{[^}]*color: #1d1d1f !important/);
+});
+
+test('整板和裁切统一中灰且移除双色图例，孔心渲染与导出沿用同一材质',()=>{
+  const wall=read('wall-panel.html'),hole=read('hole-1200.html');
+  assert.match(wall,/fill: CementRender\.palette\.board/);
+  assert.match(wall,/水泥板 · 中灰/);
+  assert.doesNotMatch(wall,/palette\.(full|cut)|p\.full \? CementRender/);
+  assert.match(wall,/const totalFull = allPanels\.filter\(\(p\) => p\.full\)\.length/);
+  for (const html of [wall,hole]) {
+    assert.match(html,/cement-render\.js\?v=20260916-3/);
+    assert.doesNotMatch(html,/#969b9f|#c4c6c8/i);
+  }
+  assert.equal((hole.match(/fill="\$\{CementRender\.palette\.board\}"/g)||[]).length,2);
 });
 
 test('关联整板切割同案为三张，六块清单、面积与坐标全部有效',()=>{

@@ -605,7 +605,7 @@
     </section>
   </main>
 
-  <script src="cement-render.js?v=20260916-1"></script>
+  <script src="cement-render.js?v=20260916-3"></script>
   <script>
     const svg = document.querySelector('#svg');
     const fields = ['widthMm', 'heightMm', 'holes', 'diameter', 'columns', 'marginX', 'marginY'];
@@ -705,9 +705,9 @@
         <defs>${CementRender.defs('hole-material')}</defs>
         <rect x="0" y="0" width="${viewW}" height="${viewH}" fill="#ffffff"></rect>
         <text x="${boardX}" y="32" fill="#62626b" font-size="18" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">板块 ${materialLabel(widthMm)} × ${materialLabel(heightMm)} mm · ${points.length} 孔 · Ø${materialLabel(diameter)} mm</text>
-        <rect x="${boardX}" y="${boardY}" width="${boardW}" height="${boardH}" fill="#c4c6c8" stroke="#5d6368" stroke-width="2"></rect>
+        <rect x="${boardX}" y="${boardY}" width="${boardW}" height="${boardH}" fill="${CementRender.palette.board}" stroke="#5d6368" stroke-width="2"></rect>
         <g aria-label="${points.length}个凹入圆孔">${boardHoleMarkup}</g>
-        <rect x="${detailBoxX}" y="${detailBoxY}" width="${detailBoxSize}" height="${detailBoxSize}" rx="18" fill="#c4c6c8"></rect>
+        <rect x="${detailBoxX}" y="${detailBoxY}" width="${detailBoxSize}" height="${detailBoxSize}" rx="18" fill="${CementRender.palette.board}"></rect>
         <g aria-label="第一个孔放大">${detailHoleMarkup}</g>
         <text x="${boardX}" y="${boardY + boardH + 36}" fill="#62626b" font-size="16" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">孔位与上方尺寸示意图一致；圆孔保持实际比例。</text>
         <text x="${detailBoxX}" y="${detailBoxY + 318}" fill="#1d1d1f" font-size="22" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">单孔放大</text>

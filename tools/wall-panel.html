@@ -1179,7 +1179,7 @@
     <div class="mini">只修改当前选中的这一块板，不影响其它板块。</div>
   </div>
 
-  <script src="cement-render.js?v=20260916-1"></script>
+  <script src="cement-render.js?v=20260916-3"></script>
   <script>
     const defaultWall = { name: "自定义墙 1", wallW: "", wallH: "" };
     const exampleWalls = [
@@ -2025,7 +2025,7 @@
             y,
             width: w,
             height: h,
-            fill: p.full ? CementRender.palette.full : CementRender.palette.cut,
+            fill: CementRender.palette.board,
             stroke: CementRender.palette.line,
             "stroke-width": .7,
           }));
@@ -2159,11 +2159,9 @@
           fill: "#ffffff",
         });
         g.appendChild(copyButton);
-        [["整板", CementRender.palette.full], ["裁切板", CementRender.palette.cut]].forEach(([label, fill], i) => {
-          const y = buttonY + 65 + i * 25;
-          g.appendChild(el("rect", { x:buttonX, y, width:12, height:12, rx:2, fill, stroke:"#555b60", "stroke-width":.7 }));
-          addText(g, label, buttonX + 20, y + 10, { "font-size":11 });
-        });
+        const legendY = buttonY + 65;
+        g.appendChild(el("rect", { x:buttonX, y:legendY, width:12, height:12, rx:2, fill:CementRender.palette.board, stroke:"#555b60", "stroke-width":.7 }));
+        addText(g, "水泥板 · 中灰", buttonX + 20, legendY + 10, { "font-size":11 });
 
         const cropX = Math.max(0, marginX - 122);
         const cropY = Math.max(0, offsetY - 76);

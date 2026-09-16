@@ -54,7 +54,7 @@ function assertLinked(f) {
 
 test('孔心默认六孔保留原示意图，在下方新增同位置同孔径的水泥灰渲染',()=>{
   assert.ok(html.indexOf('id="svg"') < html.indexOf('id="materialPreviewSvg"'));
-  assert.match(html,/cement-render\.js\?v=20260916-1/);
+  assert.match(html,/cement-render\.js\?v=20260916-3/);
   assertLinked(fixture());
 });
 
