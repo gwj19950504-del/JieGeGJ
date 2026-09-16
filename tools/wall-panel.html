@@ -946,7 +946,7 @@
     }
 
 </style>
-  <link rel="stylesheet" href="apple-ui.css?v=20260912-1">
+  <link rel="stylesheet" href="apple-ui.css?v=20260916-1">
 </head>
 <body class="apple-ui" data-page="wall-panel">
   <div class="app">
@@ -1033,8 +1033,8 @@
 
       <h2>排版方向</h2>
       <div class="segmented" role="group" aria-label="排版方向">
-        <button id="horizontal" class="active" type="button">横向 1200x600</button>
-        <button id="vertical" type="button">竖向 600x1200</button>
+        <button id="horizontal" class="active" type="button"><span>横向</span><small>1200 × 600</small></button>
+        <button id="vertical" type="button"><span>竖向</span><small>600 × 1200</small></button>
       </div>
 
       <h2>孔位参数</h2>
@@ -1141,6 +1141,7 @@
             <tbody id="rawSheetList"></tbody>
           </table>
         </div>
+        <p class="note">原板张数按实际可放入的成品排算，不是面积折算。当前未计锯缝与修边，算法不保证所有组合的全局最优；正式开料前请核对可用尺寸、方向及余料。</p>
       </section>
     </main>
   </div>
@@ -1178,6 +1179,7 @@
     <div class="mini">只修改当前选中的这一块板，不影响其它板块。</div>
   </div>
 
+  <script src="cement-render.js?v=20260916-1"></script>
   <script>
     const defaultWall = { name: "自定义墙 1", wallW: "", wallH: "" };
     const exampleWalls = [
@@ -1551,6 +1553,42 @@
       })));
     }
 
+    function validateRawSheetPlan(plan, pieces, allowRotate) {
+      const epsilon = 1e-7;
+      const same = (a, b) => Math.abs(a - b) <= epsilon;
+      const expected = new Map(pieces.map(piece => [piece.id, piece]));
+      const seen = new Set();
+      if (![plan.rawW, plan.rawH].every(n => Number.isFinite(n) && n > 0)) return false;
+      const fits = (w, h) => w <= plan.rawW + epsilon && h <= plan.rawH + epsilon;
+      for (const sheet of plan.sheets) {
+        if (!sheet.pieces.length) return false;
+        for (let i = 0; i < sheet.pieces.length; i++) {
+          const p = sheet.pieces[i];
+          const original = expected.get(p.id);
+          if (!original || seen.has(p.id)) return false;
+          if (![p.x, p.y, p.w, p.h].every(Number.isFinite) || p.w <= 0 || p.h <= 0) return false;
+          if (p.x < -epsilon || p.y < -epsilon || !fits(p.x + p.w, p.y + p.h)) return false;
+          if (!same(p.originalW, original.w) || !same(p.originalH, original.h)) return false;
+          const straight = same(p.w, original.w) && same(p.h, original.h);
+          const rotated = allowRotate && same(p.w, original.h) && same(p.h, original.w);
+          if (!straight && !rotated) return false;
+          for (let j = 0; j < i; j++) {
+            const q = sheet.pieces[j];
+            if (p.x + p.w > q.x + epsilon && q.x + q.w > p.x + epsilon
+                && p.y + p.h > q.y + epsilon && q.y + q.h > p.y + epsilon) return false;
+          }
+          seen.add(p.id);
+        }
+      }
+      for (const p of plan.impossible) {
+        const original = expected.get(p.id);
+        if (!original || seen.has(p.id) || !same(p.w, original.w) || !same(p.h, original.h)) return false;
+        if (fits(p.w, p.h) || (allowRotate && fits(p.h, p.w))) return false;
+        seen.add(p.id);
+      }
+      return seen.size === expected.size;
+    }
+
     function rawSheetPlan() {
       const rawW = Math.max(value("rawW"), 1);
       const rawH = Math.max(value("rawH"), 1);
@@ -1559,7 +1597,10 @@
         .map((panel, index) => ({ ...panel, id: index + 1 }))
         .sort((a, b) => Math.max(b.w, b.h) - Math.max(a.w, a.h) || (b.w * b.h) - (a.w * a.h));
 
-      function solve(canRotate) {
+      const epsilon = 1e-7;
+      // Each free rectangle is disjoint. Splitting both ways also lets short
+      // boards reuse the space behind a previous cut, unlike fixed shelves.
+      function solve(canRotate, splitVertical) {
         const sheets = [];
         const impossible = [];
 
@@ -1576,47 +1617,36 @@
         function addToSheet(sheet, piece) {
           let best = null;
           orientations(piece).forEach((item) => {
-            sheet.shelves.forEach((shelf, shelfIndex) => {
-              if (item.h <= shelf.h && shelf.usedW + item.w <= rawW) {
-                const waste = (shelf.h - item.h) * item.w + (rawW - shelf.usedW - item.w);
-                if (!best || waste < best.waste) best = { item, shelfIndex, waste };
-              }
+            sheet.free.forEach((space, index) => {
+              if (item.w > space.w + epsilon || item.h > space.h + epsilon) return;
+              const score = [space.w * space.h - item.w * item.h,
+                Math.min(space.w - item.w, space.h - item.h), space.y, space.x];
+              const better = !best || score.some((value, i) => value < best.score[i] - epsilon
+                && score.slice(0, i).every((v, j) => Math.abs(v - best.score[j]) <= epsilon));
+              if (better) best = { item, space, index, score };
             });
-
-            if (sheet.usedH + item.h <= rawH) {
-              const waste = rawW - item.w + rawH - sheet.usedH - item.h;
-              if (!best || waste < best.waste) best = { item, shelfIndex: -1, waste };
-            }
           });
 
           if (!best) return false;
 
           const placed = {
+            id: piece.id,
+            x: best.space.x,
+            y: best.space.y,
             w: best.item.w,
             h: best.item.h,
             originalW: piece.w,
             originalH: piece.h,
           };
 
-          if (best.shelfIndex >= 0) {
-            const shelf = sheet.shelves[best.shelfIndex];
-            placed.x = shelf.usedW;
-            placed.y = shelf.y;
-            shelf.usedW += best.item.w;
-            shelf.pieces.push(placed);
-          } else {
-            const shelf = {
-              y: sheet.usedH,
-              h: best.item.h,
-              usedW: best.item.w,
-              pieces: [placed],
-            };
-            placed.x = 0;
-            placed.y = shelf.y;
-            sheet.shelves.push(shelf);
-            sheet.usedH += best.item.h;
-          }
-
+          const { space } = best;
+          const dw = Math.max(0, space.w - placed.w);
+          const dh = Math.max(0, space.h - placed.h);
+          const remainder = [
+            { x:space.x + placed.w, y:space.y, w:dw, h:splitVertical ? space.h : placed.h },
+            { x:space.x, y:space.y + placed.h, w:splitVertical ? placed.w : space.w, h:dh },
+          ].filter(r => r.w > epsilon && r.h > epsilon);
+          sheet.free.splice(best.index, 1, ...remainder);
           sheet.pieces.push(placed);
           return true;
         }
@@ -1629,23 +1659,22 @@
 
           const placed = sheets.some((sheet) => addToSheet(sheet, piece));
           if (!placed) {
-            const sheet = { usedH: 0, shelves: [], pieces: [] };
-            addToSheet(sheet, piece);
-            sheets.push(sheet);
+            const sheet = { free: [{ x:0, y:0, w:rawW, h:rawH }], pieces: [] };
+            if (addToSheet(sheet, piece)) sheets.push(sheet);
+            else impossible.push(piece);
           }
         });
 
         return { rawW, rawH, sheets, impossible };
       }
 
-      if (!allowRotate) return solve(false);
-
-      const straight = solve(false);
-      const rotated = solve(true);
-      if (rotated.impossible.length !== straight.impossible.length) {
-        return rotated.impossible.length < straight.impossible.length ? rotated : straight;
-      }
-      return rotated.sheets.length < straight.sheets.length ? rotated : straight;
+      const candidates = [solve(false, false), solve(false, true)];
+      if (allowRotate) candidates.push(solve(true, false), solve(true, true));
+      const valid = candidates.filter(plan => validateRawSheetPlan(plan, basePieces, allowRotate));
+      const largestRemainder = plan => Math.max(0, ...plan.sheets.flatMap(s => s.free.map(r => r.w * r.h)));
+      valid.sort((a, b) => a.impossible.length - b.impossible.length || a.sheets.length - b.sheets.length
+        || largestRemainder(b) - largestRemainder(a));
+      return valid[0] || { rawW, rawH, sheets: [], impossible: [], error: "原板开料校验未通过，请核对尺寸后重试。" };
     }
 
     function describePieces(pieces) {
@@ -1674,8 +1703,8 @@
         x,
         y,
         "font-size": 13,
-        "font-family": "Arial, PingFang SC, Microsoft YaHei, sans-serif",
-        fill: "#202520",
+        "font-family": "-apple-system, BlinkMacSystemFont, PingFang SC, Microsoft YaHei, sans-serif",
+        fill: "#1d1d1f",
         ...attrs,
       });
       node.textContent = text;
@@ -1823,7 +1852,7 @@
       canvas.width = Math.ceil(region.w * scaleFactor);
       canvas.height = Math.ceil(region.h * scaleFactor);
       const ctx = canvas.getContext("2d");
-      ctx.fillStyle = "#f9f6ef";
+      ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, region.x, region.y, region.w, region.h, 0, 0, canvas.width, canvas.height);
 
@@ -1862,6 +1891,10 @@
     }
 
     function draw() {
+      const currentSize = boardSizeFor(currentWall());
+      const dimensionLabel = value => Number.isFinite(Number(value)) && Number(value) > 0 ? fmtNumber(value) : "—";
+      els.horizontal.querySelector("small").textContent = `${dimensionLabel(currentSize.boardW)} × ${dimensionLabel(currentSize.boardH)}`;
+      els.vertical.querySelector("small").textContent = `${dimensionLabel(currentSize.boardH)} × ${dimensionLabel(currentSize.boardW)}`;
       const required = ["rawW", "rawH", ...(!els.noHole.checked ? ["holeD"] : [])];
       const nonnegative = [...(!els.noHole.checked ? ["holeInset"] : []), ...(els.jointGapPreset.value === "custom" ? ["jointGapCustom"] : [])];
       const invalid = required.some(id => !Number.isFinite(Number(els[id].value)) || Number(els[id].value) <= 0)
@@ -1908,24 +1941,10 @@
       svg.setAttribute("width", svgW);
       svg.setAttribute("height", svgH);
     
-      svg.appendChild(el("rect", { x: 0, y: 0, width: svgW, height: svgH, fill: "#f9f6ef" }));
+      svg.appendChild(el("rect", { x: 0, y: 0, width: svgW, height: svgH, fill: "#ffffff" }));
     
       const defs = el("defs");
-      const pattern = el("pattern", {
-        id: "cement",
-        width: 80,
-        height: 80,
-        patternUnits: "userSpaceOnUse",
-      });
-      pattern.appendChild(el("rect", { width: 80, height: 80, fill: "#cfccc2" }));
-      pattern.appendChild(el("path", {
-        d: "M0 20 C20 10, 36 32, 80 16 M5 70 C26 50, 52 78, 80 52",
-        stroke: "#b8b4aa",
-        "stroke-width": 1,
-        fill: "none",
-        opacity: .38,
-      }));
-      defs.appendChild(pattern);
+      defs.innerHTML = CementRender.defs("wall-cement");
       svg.appendChild(defs);
     
       let offsetY = topMargin;
@@ -1939,8 +1958,8 @@
         if (data.incomplete) {
           addText(g, `${wall.name} ${data.error || "待输入墙宽和墙高"}`, 0, 0, {
             "font-size": 16,
-            "font-weight": 800,
-            fill: "#202520",
+            "font-weight": 600,
+            fill: "#1d1d1f",
           });
           g.appendChild(el("rect", {
             x: 0,
@@ -1948,14 +1967,14 @@
             width: 520,
             height: 92,
             rx: 8,
-            fill: "#fffaf0",
-            stroke: "#d8d2c5",
+            fill: "#f5f5f7",
+            stroke: "#d9d9df",
             "stroke-width": 1.2,
             "stroke-dasharray": "8 6",
           }));
           addText(g, data.error ? "请调整参数后重新生成排版图" : "请输入墙宽和墙高后生成排版图", 22, 72, {
             "font-size": 14,
-            fill: "#68716a",
+            fill: "#62626b",
           });
           offsetY += 150;
           return;
@@ -1963,8 +1982,8 @@
     
         addText(g, `${wall.name} ${fmt(data.wallW)} x ${fmt(data.wallH)}`, 0, -48, {
           "font-size": 16,
-          "font-weight": 800,
-          fill: "#202520",
+          "font-weight": 600,
+          fill: "#1d1d1f",
         });
     
         g.appendChild(el("rect", {
@@ -1973,9 +1992,9 @@
           y: 0,
           width: rightX,
           height: bottomY,
-          fill: "url(#cement)",
-          stroke: "#202520",
-          "stroke-width": 2,
+          fill: "#ffffff",
+          stroke: "#555b60",
+          "stroke-width": 1,
         }));
 
         if (data.jointGap > 0) {
@@ -1988,7 +2007,7 @@
               y: 0,
               width: Math.max(data.jointGap * scale, 0.6),
               height: bottomY,
-              fill: "#fffdf8",
+              fill: "#ffffff",
               opacity: 0.96,
             }));
             seamX += data.jointGap;
@@ -2002,7 +2021,7 @@
               y: seamY * scale,
               width: rightX,
               height: Math.max(data.jointGap * scale, 0.6),
-              fill: "#fffdf8",
+              fill: "#ffffff",
               opacity: 0.96,
             }));
             seamY += data.jointGap;
@@ -2022,9 +2041,9 @@
             y,
             width: w,
             height: h,
-            fill: p.full ? "rgba(210,207,197,.52)" : "rgba(202,75,34,.10)",
-            stroke: "#202520",
-            "stroke-width": 1,
+            fill: p.full ? CementRender.palette.full : CementRender.palette.cut,
+            stroke: CementRender.palette.line,
+            "stroke-width": .7,
           }));
 
           if (selectedPanel && selectedPanel.wallIndex === wallIndex && selectedPanel.panelIndex === i) {
@@ -2034,7 +2053,7 @@
               width: Math.max(w - 4, 0),
               height: Math.max(h - 4, 0),
               fill: "none",
-              stroke: "#ca4b22",
+              stroke: "#0066cc",
               "stroke-width": 2,
               "stroke-dasharray": "8 5",
               "pointer-events": "none",
@@ -2042,29 +2061,17 @@
           }
     
           if (w > 38 && h > 28) {
-            addText(g, `${i + 1}`, x + 8, y + 16, {
-              "font-size": 10,
-              fill: "#68645c",
+            addText(g, `${i + 1}`, x + 8, y + 9, {
+              "font-size": 8,
+              fill: "#1d1d1f",
             });
           }
     
           const holes = holePointsForPanel(p, wall, noHole, holeD, inset);
     
           holes.forEach(([hx, hy]) => {
-            g.appendChild(el("circle", {
-              cx: x + hx * scale,
-              cy: y + hy * scale,
-              r: Math.max((holeD / 2) * scale, 2.5),
-              fill: "#171917",
-              opacity: .86,
-            }));
-            g.appendChild(el("circle", {
-              cx: x + hx * scale - 1,
-              cy: y + hy * scale - 1,
-              r: Math.max((holeD / 6) * scale, 1),
-              fill: "#5a5d56",
-              opacity: .45,
-            }));
+            g.insertAdjacentHTML("beforeend", CementRender.hole(x + hx * scale, y + hy * scale,
+              Math.max((holeD / 2) * scale, 2.5), "wall-cement"));
           });
         });
     
@@ -2090,7 +2097,7 @@
           addText(g, label, centerX, -7, {
             "font-size": 13,
             "text-anchor": "middle",
-            fill: "#ff4d4d",
+            fill: "#1d1d1f",
           });
         });
 
@@ -2100,7 +2107,7 @@
           addText(g, label, -10, centerY, {
             "font-size": 13,
             "text-anchor": "end",
-            fill: "#ff4d4d",
+            fill: "#1d1d1f",
           });
         });
 
@@ -2131,14 +2138,14 @@
           width: infoW,
           height: 28,
           rx: 4,
-          fill: "#fffaf0",
-          stroke: "#ead9bd",
+          fill: "#ffffff",
+          stroke: "#555b60",
           "stroke-width": 1,
         }));
         addText(g, infoText, 14, infoY - 7, {
-          "font-size": 14,
-          "font-weight": 600,
-          fill: "#4c554f",
+          "font-size": 10,
+          "font-weight": 400,
+          fill: "#1d1d1f",
         });
 
         const buttonX = rightX + 58;
@@ -2147,24 +2154,32 @@
           class: "copy-wall-button",
           "data-wall-index": wallIndex,
           cursor: "pointer",
+          role: "button",
+          tabindex: "0",
+          "aria-label": `复制${wall.name}排版图`,
         });
         copyButton.appendChild(el("rect", {
           x: buttonX,
           y: buttonY,
           width: 96,
           height: 34,
-          rx: 17,
-          fill: "#fffdf8",
-          stroke: "#d8d2c5",
+          rx: 7,
+          fill: "#0066cc",
+          stroke: "none",
           "stroke-width": 1,
         }));
         addText(copyButton, "复制此图", buttonX + 48, buttonY + 22, {
           "font-size": 14,
           "font-weight": 700,
           "text-anchor": "middle",
-          fill: "#9b3b1f",
+          fill: "#ffffff",
         });
         g.appendChild(copyButton);
+        [["整板", CementRender.palette.full], ["裁切板", CementRender.palette.cut]].forEach(([label, fill], i) => {
+          const y = buttonY + 65 + i * 25;
+          g.appendChild(el("rect", { x:buttonX, y, width:12, height:12, rx:2, fill, stroke:"#555b60", "stroke-width":.7 }));
+          addText(g, label, buttonX + 20, y + 10, { "font-size":11 });
+        });
 
         const cropX = Math.max(0, marginX - 122);
         const cropY = Math.max(0, offsetY - 76);
@@ -2193,7 +2208,7 @@
         ["总板块", `${allPanels.length} 块`],
         ["整板", `${totalFull} 块`],
         ["裁切板", `${totalCut} 块`],
-        ["原板合计", `${rawPlan.sheets.length} 张`],
+        ["原板合计", rawPlan.error || rawPlan.impossible.length ? "待核对" : `${rawPlan.sheets.length} 张`],
       ].map(([label, val]) => `<div class="metric"><strong>${val}</strong><span>${label}</span></div>`).join("");
     
       els.cutList.innerHTML = layouts.map(({ wall, data }) => {
@@ -2211,12 +2226,13 @@
       const rawArea = rawPlan.rawW * rawPlan.rawH;
       const rawRows = rawPlan.sheets.map((sheet, index) => {
         const usedArea = sheet.pieces.reduce((sum, piece) => sum + piece.originalW * piece.originalH, 0);
-        const usage = `${Math.round((usedArea / rawArea) * 100)}%`;
+        const usage = `${fmtNumber((usedArea / rawArea) * 100)}%`;
         return `<tr><td>${fmt(rawPlan.rawW)} x ${fmt(rawPlan.rawH)} 第 ${index + 1} 张</td><td>${describePieces(sheet.pieces)}</td><td>${usage}</td></tr>`;
       });
       rawPlan.impossible.forEach((piece) => {
-        rawRows.push(`<tr><td>无法切割</td><td>${fmt(piece.w)} x ${fmt(piece.h)}</td><td>超过原板尺寸</td></tr>`);
+        rawRows.push(`<tr><td>无法切割</td><td>${fmt(piece.w)} x ${fmt(piece.h)}</td><td>当前原板尺寸或旋转设置无法容纳</td></tr>`);
       });
+      if (rawPlan.error) rawRows.push(`<tr><td colspan="3">${escapeHtml(rawPlan.error)}</td></tr>`);
       els.rawSheetList.innerHTML = rawRows.join("");
       updatePanelEditor();
     }
@@ -2392,6 +2408,13 @@
       renderWallSelect();
       draw();
       updatePanelEditor(tileRect);
+    });
+    els.drawing.addEventListener("keydown", (event) => {
+      const button = event.target.closest && event.target.closest(".copy-wall-button");
+      if (button && (event.key === "Enter" || event.key === " ")) {
+        event.preventDefault();
+        copyWallImage(Number(button.dataset.wallIndex));
+      }
     });
     els.addWall.addEventListener("click", addWall);
     els.refreshDrawing.addEventListener("click", deleteCurrentWall);

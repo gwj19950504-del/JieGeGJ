@@ -903,7 +903,7 @@ test("所有仓库共用的合计框未填写时不显示示例数字", () => {
 
 test("主页版本号和所有工具入口完整", () => {
   const index = read("index.html");
-  assert.match(index, /v2026\.09\.12\.1/);
+  assert.match(index, /v2026\.09\.16\.1/);
   const routeMatch = index.match(/const toolPaths = (\{[^;]+\});/);
   assert.ok(routeMatch, "未找到工具入口表");
   const routes = JSON.parse(routeMatch[1]);
@@ -1016,12 +1016,20 @@ test("孔心排版无效尺寸和重叠孔位禁止导出", () => {
   for (const patch of [{ widthMm: 0 }, { columns: 0 }, { diameter: -1 }, { marginX: -1 }, { marginX: 600 }, { holes: 1.5 }]) {
     const button = {};
     const messages = [];
-    const context = { svg: { replaceChildren() {}, append(node) { messages.push(node.text); } }, getValue: id => ({ ...base, ...patch })[id], document: { querySelector: () => button }, el: (tag, attrs, text) => ({ text }) };
+    const context = { svg: { replaceChildren() {}, append(node) { messages.push(node.text); } }, getValue: id => ({ ...base, ...patch })[id], document: { querySelector: () => button }, el: (tag, attrs, text) => ({ text }),
+      materialPreviewSvg: { innerHTML: 'previous drawing', parentElement: { hidden: false }, replaceChildren() { this.innerHTML = ''; }, setAttribute() {}, removeAttribute() {} },
+      copyMaterialPreview: { disabled: false }, materialPreviewStatus: { textContent: '' },
+    };
     vm.createContext(context);
+    vm.runInContext(functionSource("tools/hole-1200.html", "clearMaterialPreview"), context);
     vm.runInContext(functionSource("tools/hole-1200.html", "draw"), context);
     context.draw();
     assert.equal(button.disabled, true);
     assert.equal(messages.length, 1);
+    assert.equal(context.materialPreviewSvg.innerHTML, '');
+    assert.equal(context.materialPreviewSvg.parentElement.hidden, true);
+    assert.equal(context.copyMaterialPreview.disabled, true);
+    assert.equal(context.materialPreviewStatus.textContent, messages[0]);
   }
 });
 

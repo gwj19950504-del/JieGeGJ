@@ -13,7 +13,7 @@ test('首页及九个子工具接入各自最新苹果风样式，完整包不�
   assert.ok(fs.existsSync(path.join(root, 'tools/apple-shell.css')));
   for (const page of pages) {
     const html = read(`tools/${page}.html`);
-    assert.match(html, /apple-ui\.css\?v=20260912-1/);
+    assert.match(html, /apple-ui\.css\?v=20260916-1/);
     assert.ok(html.includes(`class="apple-ui" data-page="${page}"`), page);
     assert.ok(html.indexOf('apple-ui.css') < html.indexOf('</head>'), page);
   }

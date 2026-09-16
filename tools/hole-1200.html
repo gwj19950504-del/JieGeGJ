@@ -569,7 +569,7 @@
     }
 
 </style>
-  <link rel="stylesheet" href="apple-ui.css?v=20260912-1">
+  <link rel="stylesheet" href="apple-ui.css?v=20260916-1">
 </head>
 <body class="apple-ui" data-page="hole-1200">
   <div class="tool-heading"><h1>孔心排版</h1><p class="subtitle">设置板材与孔位参数，预览尺寸标注并导出图纸。</p></div>
@@ -587,12 +587,32 @@
     <div class="stage">
       <svg id="svg" viewBox="0 0 1100 700" role="img" aria-label="板材孔位排版预览"></svg>
     </div>
+    <section class="hole-material-preview" aria-labelledby="holeMaterialTitle">
+      <div class="hole-material-heading">
+        <div>
+          <h2 id="holeMaterialTitle">圆孔细节 · 凹入式水泥灰</h2>
+          <p>保留当前孔位与边距，只调整孔位的阴影、孔底与边缘高光。</p>
+        </div>
+        <div class="hole-material-actions">
+          <button id="copyMaterialPreview" type="button" disabled>复制此图</button>
+          <span id="materialPreviewStatus" role="status" aria-live="polite">填写有效参数后显示渲染图。</span>
+        </div>
+      </div>
+      <div class="hole-material-stage" hidden>
+        <svg id="materialPreviewSvg" class="hole-material-svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="holeMaterialSvgTitle holeMaterialSvgDesc"></svg>
+      </div>
+      <p class="hole-material-scroll-hint">可左右滑动查看完整渲染图与单孔细节。</p>
+    </section>
   </main>
 
+  <script src="cement-render.js?v=20260916-1"></script>
   <script>
     const svg = document.querySelector('#svg');
     const fields = ['widthMm', 'heightMm', 'holes', 'diameter', 'columns', 'marginX', 'marginY'];
     const ns = 'http://www.w3.org/2000/svg';
+    const materialPreviewSvg = document.querySelector('#materialPreviewSvg');
+    const copyMaterialPreview = document.querySelector('#copyMaterialPreview');
+    const materialPreviewStatus = document.querySelector('#materialPreviewStatus');
 
     function el(name, attrs = {}, text = '') {
       const node = document.createElementNS(ns, name);
@@ -621,8 +641,92 @@
       return Number(document.querySelector(`#${id}`).value);
     }
 
+    function clearMaterialPreview(message = '填写有效参数后显示渲染图。') {
+      materialPreviewSvg.replaceChildren();
+      materialPreviewSvg.parentElement.hidden = true;
+      materialPreviewSvg.setAttribute('aria-hidden', 'true');
+      materialPreviewSvg.removeAttribute('data-hole-count');
+      copyMaterialPreview.disabled = true;
+      materialPreviewStatus.textContent = message;
+    }
+
+    function materialLabel(value) {
+      return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(2)));
+    }
+
+    function renderMaterialPreview(points, widthMm, heightMm, diameter) {
+      if (!Array.isArray(points) || points.length === 0
+        || !points.every((point) => Array.isArray(point)
+          && point.length === 2
+          && point.every((value) => Number.isFinite(value)))) {
+        clearMaterialPreview('当前没有可渲染的孔位。');
+        return;
+      }
+
+      const viewW = 1200;
+      const boardX = 34;
+      const boardY = 62;
+      const maxBoardW = 780;
+      const maxBoardH = 410;
+      const materialScale = Math.min(maxBoardW / widthMm, maxBoardH / heightMm);
+      const boardW = widthMm * materialScale;
+      const boardH = heightMm * materialScale;
+      const materialRadius = (diameter * materialScale) / 2;
+      if (![materialScale, boardW, boardH, materialRadius].every(Number.isFinite)
+        || materialScale <= 0 || boardW <= 0 || boardH <= 0 || materialRadius <= 0) {
+        clearMaterialPreview('当前参数无法生成凹孔渲染。');
+        return;
+      }
+
+      const detailBoxX = 880;
+      const detailBoxY = boardY;
+      const detailBoxSize = 280;
+      const viewH = Math.max(boardY + boardH + 76, detailBoxY + detailBoxSize + 154);
+      const detailCx = detailBoxX + detailBoxSize / 2;
+      const detailCy = detailBoxY + detailBoxSize / 2;
+      const detailR = Math.max(76, Math.min(104, materialRadius * 3.2));
+      if (![detailCx, detailCy, detailR].every(Number.isFinite) || detailR <= 0) {
+        clearMaterialPreview('当前参数无法生成凹孔细节。');
+        return;
+      }
+
+      const [firstX, firstY] = points[0];
+      const boardHoleMarkup = points.map(([xMm, yMm]) => CementRender.hole(
+        boardX + xMm * materialScale,
+        boardY + yMm * materialScale,
+        materialRadius,
+        'hole-material',
+      )).join('');
+      const detailHoleMarkup = CementRender.hole(detailCx, detailCy, detailR, 'hole-material');
+
+      materialPreviewSvg.innerHTML = `
+        <title id="holeMaterialSvgTitle">水泥灰凹入圆孔排版预览</title>
+        <desc id="holeMaterialSvgDesc">板材 ${materialLabel(widthMm)} × ${materialLabel(heightMm)} mm，${points.length} 个孔，孔径 ${materialLabel(diameter)} mm；右侧显示第一个孔的放大效果。</desc>
+        <defs>${CementRender.defs('hole-material')}</defs>
+        <rect x="0" y="0" width="${viewW}" height="${viewH}" fill="#ffffff"></rect>
+        <text x="${boardX}" y="32" fill="#62626b" font-size="18" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">板块 ${materialLabel(widthMm)} × ${materialLabel(heightMm)} mm · ${points.length} 孔 · Ø${materialLabel(diameter)} mm</text>
+        <rect x="${boardX}" y="${boardY}" width="${boardW}" height="${boardH}" fill="#c4c6c8" stroke="#5d6368" stroke-width="2"></rect>
+        <g aria-label="${points.length}个凹入圆孔">${boardHoleMarkup}</g>
+        <rect x="${detailBoxX}" y="${detailBoxY}" width="${detailBoxSize}" height="${detailBoxSize}" rx="18" fill="#c4c6c8"></rect>
+        <g aria-label="第一个孔放大">${detailHoleMarkup}</g>
+        <text x="${boardX}" y="${boardY + boardH + 36}" fill="#62626b" font-size="16" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">孔位与上方尺寸示意图一致；圆孔保持实际比例。</text>
+        <text x="${detailBoxX}" y="${detailBoxY + 318}" fill="#1d1d1f" font-size="22" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">单孔放大</text>
+        <text x="${detailBoxX}" y="${detailBoxY + 348}" fill="#62626b" font-size="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">上缘阴影 · 下缘高光 · 孔底灰阶</text>
+        <text x="${detailBoxX}" y="${detailBoxY + 380}" fill="#62626b" font-size="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">第 1 孔 · Ø${materialLabel(diameter)} mm</text>
+        <text x="${detailBoxX}" y="${detailBoxY + 406}" fill="#62626b" font-size="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">距左 ${materialLabel(firstX)} mm · 距上 ${materialLabel(firstY)} mm</text>
+      `;
+      materialPreviewSvg.setAttribute('viewBox', `0 0 ${viewW} ${viewH}`);
+      materialPreviewSvg.setAttribute('height', viewH);
+      materialPreviewSvg.parentElement.hidden = false;
+      materialPreviewSvg.setAttribute('aria-hidden', 'false');
+      materialPreviewSvg.setAttribute('data-hole-count', String(points.length));
+      copyMaterialPreview.disabled = false;
+      materialPreviewStatus.textContent = `已更新 ${points.length} 个孔的凹孔渲染。`;
+    }
+
     function draw() {
       svg.replaceChildren();
+      clearMaterialPreview();
       const widthMm = getValue('widthMm');
       const heightMm = getValue('heightMm');
       const holes = getValue('holes');
@@ -646,6 +750,7 @@
       document.querySelector('#downloadSvg').disabled = Boolean(validationError);
       if (validationError) {
         svg.append(el('text', { x: 30, y: 70, fill: '#b42318', 'font-size': 20 }, validationError));
+        materialPreviewStatus.textContent = validationError;
         return;
       }
 
@@ -724,6 +829,7 @@
         const label = Math.round(ys[i + 1] - ys[i]);
         text(g, -72, (y1 + y2) / 2, label, 'dimText', -90, { anchor: 'middle' });
       }
+      renderMaterialPreview(points, widthMm, heightMm, diameter);
     }
 
     fields.forEach((id) => document.querySelector(`#${id}`).addEventListener('input', draw));
@@ -736,6 +842,77 @@
       link.click();
       URL.revokeObjectURL(url);
     });
+
+    function materialPreviewBlob() {
+      const clone = materialPreviewSvg.cloneNode(true);
+      clone.setAttribute('xmlns', ns);
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+      return new Blob(['<?xml version="1.0" encoding="UTF-8"?>', clone.outerHTML], { type: 'image/svg+xml' });
+    }
+
+    function downloadMaterialPreview(blob, extension) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `hole-material-preview.${extension}`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    }
+
+    function svgToPngBlob() {
+      const width = Number(materialPreviewSvg.getAttribute('width'));
+      const height = Number(materialPreviewSvg.getAttribute('height'));
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(materialPreviewBlob());
+        const image = new Image();
+        image.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const context = canvas.getContext('2d');
+            if (!context || typeof canvas.toBlob !== 'function') throw new Error('PNG 导出不可用');
+            context.fillStyle = '#ffffff';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(image, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob((blob) => {
+              if (blob) resolve(blob);
+              else reject(new Error('PNG 编码失败'));
+            }, 'image/png');
+          } catch (error) {
+            reject(error);
+          } finally {
+            URL.revokeObjectURL(url);
+          }
+        };
+        image.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(new Error('SVG 图片加载失败'));
+        };
+        image.src = url;
+      });
+    }
+
+    async function copyMaterialPreviewImage() {
+      if (copyMaterialPreview.disabled || !materialPreviewSvg.innerHTML.trim()) return;
+      const fallbackSvg = materialPreviewBlob();
+      let png;
+      try {
+        png = await svgToPngBlob();
+        if (!navigator.clipboard || typeof navigator.clipboard.write !== 'function' || typeof ClipboardItem === 'undefined') {
+          throw new Error('当前浏览器不支持图片剪贴板');
+        }
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': png })]);
+        materialPreviewStatus.textContent = '已复制此图。';
+      } catch (error) {
+        downloadMaterialPreview(png || fallbackSvg, png ? 'png' : 'svg');
+        materialPreviewStatus.textContent = `图片复制不可用，已下载 ${png ? 'PNG' : 'SVG'} 图。`;
+      }
+    }
+
+    copyMaterialPreview.addEventListener('click', copyMaterialPreviewImage);
     function preventNumberInputWheelChange() {
       document.addEventListener('wheel', (event) => {
         const active = document.activeElement;
