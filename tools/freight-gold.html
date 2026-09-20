@@ -1442,7 +1442,7 @@
     }
 
 </style>
-  <link rel="stylesheet" href="apple-ui.css?v=20260916-1">
+  <link rel="stylesheet" href="apple-ui.css?v=20260919-1">
 </head>
 <body class="apple-ui" data-page="freight-gold">
   <main>
@@ -1558,7 +1558,7 @@
   </main>
 
   <script src="shunxin-rates.js?v=20260815-1"></script>
-  <script src="freight-gold-core.js?v=20260824-1"></script>
+  <script src="freight-gold-core.js?v=20260919-1"></script>
   <script>
     const freightCore = window.GoldFreightCore;
     const specs = freightCore.specs;
@@ -1682,7 +1682,7 @@
     function shipmentItems() {
       return state.items.map((item) => {
         const material = item.material || "hard";
-        const quantity = Number.parseInt(String(item.quantity).trim(), 10);
+        const quantity = item.quantity;
         return { ...item, material, quantity };
       });
     }
@@ -1718,13 +1718,15 @@
 
     function calculate() {
       const allItems = shipmentItems();
-      const invalidItem = allItems.find((item) => String(item.quantity || "").trim() && (!Number.isFinite(item.quantity) || item.quantity <= 0));
-      if (invalidItem) {
+      els.copyBtn.disabled = true;
+      els.copyShunxinBtn.disabled = true;
+      const invalidItem = allItems.find((item) => String(item.quantity).trim() !== '' && (!Number.isSafeInteger(Number(item.quantity)) || Number(item.quantity) <= 0));
+      if (invalidItem || [...document.querySelectorAll('.item-quantity')].some((input) => input.validity.badInput)) {
         els.weightLine.textContent = "-";
         els.packageLine.textContent = "-";
         els.dbLine.textContent = "-";
-        els.result.textContent = `${els.address.value.trim() || "请粘贴地址"}\n\n请输入大于 0 的数量`;
-        setShunxinResult({ quoteText: "请输入大于 0 的数量", processText: "需要先完成自动核算。" });
+        els.result.textContent = `${els.address.value.trim() || "请粘贴地址"}\n\n请输入大于 0 的整数数量`;
+        setShunxinResult({ quoteText: "请输入大于 0 的整数数量", processText: "需要先完成自动核算。" });
         els.notice.textContent = "每一组规格的数量都需要填写大于 0 的整数。";
         els.notice.className = "notice error";
         return;
@@ -1755,6 +1757,8 @@
       }
 
       const address = els.address.value.trim() || "请粘贴地址";
+      els.copyBtn.disabled = false;
+      els.copyShunxinBtn.disabled = false;
       const template = `${address}\n\n${shipment.weightLine}\n${shipment.packageLine}\n${shipment.dbLine}`;
 
       els.weightLine.innerHTML = `${shipment.weightLine}<span class="shipment-lines">${shipment.detailLine}</span>`;
@@ -1800,6 +1804,8 @@
     });
 
     els.copyBtn.addEventListener("click", async () => {
+      calculate();
+      if (els.copyBtn.disabled) return;
       try {
         await navigator.clipboard.writeText(els.result.textContent);
         els.copyBtn.textContent = "已复制";
@@ -1817,6 +1823,8 @@
     });
 
     els.copyShunxinBtn.addEventListener("click", async () => {
+      calculate();
+      if (els.copyShunxinBtn.disabled) return;
       try {
         await navigator.clipboard.writeText(els.shunxinQuote.textContent);
         els.copyShunxinBtn.textContent = "已复制";

@@ -27,8 +27,8 @@
   };
 
   const pallets = {
-    short: { label: "2米拖盘", size: "2.46*1.25*0.25", weight: 46 },
-    long: { label: "3米拖盘", size: "3.15*1.35*0.16", weight: 65 },
+    short: { label: "2米托盘", size: "2.46*1.25*0.25", weight: 46 },
+    long: { label: "3米托盘", size: "3.15*1.35*0.16", weight: 65 },
     small: { label: "小托盘", weight: 16 }
   };
 
@@ -106,8 +106,12 @@
   function calculateDb(rawItems) {
     let unsupported = false;
     const amount = (rawItems || []).reduce((sum, item) => {
-      const quantity = Number.parseInt(String(item.quantity ?? item.qty ?? "").trim(), 10);
-      if (!Number.isFinite(quantity) || quantity <= 0) return sum;
+      const quantity = Number(String(item.quantity ?? item.qty ?? '').trim());
+      if (!Number.isSafeInteger(quantity) || quantity < 0) {
+        unsupported = true;
+        return sum;
+      }
+      if (quantity === 0) return sum;
 
       const material = item.material === "soft" ? "soft" : "hard";
       const spec = item.spec && item.spec.label
@@ -132,7 +136,7 @@
       ? item.spec
       : null;
     const spec = suppliedSpec || specByKey(material, item.specKey);
-    const quantity = Number.parseInt(String(item.quantity || "").trim(), 10);
+    const quantity = Number(String(item.quantity ?? '').trim());
     return { ...item, material, spec, quantity };
   }
 
@@ -200,6 +204,10 @@
   }
 
   function calculateShipment(rawItems) {
+    if (rawItems.some((item) => {
+      const quantity = Number(String(item.quantity ?? '').trim());
+      return !Number.isSafeInteger(quantity) || quantity < 0;
+    })) return { ok: false, type: 'invalid-quantity', message: '每一组规格的数量必须是大于 0 的整数，请修正后再计算。' };
     const items = rawItems
       .map(normalizeItem)
       .filter((item) => Number.isFinite(item.quantity) && item.quantity > 0);

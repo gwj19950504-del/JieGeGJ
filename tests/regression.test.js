@@ -132,7 +132,7 @@ function quoteInput(address, totalWeight) {
     totalWeight,
     pkg: { size: "2.46*1.25*0.25" },
     weightLine: `${totalWeight}KG`,
-    packageLine: "2米拖盘：2.46*1.25*0.25",
+    packageLine: "2米托盘：2.46*1.25*0.25",
     dbLine: "DB3",
     db: 3
   };
@@ -209,7 +209,7 @@ test("公共包装核心统一处理硬软混装和多只小托盘", () => {
     { material: "soft", specKey: "soft-2440", quantity: 2 }
   ]);
   assert.equal(mixed.ok, true);
-  assert.equal(mixed.pkg.output, "2米拖盘");
+  assert.equal(mixed.pkg.output, "2米托盘");
   assert.equal(mixed.totalWeight, 346);
   assert.equal(mixed.weightLine, "9*30+2*15+46=346KG");
   const small = core.calculateShipment([{ material: "hard", specKey: "hard-600", quantity: 201 }]);
@@ -267,7 +267,7 @@ test("浙江仓开单、鎏金运费和文字报价共用 DB 核心", () => {
   assert.doesNotMatch(order, /function chooseSmallPalletPackage\(/);
   assert.doesNotMatch(order, /totalQty \* 1\.5/);
   for (const file of ["tools/order-template.html", "tools/freight-gold.html", "tools/quote-generator.html"]) {
-    assert.match(read(file), /<script src="freight-gold-core\.js\?v=20260824-1"><\/script>/, file);
+    assert.match(read(file), /<script src="freight-gold-core\.js\?v=20260919-1"><\/script>/, file);
   }
 });
 
@@ -635,7 +635,7 @@ test("宁波未知规格和缺失重量明确转人工确认", () => {
   assert.doesNotMatch(html, /const defaultProfile = \{ kgPerSqm:/);
   assert.doesNotMatch(html, /return product;\s*\n\s*}\s*\n\s*function ningboEffectiveSqmPrice/);
   assert.match(weight, /缺少权威重量资料，请人工填写 kg\/㎡ 和厚度后再计算/);
-  assert.match(weight, /if \(!qty \|\| thickness <= 0 \|\| kgPerSqm <= 0\) return null/);
+  assert.match(weight, /if \(!Number\.isSafeInteger\(qty\) \|\| qty <= 0 \|\| thickness <= 0 \|\| kgPerSqm <= 0\) return null/);
 });
 
 test("上墙留缝不再把所有板均分成错误宽度并支持移动端", () => {
@@ -845,7 +845,7 @@ test("美利来手填包装费开关紧跟标题且移动端不挤压税金栏",
 
 test("公共业务逻辑带版本标记避免浏览器继续使用旧缓存", () => {
   for (const file of ["tools/order-template.html", "tools/freight-gold.html", "tools/quote-generator.html"]) {
-    assert.match(read(file), /<script src="freight-gold-core\.js\?v=20260824-1"><\/script>/, file);
+    assert.match(read(file), /<script src="freight-gold-core\.js\?v=20260919-1"><\/script>/, file);
   }
   for (const file of ["tools/order-template.html", "tools/freight-gold.html", "tools/quote-generator.html"]) {
     assert.match(read(file), /<script src="shunxin-rates\.js\?v=20260815-1"><\/script>/, file);
@@ -903,7 +903,7 @@ test("所有仓库共用的合计框未填写时不显示示例数字", () => {
 
 test("主页版本号和所有工具入口完整", () => {
   const index = read("index.html");
-  assert.match(index, /v2026\.09\.16\.3/);
+  assert.match(index, /v2026\.09\.20\.1/);
   const routeMatch = index.match(/const toolPaths = (\{[^;]+\});/);
   assert.ok(routeMatch, "未找到工具入口表");
   const routes = JSON.parse(routeMatch[1]);
@@ -1066,6 +1066,38 @@ test("文字报价手工模式有明确恢复入口且规格同步先于计算",
   for (const name of ["renderSingle", "renderMulti"]) {
     assert.match(functionSource("tools/quote-generator.html", name), /if \(!quoteManuallyEdited\) els\.quote\.textContent/);
   }
+});
+
+test('宁波完整开单首行复用物流、付款类型及金额，保留默认和自提语义', () => {
+    const context = { isNingboWarehouseActive: () => true };
+    vm.createContext(context);
+    vm.runInContext(functionSource('tools/order-template.html', 'ningboFreightHeader'), context);
+    for (const logistics of ['明邦', '安能', '货拉拉']) {
+        for (const payment of ['到付', '代付']) {
+            assert.equal(context.ningboFreightHeader(`运费：${logistics}${payment}`, logistics), `${logistics}，${payment}`);
+            assert.equal(context.ningboFreightHeader(`运费：${logistics}-100.5${payment}`, logistics), `${logistics}，100.5${payment}`);
+        }
+    }
+    for (const [freight, logistics, expected] of [
+        ['运费到付', '默认', '到付'],
+        ['运费：100代付', '默认', '100代付'],
+        ['运费：明邦-0到付', '明邦', '明邦，0到付'],
+        ['工厂自提', '自提', '工厂自提'],
+        ['运费：工厂自提', '自提', '工厂自提'],
+    ]) {
+        assert.equal(context.ningboFreightHeader(freight, logistics), expected);
+    }
+});
+
+test('物流首行严格限定宁波仓，美利来及其他仓保持原样', () => {
+    const context = { currentWarehouseGroup: () => '宁波仓' };
+    vm.createContext(context);
+    vm.runInContext(functionSource('tools/order-template.html', 'isNingboWarehouseActive'), context);
+    vm.runInContext(functionSource('tools/order-template.html', 'ningboFreightHeader'), context);
+    for (const warehouse of ['浙江仓', '美利来', '混凝土仓', '水泥板仓库', '自选仓']) {
+        context.currentWarehouseGroup = () => warehouse;
+        assert.equal(context.ningboFreightHeader('运费：安能到付', '安能'), '', warehouse);
+    }
 });
 
 test("所有外部脚本引用都存在", () => {

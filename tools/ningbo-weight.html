@@ -1065,7 +1065,7 @@
     }
 
 </style>
-  <link rel="stylesheet" href="apple-ui.css?v=20260916-1">
+  <link rel="stylesheet" href="apple-ui.css?v=20260919-1">
 </head>
 <body class="apple-ui" data-page="ningbo-weight">
   <header>
@@ -2315,10 +2315,10 @@
     }
 
     function currentShipmentItem() {
-      const qty = Math.max(0, Math.floor(Number(els.qty.value) || 0));
+      const qty = Number(els.qty.value);
       const thickness = Number(els.crateThickness.value) || 0;
       const kgPerSqm = Number(els.kgPerSqm.value) || 0;
-      if (!qty || thickness <= 0 || kgPerSqm <= 0) return null;
+      if (!Number.isSafeInteger(qty) || qty <= 0 || thickness <= 0 || kgPerSqm <= 0) return null;
       return {
         name: selectedProduct.name,
         spec: selectedSize,
@@ -2331,6 +2331,7 @@
     }
 
     function shipmentItemsForCalculation() {
+      if (els.qty.value !== '' && !currentShipmentItem()) return [];
       const draft = currentShipmentItem();
       return draft ? [...shipmentItems, draft] : [...shipmentItems];
     }
@@ -2365,6 +2366,8 @@
     function addCurrentShipmentItem() {
       const item = currentShipmentItem();
       if (!item) {
+        calculate();
+        els.qty.reportValidity();
         els.qty.focus();
         return;
       }
@@ -2443,7 +2446,8 @@
     }
 
     function calculate() {
-      const qty = Math.max(0, Math.floor(Number(els.qty.value) || 0));
+      const qty = Number(els.qty.value);
+      const invalidQuantity = els.qty.validity.badInput || (els.qty.value !== '' && (!Number.isSafeInteger(qty) || qty <= 0));
       const kgPerSqm = Number(els.kgPerSqm.value) || 0;
       const crateThickness = Number(els.crateThickness.value) || 0;
       const { length, width } = parseSize(selectedSize);
@@ -2451,7 +2455,9 @@
       const rawWeight = area * kgPerSqm;
       const sheetWeight = Math.ceil(rawWeight);
       const showFinish = requiresFinishChoice(selectedProduct, selectedSize);
-      const calculation = window.NingboFreightCore.calculateShipment(shipmentItemsForCalculation());
+      const calculation = invalidQuantity ? null : window.NingboFreightCore.calculateShipment(shipmentItemsForCalculation());
+      els.copySummary.disabled = !calculation;
+      els.copyFreight.disabled = !calculation;
       const totalWeight = calculation?.productWeight || 0;
       const shippingWeight = calculation?.shippingWeight || 0;
       const crate = calculation?.crate || null;
@@ -2488,12 +2494,14 @@
         <div>询价总重量：<code>${calculation.expression}</code></div>
         <div>木箱：最长和最宽各加 100mm，高度累计 = <code>${formatPlainNumber(calculation.contentThickness)}+200=${calculation.crateHeight}mm</code></div>
       ` : "请选择产品、规格并填写数量。";
-      els.freightOutput.textContent = missingManualParameters
+      els.freightOutput.textContent = invalidQuantity ? '数量必须是大于 0 的整数，请修正后再加入或复制。' : missingManualParameters
         ? "当前产品缺少权威重量或厚度资料，请人工填写 kg/㎡ 和厚度后再生成运费询价。"
         : freightText(calculation);
     }
 
     async function copySummary() {
+      calculate();
+      if (els.copySummary.disabled) return;
       const calculation = window.NingboFreightCore.calculateShipment(shipmentItemsForCalculation());
       const text = calculation ? [
         ...calculation.items.map((item, index) => `明细${index + 1}：${item.name} ${item.spec} ${item.qty}张，单张${item.sheetWeight}KG`),
@@ -2547,7 +2555,10 @@
     els.address.addEventListener("input", calculate);
     els.addShipmentItem.addEventListener("click", addCurrentShipmentItem);
     els.copySummary.addEventListener("click", copySummary);
-    els.copyFreight.addEventListener("click", () => copyText(els.freightOutput.textContent, els.copyFreight, "复制运费询价模板"));
+    els.copyFreight.addEventListener("click", () => {
+      calculate();
+      if (!els.copyFreight.disabled) copyText(els.freightOutput.textContent, els.copyFreight, "复制运费询价模板");
+    });
     els.clearAddress.addEventListener("click", () => {
       els.address.value = "";
       calculate();

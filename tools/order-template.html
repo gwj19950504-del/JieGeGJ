@@ -2324,7 +2324,7 @@
     }
 
 </style>
-  <link rel="stylesheet" href="apple-ui.css?v=20260916-1">
+  <link rel="stylesheet" href="apple-ui.css?v=20260919-1">
 </head>
 <body class="apple-ui" data-page="order-template">
   <main>
@@ -2621,7 +2621,7 @@
               </div>
               <div id="manualPackageWrap">
                 <label class="field-label" for="manualPackage">其它品类包装</label>
-                <input id="manualPackage" placeholder="例如 2米拖盘">
+                <input id="manualPackage" placeholder="例如 2米托盘">
               </div>
             </div>
 
@@ -3069,9 +3069,10 @@
 
   <datalist id="ningboProductList"></datalist>
 
+  <script src="input-validation.js?v=20260919-1"></script>
   <script src="product-data.js?v=20260905-1"></script>
   <script src="shunxin-rates.js?v=20260815-1"></script>
-  <script src="freight-gold-core.js?v=20260824-1"></script>
+  <script src="freight-gold-core.js?v=20260919-1"></script>
   <script src="ningbo-freight-core.js?v=20260905-1"></script>
   <script>
     const productData = window.JieGeProductData;
@@ -4291,8 +4292,8 @@
     }
 
     function freightPackageQuestionLine(packageLine) {
-      if (packageLine === "2米拖盘") return "2米拖盘：2.46*1.25*0.25";
-      if (packageLine === "3米拖盘") return "3米拖盘：3.15*1.35*0.16";
+      if (packageLine === "2米托盘" || packageLine === "2米拖盘") return "2米托盘：2.46*1.25*0.25";
+      if (packageLine === "3米托盘" || packageLine === "3米拖盘") return "3米托盘：3.15*1.35*0.16";
       return packageLine;
     }
 
@@ -4341,6 +4342,15 @@
       if (logistics === "默认" && isConcreteWarehouse()) return amount ? `运费：${money(amount)}${pay}` : `运费：${pay}`;
       if (logistics === "默认") return amount ? `运费：${money(amount)}${pay}` : `运费${pay}`;
       return amount ? `运费：${logistics}-${money(amount)}${pay}` : `运费：${logistics}${pay}`;
+    }
+
+    function ningboFreightHeader(freightLine, logistics) {
+        if (!isNingboWarehouseActive()) return '';
+        const content = freightLine.replace(/^运费[：:]?\s*/, '').trim();
+        if (logistics === '默认' || content === '工厂自提') return content;
+        if (!content.startsWith(logistics)) return content;
+        const payment = content.slice(logistics.length).replace(/^[-\s]+/, '');
+        return [logistics, payment].filter(Boolean).join('，');
     }
 
     function selectedRemarks() {
@@ -5553,6 +5563,42 @@
       };
     }
 
+    function orderValidationError() {
+      const numberError = window.InputValidation.numberError(document);
+      if (numberError) return numberError;
+      const category = currentCategory();
+      if (category === 'other') {
+        const manualMaterial = !isCatalogWarehouseActive()
+          && els.otherMaterialAmount.value.trim() !== '' && els.otherDetail.value.trim() !== '';
+        if (manualMaterial) return '';
+        const invalidIndex = otherRows().findIndex((row) => Number(row.qty.value) > 0
+          && row.unitPrice.value.trim() === '' && !(areaFromSpecText(row.specText.value) > 0));
+        if (invalidIndex >= 0) return `产品${invalidIndex + 1}规格无法识别，不能自动按平方计价。请修正规格、填写已确认的单片价，或同时填写人工明细和材料总额。`;
+      }
+      if ((category === 'liujin' || category === 'sandstone') && usesManualSpec(currentWarehouse())) {
+        const invalidIndex = liujinRows().findIndex((row) => Number(row.qty.value) > 0
+          && !(areaFromSpecText(row.specText.value) > 0));
+        if (invalidIndex >= 0) return `产品${invalidIndex + 1}规格无法识别，请填写有效尺寸后再按平方计价。`;
+      }
+      return '';
+    }
+
+    function applyOrderValidation() {
+      const error = orderValidationError();
+      els.copyBtn.disabled = Boolean(error);
+      els.copyFreightQuestionBtn.disabled = Boolean(error);
+      els.copyOrderShunxinBtn.disabled = Boolean(error);
+      if (!error) return;
+      els.formNotice.textContent = error;
+      els.formNotice.className = 'notice error';
+      els.materialPreview.textContent = '待核对';
+      els.kdPreview.textContent = '-';
+      els.weightPreview.textContent = '-';
+      els.freightQuestion.textContent = error;
+      setOrderShunxinResult({ quoteText: error, processText: '请先修正开单输入。' });
+      if (!manualResultMode) els.result.textContent = error;
+    }
+
     function calculate() {
       const warehouse = currentWarehouse();
       const category = currentCategory();
@@ -5655,6 +5701,8 @@
       const lines = [
         `${orderNo()}-${warehouse}：绿活-张苗苗${greenCount}：${receiverPart}，${deliveryPart}，货物明细：${built.detail}${cratePart}${processingPart}${extraPart}${taxPart}${paymentDeductionPart}${dbPart}${kdPart}，合计：${money(total)}，付款方式：${els.payment.value.trim() || "未填写"}，备注：${remark || "无"}`
       ];
+      const freightHeader = ningboFreightHeader(freightLine, logistics);
+      if (freightHeader) lines.unshift(freightHeader);
       if (orderWeightPart) lines.push(orderWeightPart);
       lines.push("");
 
@@ -5715,6 +5763,7 @@
         els.formNotice.textContent = "KD 会扣除材料费、木箱费、附加工艺、税金和扣点；跨越、货拉拉不代收 DB，DB 写进开单明细并扣 KD；其它物流的 DB 单独放在运费明细下方且不扣 KD；自提不写 DB。";
         els.formNotice.className = "notice";
       }
+      applyOrderValidation();
     }
 
     function fillDemo() {
@@ -6136,6 +6185,8 @@
     preventNumberInputWheelChange();
 
     els.copyBtn.addEventListener("click", async () => {
+      calculate();
+      if (els.copyBtn.disabled) return;
       try {
         await navigator.clipboard.writeText(els.result.textContent);
         els.copyBtn.textContent = "已复制";
@@ -6158,6 +6209,8 @@
     });
 
     els.copyFreightQuestionBtn.addEventListener("click", async () => {
+      calculate();
+      if (els.copyFreightQuestionBtn.disabled) return;
       const defaultText = isNingboWarehouseActive() ? "复制宁波运费询价" : "复制运费提问";
       try {
         await navigator.clipboard.writeText(els.freightQuestion.textContent);
@@ -6174,6 +6227,8 @@
     });
 
     els.copyOrderShunxinBtn.addEventListener("click", async () => {
+      calculate();
+      if (els.copyOrderShunxinBtn.disabled) return;
       try {
         await navigator.clipboard.writeText(els.orderShunxinQuote.textContent);
         els.copyOrderShunxinBtn.textContent = "已复制";
@@ -6193,6 +6248,7 @@
       manualResultMode = true;
       els.formNotice.textContent = "右侧结果已进入手动编辑模式。复制会使用你编辑后的文字。";
       els.formNotice.className = "notice";
+      applyOrderValidation();
     });
 
     els.resetNextBtn.addEventListener("click", resetForNextOrder);

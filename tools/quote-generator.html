@@ -1566,7 +1566,7 @@
     }
 
 </style>
-  <link rel="stylesheet" href="apple-ui.css?v=20260916-1">
+  <link rel="stylesheet" href="apple-ui.css?v=20260919-1">
 </head>
 <body class="apple-ui" data-page="quote-generator">
   <main>
@@ -1702,8 +1702,8 @@
               <input id="accessoryFee" type="number" min="0" step="1" value="0" placeholder="不填为 0">
             </div>
             <div class="field">
-              <label for="manualTaxFee">税金（元，手填金额优先计入）</label>
-              <input id="manualTaxFee" type="number" min="0" step="1" value="0" placeholder="不填则按税率">
+              <label for="manualTaxFee" title="手填金额优先计入">税金（元）</label>
+              <input id="manualTaxFee" type="number" min="0" step="1" value="0" placeholder="手填金额优先">
             </div>
           </div>
 
@@ -1741,9 +1741,8 @@
           </div>
 
           <div id="calcLine" class="calc-line"></div>
+          <div id="multiCalcLine" class="calc-line hidden"></div>
         </div>
-
-        <div id="multiCalcLine" class="calc-line hidden"></div>
 
         <div class="section note-section">
           <p class="section-title">备注</p>
@@ -1755,6 +1754,7 @@
       </section>
 
       <section class="panel preview-wrap" aria-label="报价预览区">
+        <div id="quoteValidation" class="input-validation-message" role="alert" hidden></div>
         <div class="preview-head">
           <div>
             <div class="preview-title">文字报价预览</div>
@@ -1860,9 +1860,10 @@
     </section>
   </main>
 
+  <script src="input-validation.js?v=20260919-1"></script>
   <script src="product-data.js?v=20260905-1"></script>
   <script src="shunxin-rates.js?v=20260815-1"></script>
-  <script src="freight-gold-core.js?v=20260824-1"></script>
+  <script src="freight-gold-core.js?v=20260919-1"></script>
   <script>
     const els = {
       multiMode: document.querySelector("#multiMode"),
@@ -1953,7 +1954,7 @@
       if (!match) return null;
       let width = Number(match[1]);
       let height = Number(match[2]);
-      if (!Number.isFinite(width) || !Number.isFinite(height)) return null;
+      if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return null;
       if (width > 20) width = width / 1000;
       if (height > 20) height = height / 1000;
       return { width, height };
@@ -2354,6 +2355,7 @@
 
     function updateModeUi() {
       const multi = els.multiMode.checked;
+      els.taxBox.hidden = !els.includeTax.checked;
       els.singleProductFields.classList.toggle("hidden", multi);
       els.singleFeeInputs.classList.toggle("hidden", multi);
       els.includeFreightRow.classList.toggle("hidden", multi);
@@ -2461,8 +2463,34 @@
       document.querySelector("#quoteEditStatus").hidden = !manual;
     }
 
+    function quoteValidationError() {
+      const numberError = window.InputValidation.numberError(document.querySelector('.form'));
+      if (numberError) return numberError;
+      if (quoteManuallyEdited) return '';
+      const products = els.multiMode.checked ? getProductCards().map(readProductCard) : [{
+        quantity: Number(els.quantity.value), spec: els.spec.value.trim(), pricingMode: els.pricingMode()
+      }];
+      const invalidIndex = products.findIndex((item) => item.quantity > 0 && item.pricingMode !== 'sheet' && !parseSpec(item.spec));
+      return invalidIndex < 0 ? '' : `产品${invalidIndex + 1}规格无法识别，不能自动按平方计价。请填写有效尺寸；按片报价请选择按张计价。`;
+    }
+
     function render() {
       updateModeUi();
+      const error = quoteValidationError();
+      const validation = document.querySelector('#quoteValidation');
+      validation.hidden = !error;
+      validation.textContent = error;
+      els.copyBtn.disabled = Boolean(error);
+      els.copyQuoteFreightBtn.disabled = Boolean(error);
+      els.copyQuoteShunxinBtn.disabled = Boolean(error);
+      if (error) {
+        currentQuoteTotal = 0;
+        els.calcLine.textContent = '待修正输入，暂不计算金额';
+        els.multiCalcLine.textContent = '待修正输入，暂不计算金额';
+        if (!quoteManuallyEdited) els.quote.textContent = error;
+        setQuoteFreightEmpty(error, error);
+        return;
+      }
       if (els.multiMode.checked) renderMulti();
       else renderSingle();
       updateQuoteFreight();
@@ -2623,7 +2651,7 @@
       selectNingboProduct(button.dataset.product || "");
     });
 
-    els.quote.addEventListener("input", () => setQuoteManualMode(true));
+    els.quote.addEventListener("input", () => { setQuoteManualMode(true); render(); });
     document.querySelector("#resumeQuoteAuto").addEventListener("click", () => { setQuoteManualMode(false); render(); });
     document.addEventListener("input", (event) => { if (event.target === els.quote || els.quote.contains(event.target) || event.target === els.quoteFreightAddress) return; if (event.target === els.spec) syncQuickSpec(); render(); });
     document.addEventListener("change", (event) => { if (event.target === els.spec) syncQuickSpec(); render(); });
@@ -2662,17 +2690,23 @@
     });
     els.addProduct.addEventListener("click", () => addProduct());
     els.copyBtn.addEventListener("click", async () => {
+      render();
+      if (els.copyBtn.disabled) return;
       await navigator.clipboard.writeText(els.quote.innerText);
       saveHistorySnapshot();
       els.copyState.textContent = "已复制";
       setTimeout(() => { els.copyState.textContent = ""; }, 1400);
     });
     els.copyQuoteFreightBtn.addEventListener("click", async () => {
+      render();
+      if (els.copyQuoteFreightBtn.disabled) return;
       await navigator.clipboard.writeText(els.quoteFreightBox.textContent);
       els.copyQuoteFreightBtn.textContent = "已复制";
       setTimeout(() => { els.copyQuoteFreightBtn.textContent = "复制运费提问"; }, 1200);
     });
     els.copyQuoteShunxinBtn.addEventListener("click", async () => {
+      render();
+      if (els.copyQuoteShunxinBtn.disabled) return;
       await navigator.clipboard.writeText(els.quoteShunxinQuote.textContent);
       els.copyQuoteShunxinBtn.textContent = "已复制";
       setTimeout(() => { els.copyQuoteShunxinBtn.textContent = "复制顺心捷达报价"; }, 1200);
@@ -2694,7 +2728,7 @@
       const item = items.find((entry) => entry.id === itemEl.dataset.id);
       if (!item) return;
       if (event.target.closest(".delete-history")) { writeHistory(items.filter((entry) => entry.id !== item.id)); renderHistory(); return; }
-      if (event.target.closest(".load-history")) { applyState(item.state); els.quote.textContent = item.quote; setQuoteManualMode(true); hideHistory(); }
+      if (event.target.closest(".load-history")) { applyState(item.state); els.quote.textContent = item.quote; setQuoteManualMode(true); render(); hideHistory(); }
     });
     function preventNumberInputWheelChange() {
       document.addEventListener("wheel", (event) => {
