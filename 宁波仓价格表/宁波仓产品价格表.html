@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>宁波仓产品价格表 · 杰哥工具</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: #1d1d1f;
+      background: #f5f5f7;
+      font-synthesis: none;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .page { max-width: 1320px; margin: 0 auto; padding: 35px 28px 72px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 11px; color: #fff; background: #0066cc; font-size: 18px; font-weight: 700; }
+    .brand-name { font-size: 14px; font-weight: 700; letter-spacing: -.01em; }
+    .brand-sub { display: block; margin-top: 2px; color: #86868b; font-size: 11px; font-weight: 500; letter-spacing: .08em; }
+    .updated { color: #86868b; font-size: 12px; white-space: nowrap; }
+    .hero { position: relative; overflow: hidden; border: 1px solid #e8e8ed; border-radius: 24px; background: #fff; padding: 40px 42px 34px; box-shadow: 0 12px 36px rgba(27, 38, 54, .035); }
+    .hero::after { content: ""; position: absolute; right: -100px; top: -170px; width: 430px; height: 430px; border-radius: 50%; background: radial-gradient(circle, rgba(0, 102, 204, .075), transparent 70%); pointer-events: none; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 7px; color: #0066cc; font-size: 12px; font-weight: 700; letter-spacing: .1em; }
+    .eyebrow::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #0066cc; }
+    h1 { margin: 17px 0 11px; font-size: clamp(30px, 3.6vw, 45px); font-weight: 700; line-height: 1.18; letter-spacing: -.055em; }
+    .lead { margin: 0; color: #6e6e73; font-size: 15px; line-height: 1.7; }
+    .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin-top: 35px; padding-top: 26px; border-top: 1px solid #ececf0; }
+    .metric { padding: 0 28px; border-left: 1px solid #ececf0; }
+    .metric:first-child { border-left: 0; padding-left: 0; }
+    .metric-number { display: block; font-size: 25px; font-weight: 700; letter-spacing: -.04em; line-height: 1.15; }
+    .metric-number.accent { color: #0066cc; }
+    .metric-label { display: block; margin-top: 7px; color: #86868b; font-size: 12px; }
+    .info { display: grid; grid-template-columns: 1fr; gap: 6px; margin: 18px 0 24px; padding: 17px 20px; border: 1px solid #dfeaf8; border-radius: 16px; background: #edf5ff; font-size: 13px; line-height: 1.65; }
+    .info strong { color: #15508e; font-weight: 700; }
+    .info span { color: #465365; }
+    .info .caution { color: #7b5d20; }
+    .card { overflow: hidden; border: 1px solid #e8e8ed; border-radius: 22px; background: #fff; box-shadow: 0 12px 36px rgba(27, 38, 54, .035); }
+    .card-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; padding: 25px 30px 22px; }
+    h2 { margin: 0 0 5px; font-size: 20px; font-weight: 700; letter-spacing: -.025em; }
+    .count { margin: 0; color: #86868b; font-size: 12px; }
+    .controls { display: flex; align-items: center; gap: 9px; }
+    .search { display: flex; align-items: center; gap: 9px; width: 260px; height: 42px; padding: 0 13px; border: 1px solid #d8d8df; border-radius: 11px; background: #fff; color: #86868b; transition: border-color .15s, box-shadow .15s; }
+    .search:focus-within { border-color: #0066cc; box-shadow: 0 0 0 3px rgba(0, 102, 204, .12); }
+    .search svg { flex: none; }
+    .search input { width: 100%; min-width: 0; border: 0; outline: 0; color: #1d1d1f; background: transparent; font-size: 13px; }
+    .search input::placeholder { color: #8e8e93; opacity: .62; }
+    .button { display: inline-flex; align-items: center; justify-content: center; min-width: 92px; height: 42px; padding: 0 15px; border: 1px solid #d8d8df; border-radius: 11px; background: #f5f5f7; color: #3a3a3c; text-decoration: none; font-size: 13px; font-weight: 650; white-space: nowrap; transition: background .15s, transform .15s; }
+    .button:hover { background: #ebebef; }
+    .button:active { transform: scale(.98); }
+    .button:focus-visible { outline: 3px solid rgba(0, 102, 204, .35); outline-offset: 2px; }
+    .button.primary { border-color: #0066cc; background: #0066cc; color: #fff; }
+    .button.primary:hover { background: #0059b3; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
+    col.col-index { width: 7%; }
+    col.col-name { width: 22%; }
+    col.col-spec { width: 17%; }
+    col.col-base { width: 14%; }
+    col.col-print { width: 16%; }
+    col.col-note { width: 24%; }
+    th { padding: 16px 14px; border-top: 1px solid #ececf0; border-bottom: 1px solid #ececf0; background: #fafafc; color: #6e6e73; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    th:first-child, td:first-child { padding-left: 30px; }
+    th:last-child, td:last-child { padding-right: 30px; }
+    td { padding: 15px 14px; border-bottom: 1px solid #f0f0f3; font-size: 13px; line-height: 1.45; vertical-align: middle; }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #f8fbff; }
+    tbody tr.section-start:not(:first-child) td { border-top: 1px solid #e5e5ea; }
+    .index { color: #a1a1a6; font-size: 11px; font-variant-numeric: tabular-nums; }
+    .name { font-weight: 650; }
+    .spec { color: #3a3a3c; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .unit { margin-left: 3px; color: #a1a1a6; font-size: 11px; }
+    .price { font-size: 16px; font-weight: 680; font-variant-numeric: tabular-nums; letter-spacing: -.02em; white-space: nowrap; }
+    .print-price { color: #0066cc; }
+    .note { color: #7c7c83; font-size: 11px; }
+    tr[data-kind="included"] .note, tr[data-kind="special"] .note { color: #8a5a13; }
+    .empty { padding: 45px 20px; color: #86868b; text-align: center; font-size: 13px; }
+    [hidden] { display: none !important; }
+    .footer { display: flex; justify-content: space-between; gap: 24px; margin-top: 19px; padding: 0 4px; color: #86868b; font-size: 11px; line-height: 1.6; }
+    @media (max-width: 980px) {
+      .page { padding: 24px 20px 56px; }
+      .card-head { align-items: stretch; flex-direction: column; }
+      .controls { flex-wrap: wrap; }
+      .search { flex: 1 1 220px; }
+      table { min-width: 890px; }
+    }
+    @media (max-width: 700px) {
+      .page { padding: 18px 14px 42px; }
+      .topbar { margin-bottom: 18px; }
+      .hero { padding: 27px 24px 24px; border-radius: 20px; }
+      .lead { font-size: 13px; }
+      .metrics { margin-top: 25px; padding-top: 20px; }
+      .metric { padding: 0 10px; }
+      .metric-number { font-size: 19px; }
+      .metric-label { font-size: 10px; }
+      .info { margin: 13px 0 17px; padding: 14px 15px; font-size: 12px; }
+      .card { border-radius: 19px; }
+      .card-head { padding: 21px 18px 18px; }
+      .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .search { grid-column: 1 / -1; width: 100%; }
+      .button { width: 100%; }
+      .table-wrap { overflow: visible; }
+      table, tbody, tr { display: block; width: 100%; min-width: 0; }
+      thead, colgroup { display: none; }
+      tbody { padding: 0 14px 14px; }
+      tbody tr { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 8px; margin-top: 10px; padding: 15px 15px 14px; border: 1px solid #e8e8ed; border-radius: 14px; background: #fff; }
+      tbody tr.section-start:not(:first-child) td { border-top: 0; }
+      tbody tr:hover { background: #fff; }
+      td, td:first-child, td:last-child { padding: 0; border: 0; }
+      td::before { content: attr(data-label); display: block; margin-bottom: 5px; color: #8e8e93; font-size: 10px; font-weight: 600; }
+      td.index { display: none; }
+      td.name { grid-column: 1 / -1; font-size: 15px; }
+      td.name::before { display: none; }
+      td.spec { grid-column: 1 / -1; font-size: 12px; }
+      td.price { font-size: 16px; }
+      td.note { grid-column: 1 / -1; padding-top: 9px; border-top: 1px solid #f0f0f3; font-size: 11px; }
+      .footer { flex-direction: column; gap: 3px; }
+    }
+    @media print {
+      @page { size: A4 landscape; margin: 9mm; }
+      :root, body { background: #fff; }
+      .page { max-width: none; padding: 0; }
+      .topbar { margin-bottom: 9px; }
+      .brand-mark, .controls { display: none; }
+      .hero, .card { border: 0; box-shadow: none; border-radius: 0; }
+      .hero { padding: 0 0 11px; }
+      .hero::after { display: none; }
+      h1 { margin: 4px 0; font-size: 22px; }
+      .lead { font-size: 10px; }
+      .metrics { margin-top: 8px; padding-top: 8px; }
+      .metric-number { font-size: 15px; }
+      .metric-label { margin-top: 1px; font-size: 9px; }
+      .info { margin: 8px 0; padding: 7px 9px; border-color: #ddd; background: #fff; font-size: 9px; }
+      .card-head { padding: 6px 0; }
+      h2 { font-size: 14px; }
+      .count { font-size: 9px; }
+      .table-wrap { overflow: visible; }
+      table { min-width: 0; width: 100%; border-collapse: collapse; }
+      thead { display: table-header-group; }
+      tr { break-inside: avoid; }
+      th { padding: 5px 7px; font-size: 9px; }
+      td, td:first-child, td:last-child { padding: 5px 7px; font-size: 9px; }
+      .price { font-size: 10px; }
+      .note { font-size: 8px; }
+      .footer { margin-top: 8px; font-size: 8px; }
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">杰</span><div><span class="brand-name">杰哥工具</span><span class="brand-sub">NINGBO PRODUCT PRICING</span></div></div>
+      <div class="updated">整理日期 2026-09-24</div>
+    </div>
+    <section class="hero" aria-labelledby="page-title">
+      <div class="eyebrow">宁波仓 · 价格速览</div>
+      <h1 id="page-title">宁波仓产品价格表</h1>
+      <p class="lead">按开单目录逐一列出产品、规格与原表底价；打印参考价单独呈现，查价更直观。</p>
+      <div class="metrics" aria-label="价格表概览">
+        <div class="metric"><strong class="metric-number">93 款</strong><span class="metric-label">产品名称</span></div>
+        <div class="metric"><strong class="metric-number">120 组</strong><span class="metric-label">产品 × 规格</span></div>
+        <div class="metric"><strong class="metric-number accent">+10 元/㎡</strong><span class="metric-label">打印加价对照</span></div>
+      </div>
+    </section>
+    <aside class="info" aria-label="计价说明">
+      <strong>价格说明</strong>
+      <span>“原表底价”直接取自宁波仓开单目录；“打印参考价”统一按原表价＋10元/㎡计算。价格按具体规格列示，单位均为元/㎡。</span>
+      <span class="caution">名称含“打印”或“3D”的部分产品，原表价已包含打印；3D洞石系列在开单中不因打印选项加价。对应行已备注，右列仅作加10对照，正式开单请按工具实际规则核对。</span>
+    </aside>
+    <section class="card" aria-labelledby="list-title">
+      <div class="card-head">
+        <div><h2 id="list-title">全部产品</h2><p class="count" id="resultCount" aria-live="polite">显示 120 / 120 组规格</p></div>
+        <div class="controls">
+          <label class="search" for="search">
+            <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8.8" cy="8.8" r="5.8" stroke="currentColor" stroke-width="1.6"/><path d="m13.2 13.2 4.2 4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <input id="search" type="search" autocomplete="off" placeholder="搜索产品或规格" aria-label="搜索产品或规格">
+          </label>
+          <a class="button primary" href="./宁波仓产品价格表.xlsx" download>下载 Excel</a>
+          <button class="button" id="printButton" type="button">打印此表</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table aria-describedby="table-source">
+          <colgroup><col class="col-index"><col class="col-name"><col class="col-spec"><col class="col-base"><col class="col-print"><col class="col-note"></colgroup>
+          <thead><tr><th scope="col">序号</th><th scope="col">产品名称</th><th scope="col">规格（mm）</th><th scope="col">原表底价（元/㎡）</th><th scope="col">打印参考价（元/㎡）</th><th scope="col">备注</th></tr></thead>
+          <tbody id="priceRows">
+<tr class="price-row section-start" data-search="水泥浇筑板 3100*1180" data-kind="standard"><td data-label="序号" class="index">001</td><td data-label="产品名称" class="name">水泥浇筑板</td><td data-label="规格" class="spec">3100 × 1180<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥70</td><td data-label="打印参考价" class="price print-price">¥80</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="水波纹板 3000*1150" data-kind="standard"><td data-label="序号" class="index">002</td><td data-label="产品名称" class="name">水波纹板</td><td data-label="规格" class="spec">3000 × 1150<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row" data-search="水波纹板 2750*1060" data-kind="standard"><td data-label="序号" class="index">003</td><td data-label="产品名称" class="name">水波纹板</td><td data-label="规格" class="spec">2750 × 1060<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row" data-search="水波纹板 2800*540" data-kind="standard"><td data-label="序号" class="index">004</td><td data-label="产品名称" class="name">水波纹板</td><td data-label="规格" class="spec">2800 × 540<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="木浇筑板 2830*1140" data-kind="standard"><td data-label="序号" class="index">005</td><td data-label="产品名称" class="name">木浇筑板</td><td data-label="规格" class="spec">2830 × 1140<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥70</td><td data-label="打印参考价" class="price print-price">¥80</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="洞石 2800*1200" data-kind="standard"><td data-label="序号" class="index">006</td><td data-label="产品名称" class="name">洞石</td><td data-label="规格" class="spec">2800 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥70</td><td data-label="打印参考价" class="price print-price">¥80</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row" data-search="洞石 2400*1200" data-kind="standard"><td data-label="序号" class="index">007</td><td data-label="产品名称" class="name">洞石</td><td data-label="规格" class="spec">2400 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥70</td><td data-label="打印参考价" class="price print-price">¥80</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row" data-search="洞石 1200*600" data-kind="standard"><td data-label="序号" class="index">008</td><td data-label="产品名称" class="name">洞石</td><td data-label="规格" class="spec">1200 × 600<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥50</td><td data-label="打印参考价" class="price print-price">¥60</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="新洞石（密孔） 2380*1160" data-kind="standard"><td data-label="序号" class="index">009</td><td data-label="产品名称" class="name">新洞石（密孔）</td><td data-label="规格" class="spec">2380 × 1160<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥70</td><td data-label="打印参考价" class="price print-price">¥80</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="海洞石 2400*1200" data-kind="standard"><td data-label="序号" class="index">010</td><td data-label="产品名称" class="name">海洞石</td><td data-label="规格" class="spec">2400 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥75</td><td data-label="打印参考价" class="price print-price">¥85</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="新版洞石 3000*1200" data-kind="standard"><td data-label="序号" class="index">011</td><td data-label="产品名称" class="name">新版洞石</td><td data-label="规格" class="spec">3000 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥70</td><td data-label="打印参考价" class="price print-price">¥80</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row" data-search="新版洞石 2400*1200" data-kind="standard"><td data-label="序号" class="index">012</td><td data-label="产品名称" class="name">新版洞石</td><td data-label="规格" class="spec">2400 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥70</td><td data-label="打印参考价" class="price print-price">¥80</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="粗纹线石 2380*1180" data-kind="standard"><td data-label="序号" class="index">013</td><td data-label="产品名称" class="name">粗纹线石</td><td data-label="规格" class="spec">2380 × 1180<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥80</td><td data-label="打印参考价" class="price print-price">¥90</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row" data-search="粗纹线石 2360*580" data-kind="standard"><td data-label="序号" class="index">014</td><td data-label="产品名称" class="name">粗纹线石</td><td data-label="规格" class="spec">2360 × 580<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥80</td><td data-label="打印参考价" class="price print-price">¥90</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="粗纹线石B款 2800*1200" data-kind="standard"><td data-label="序号" class="index">015</td><td data-label="产品名称" class="name">粗纹线石B款</td><td data-label="规格" class="spec">2800 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥80</td><td data-label="打印参考价" class="price print-price">¥90</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="新线石 2950*1200" data-kind="standard"><td data-label="序号" class="index">016</td><td data-label="产品名称" class="name">新线石</td><td data-label="规格" class="spec">2950 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥75</td><td data-label="打印参考价" class="price print-price">¥85</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row" data-search="新线石 2700*1200" data-kind="standard"><td data-label="序号" class="index">017</td><td data-label="产品名称" class="name">新线石</td><td data-label="规格" class="spec">2700 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥75</td><td data-label="打印参考价" class="price print-price">¥85</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="炭烧木 2850*930" data-kind="standard"><td data-label="序号" class="index">018</td><td data-label="产品名称" class="name">炭烧木</td><td data-label="规格" class="spec">2850 × 930<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥75</td><td data-label="打印参考价" class="price print-price">¥85</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="大竹纹（凸模） 2950*1000" data-kind="standard"><td data-label="序号" class="index">019</td><td data-label="产品名称" class="name">大竹纹（凸模）</td><td data-label="规格" class="spec">2950 × 1000<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥85</td><td data-label="打印参考价" class="price print-price">¥95</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row" data-search="大竹纹（凸模） 2880*580" data-kind="standard"><td data-label="序号" class="index">020</td><td data-label="产品名称" class="name">大竹纹（凸模）</td><td data-label="规格" class="spec">2880 × 580<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥85</td><td data-label="打印参考价" class="price print-price">¥95</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="大竹纹（凹模） 2800*980" data-kind="standard"><td data-label="序号" class="index">021</td><td data-label="产品名称" class="name">大竹纹（凹模）</td><td data-label="规格" class="spec">2800 × 980<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥95</td><td data-label="打印参考价" class="price print-price">¥105</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="波浪石 1200*2750" data-kind="standard"><td data-label="序号" class="index">022</td><td data-label="产品名称" class="name">波浪石</td><td data-label="规格" class="spec">1200 × 2750<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥80</td><td data-label="打印参考价" class="price print-price">¥90</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="波浪 3000*1200" data-kind="standard"><td data-label="序号" class="index">023</td><td data-label="产品名称" class="name">波浪</td><td data-label="规格" class="spec">3000 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="中线石 1200*3000" data-kind="standard"><td data-label="序号" class="index">024</td><td data-label="产品名称" class="name">中线石</td><td data-label="规格" class="spec">1200 × 3000<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="脊线石 3000*1200" data-kind="standard"><td data-label="序号" class="index">025</td><td data-label="产品名称" class="name">脊线石</td><td data-label="规格" class="spec">3000 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥80</td><td data-label="打印参考价" class="price print-price">¥90</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="环型石 3000*1200" data-kind="standard"><td data-label="序号" class="index">026</td><td data-label="产品名称" class="name">环型石</td><td data-label="规格" class="spec">3000 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="粗布纹 2800*1200" data-kind="standard"><td data-label="序号" class="index">027</td><td data-label="产品名称" class="name">粗布纹</td><td data-label="规格" class="spec">2800 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥80</td><td data-label="打印参考价" class="price print-price">¥90</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="星云石 2830*1150" data-kind="standard"><td data-label="序号" class="index">028</td><td data-label="产品名称" class="name">星云石</td><td data-label="规格" class="spec">2830 × 1150<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥85</td><td data-label="打印参考价" class="price print-price">¥95</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="星云石B款 3000*1200" data-kind="standard"><td data-label="序号" class="index">029</td><td data-label="产品名称" class="name">星云石B款</td><td data-label="规格" class="spec">3000 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥85</td><td data-label="打印参考价" class="price print-price">¥95</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="星月石 3100*1160" data-kind="standard"><td data-label="序号" class="index">030</td><td data-label="产品名称" class="name">星月石</td><td data-label="规格" class="spec">3100 × 1160<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥85</td><td data-label="打印参考价" class="price print-price">¥95</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row" data-search="星月石 2830*1150" data-kind="standard"><td data-label="序号" class="index">031</td><td data-label="产品名称" class="name">星月石</td><td data-label="规格" class="spec">2830 × 1150<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥85</td><td data-label="打印参考价" class="price print-price">¥95</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row" data-search="星月石 1200*600" data-kind="standard"><td data-label="序号" class="index">032</td><td data-label="产品名称" class="name">星月石</td><td data-label="规格" class="spec">1200 × 600<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥70</td><td data-label="打印参考价" class="price print-price">¥80</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="花岗岩 3000*1150" data-kind="standard"><td data-label="序号" class="index">033</td><td data-label="产品名称" class="name">花岗岩</td><td data-label="规格" class="spec">3000 × 1150<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥78</td><td data-label="打印参考价" class="price print-price">¥88</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row" data-search="花岗岩 1200*600" data-kind="standard"><td data-label="序号" class="index">034</td><td data-label="产品名称" class="name">花岗岩</td><td data-label="规格" class="spec">1200 × 600<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥48</td><td data-label="打印参考价" class="price print-price">¥58</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="花岗岩拼接 2700*1200" data-kind="standard"><td data-label="序号" class="index">035</td><td data-label="产品名称" class="name">花岗岩拼接</td><td data-label="规格" class="spec">2700 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥80</td><td data-label="打印参考价" class="price print-price">¥90</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="阡陌石（方线石） 2800*1000" data-kind="standard"><td data-label="序号" class="index">036</td><td data-label="产品名称" class="name">阡陌石（方线石）</td><td data-label="规格" class="spec">2800 × 1000<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥85</td><td data-label="打印参考价" class="price print-price">¥95</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row" data-search="阡陌石（方线石） 2800*580" data-kind="standard"><td data-label="序号" class="index">037</td><td data-label="产品名称" class="name">阡陌石（方线石）</td><td data-label="规格" class="spec">2800 × 580<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥85</td><td data-label="打印参考价" class="price print-price">¥95</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="脉络石 2800*990" data-kind="standard"><td data-label="序号" class="index">038</td><td data-label="产品名称" class="name">脉络石</td><td data-label="规格" class="spec">2800 × 990<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥85</td><td data-label="打印参考价" class="price print-price">¥95</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row" data-search="脉络石 2800*1200" data-kind="standard"><td data-label="序号" class="index">039</td><td data-label="产品名称" class="name">脉络石</td><td data-label="规格" class="spec">2800 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥85</td><td data-label="打印参考价" class="price print-price">¥95</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row" data-search="脉络石 2800*600" data-kind="standard"><td data-label="序号" class="index">040</td><td data-label="产品名称" class="name">脉络石</td><td data-label="规格" class="spec">2800 × 600<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥85</td><td data-label="打印参考价" class="price print-price">¥95</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="双线石 2650*1180" data-kind="standard"><td data-label="序号" class="index">041</td><td data-label="产品名称" class="name">双线石</td><td data-label="规格" class="spec">2650 × 1180<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="三角板（山纹） 1200*3000" data-kind="standard"><td data-label="序号" class="index">042</td><td data-label="产品名称" class="name">三角板（山纹）</td><td data-label="规格" class="spec">1200 × 3000<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥85</td><td data-label="打印参考价" class="price print-price">¥95</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="泡沫铝 2800*1130" data-kind="standard"><td data-label="序号" class="index">043</td><td data-label="产品名称" class="name">泡沫铝</td><td data-label="规格" class="spec">2800 × 1130<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥100</td><td data-label="打印参考价" class="price print-price">¥110</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="圆铝 2360*1160" data-kind="standard"><td data-label="序号" class="index">044</td><td data-label="产品名称" class="name">圆铝</td><td data-label="规格" class="spec">2360 × 1160<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="锯木板 3100*1160" data-kind="standard"><td data-label="序号" class="index">045</td><td data-label="产品名称" class="name">锯木板</td><td data-label="规格" class="spec">3100 × 1160<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥85</td><td data-label="打印参考价" class="price print-price">¥95</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="马赛克 1190*2990" data-kind="standard"><td data-label="序号" class="index">046</td><td data-label="产品名称" class="name">马赛克</td><td data-label="规格" class="spec">1190 × 2990<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="方形马赛克 2950*1180" data-kind="standard"><td data-label="序号" class="index">047</td><td data-label="产品名称" class="name">方形马赛克</td><td data-label="规格" class="spec">2950 × 1180<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥80</td><td data-label="打印参考价" class="price print-price">¥90</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="50马赛克小板1 1190*590" data-kind="standard"><td data-label="序号" class="index">048</td><td data-label="产品名称" class="name">50马赛克小板1</td><td data-label="规格" class="spec">1190 × 590<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥75</td><td data-label="打印参考价" class="price print-price">¥85</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="22马赛克小板2 1190*590" data-kind="standard"><td data-label="序号" class="index">049</td><td data-label="产品名称" class="name">22马赛克小板2</td><td data-label="规格" class="spec">1190 × 590<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥75</td><td data-label="打印参考价" class="price print-price">¥85</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="条石拼接 2800*1200" data-kind="standard"><td data-label="序号" class="index">050</td><td data-label="产品名称" class="name">条石拼接</td><td data-label="规格" class="spec">2800 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥75</td><td data-label="打印参考价" class="price print-price">¥85</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="斧开石 3000*1200" data-kind="standard"><td data-label="序号" class="index">051</td><td data-label="产品名称" class="name">斧开石</td><td data-label="规格" class="spec">3000 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥95</td><td data-label="打印参考价" class="price print-price">¥105</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row" data-search="斧开石 2300*560" data-kind="standard"><td data-label="序号" class="index">052</td><td data-label="产品名称" class="name">斧开石</td><td data-label="规格" class="spec">2300 × 560<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥95</td><td data-label="打印参考价" class="price print-price">¥105</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="黑山岩、劈开岩 3100*1160" data-kind="standard"><td data-label="序号" class="index">053</td><td data-label="产品名称" class="name">黑山岩、劈开岩</td><td data-label="规格" class="spec">3100 × 1160<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥95</td><td data-label="打印参考价" class="price print-price">¥105</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="黑山岩小板 1200*600" data-kind="standard"><td data-label="序号" class="index">054</td><td data-label="产品名称" class="name">黑山岩小板</td><td data-label="规格" class="spec">1200 × 600<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥70</td><td data-label="打印参考价" class="price print-price">¥80</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="溶积岩 2950*1160" data-kind="standard"><td data-label="序号" class="index">055</td><td data-label="产品名称" class="name">溶积岩</td><td data-label="规格" class="spec">2950 × 1160<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥100</td><td data-label="打印参考价" class="price print-price">¥110</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="叠纹石（山岳石） 3100*1160" data-kind="standard"><td data-label="序号" class="index">056</td><td data-label="产品名称" class="name">叠纹石（山岳石）</td><td data-label="规格" class="spec">3100 × 1160<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥100</td><td data-label="打印参考价" class="price print-price">¥110</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="沉积岩 2850*1100" data-kind="standard"><td data-label="序号" class="index">057</td><td data-label="产品名称" class="name">沉积岩</td><td data-label="规格" class="spec">2850 × 1100<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥125</td><td data-label="打印参考价" class="price print-price">¥135</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="页岩 3100*1160" data-kind="standard"><td data-label="序号" class="index">058</td><td data-label="产品名称" class="name">页岩</td><td data-label="规格" class="spec">3100 × 1160<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥125</td><td data-label="打印参考价" class="price print-price">¥135</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="古木纹细 2950*1200" data-kind="standard"><td data-label="序号" class="index">059</td><td data-label="产品名称" class="name">古木纹细</td><td data-label="规格" class="spec">2950 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥80</td><td data-label="打印参考价" class="price print-price">¥90</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="古木纹粗 3000*1200" data-kind="standard"><td data-label="序号" class="index">060</td><td data-label="产品名称" class="name">古木纹粗</td><td data-label="规格" class="spec">3000 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥80</td><td data-label="打印参考价" class="price print-price">¥90</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="大布纹石 2500*1160" data-kind="standard"><td data-label="序号" class="index">061</td><td data-label="产品名称" class="name">大布纹石</td><td data-label="规格" class="spec">2500 × 1160<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥70</td><td data-label="打印参考价" class="price print-price">¥80</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="玄武岩 3000*600" data-kind="standard"><td data-label="序号" class="index">062</td><td data-label="产品名称" class="name">玄武岩</td><td data-label="规格" class="spec">3000 × 600<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥80</td><td data-label="打印参考价" class="price print-price">¥90</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="水泥板（打印） 2850*1150" data-kind="included"><td data-label="序号" class="index">063</td><td data-label="产品名称" class="name">水泥板（打印）</td><td data-label="规格" class="spec">2850 × 1150<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">原表价已含打印；右列为额外＋10对照，开单默认不叠加</td></tr>
+<tr class="price-row section-start" data-search="平板 1160*2950" data-kind="standard"><td data-label="序号" class="index">064</td><td data-label="产品名称" class="name">平板</td><td data-label="规格" class="spec">1160 × 2950<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥80</td><td data-label="打印参考价" class="price print-price">¥90</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row" data-search="平板 1200*2400" data-kind="standard"><td data-label="序号" class="index">065</td><td data-label="产品名称" class="name">平板</td><td data-label="规格" class="spec">1200 × 2400<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥80</td><td data-label="打印参考价" class="price print-price">¥90</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="锈石 2850*950" data-kind="standard"><td data-label="序号" class="index">066</td><td data-label="产品名称" class="name">锈石</td><td data-label="规格" class="spec">2850 × 950<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥100</td><td data-label="打印参考价" class="price print-price">¥110</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="平面锈石 1160*2950" data-kind="standard"><td data-label="序号" class="index">067</td><td data-label="产品名称" class="name">平面锈石</td><td data-label="规格" class="spec">1160 × 2950<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥100</td><td data-label="打印参考价" class="price print-price">¥110</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row" data-search="平面锈石 1200*2400" data-kind="standard"><td data-label="序号" class="index">068</td><td data-label="产品名称" class="name">平面锈石</td><td data-label="规格" class="spec">1200 × 2400<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥100</td><td data-label="打印参考价" class="price print-price">¥110</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="鎏金板软质 2950*1160" data-kind="standard"><td data-label="序号" class="index">069</td><td data-label="产品名称" class="name">鎏金板软质</td><td data-label="规格" class="spec">2950 × 1160<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥95</td><td data-label="打印参考价" class="price print-price">¥105</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="鎏金板硬质 3000*1220" data-kind="standard"><td data-label="序号" class="index">070</td><td data-label="产品名称" class="name">鎏金板硬质</td><td data-label="规格" class="spec">3000 × 1220<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥85</td><td data-label="打印参考价" class="price print-price">¥95</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row" data-search="鎏金板硬质 2440*1220" data-kind="standard"><td data-label="序号" class="index">071</td><td data-label="产品名称" class="name">鎏金板硬质</td><td data-label="规格" class="spec">2440 × 1220<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥85</td><td data-label="打印参考价" class="price print-price">¥95</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="麻编（小） 1420*560" data-kind="standard"><td data-label="序号" class="index">072</td><td data-label="产品名称" class="name">麻编（小）</td><td data-label="规格" class="spec">1420 × 560<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥70</td><td data-label="打印参考价" class="price print-price">¥80</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="麻编（大） 2650*1160" data-kind="standard"><td data-label="序号" class="index">073</td><td data-label="产品名称" class="name">麻编（大）</td><td data-label="规格" class="spec">2650 × 1160<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥77</td><td data-label="打印参考价" class="price print-price">¥87</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="竹编/人字编 2360*1160" data-kind="standard"><td data-label="序号" class="index">074</td><td data-label="产品名称" class="name">竹编/人字编</td><td data-label="规格" class="spec">2360 × 1160<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥75</td><td data-label="打印参考价" class="price print-price">¥85</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="积木纹 2950*1180" data-kind="standard"><td data-label="序号" class="index">075</td><td data-label="产品名称" class="name">积木纹</td><td data-label="规格" class="spec">2950 × 1180<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥80</td><td data-label="打印参考价" class="price print-price">¥90</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="条石纹 2900*1000" data-kind="standard"><td data-label="序号" class="index">076</td><td data-label="产品名称" class="name">条石纹</td><td data-label="规格" class="spec">2900 × 1000<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥80</td><td data-label="打印参考价" class="price print-price">¥90</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="苹果叶 2950*1160" data-kind="standard"><td data-label="序号" class="index">077</td><td data-label="产品名称" class="name">苹果叶</td><td data-label="规格" class="spec">2950 × 1160<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="芭蕉叶 2900*1150" data-kind="standard"><td data-label="序号" class="index">078</td><td data-label="产品名称" class="name">芭蕉叶</td><td data-label="规格" class="spec">2900 × 1150<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="齿木纹 2950*1180" data-kind="standard"><td data-label="序号" class="index">079</td><td data-label="产品名称" class="name">齿木纹</td><td data-label="规格" class="spec">2950 × 1180<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="大齿木 2360*1160" data-kind="standard"><td data-label="序号" class="index">080</td><td data-label="产品名称" class="name">大齿木</td><td data-label="规格" class="spec">2360 × 1160<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="水立方 3000*1140" data-kind="standard"><td data-label="序号" class="index">081</td><td data-label="产品名称" class="name">水立方</td><td data-label="规格" class="spec">3000 × 1140<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="木立方（山竹板） 2950*1160" data-kind="standard"><td data-label="序号" class="index">082</td><td data-label="产品名称" class="name">木立方（山竹板）</td><td data-label="规格" class="spec">2950 × 1160<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="夯土砖 2850*1000" data-kind="standard"><td data-label="序号" class="index">083</td><td data-label="产品名称" class="name">夯土砖</td><td data-label="规格" class="spec">2850 × 1000<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥95</td><td data-label="打印参考价" class="price print-price">¥105</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="15线石（金属色） 2950*1180" data-kind="standard"><td data-label="序号" class="index">084</td><td data-label="产品名称" class="name">15线石（金属色）</td><td data-label="规格" class="spec">2950 × 1180<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥95</td><td data-label="打印参考价" class="price print-price">¥105</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="35线石（金属色） 2950*1180" data-kind="standard"><td data-label="序号" class="index">085</td><td data-label="产品名称" class="name">35线石（金属色）</td><td data-label="规格" class="spec">2950 × 1180<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥95</td><td data-label="打印参考价" class="price print-price">¥105</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="23线石（金属色） 2950*1180" data-kind="standard"><td data-label="序号" class="index">086</td><td data-label="产品名称" class="name">23线石（金属色）</td><td data-label="规格" class="spec">2950 × 1180<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥95</td><td data-label="打印参考价" class="price print-price">¥105</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="71线石（金属色） 2950*1180" data-kind="standard"><td data-label="序号" class="index">087</td><td data-label="产品名称" class="name">71线石（金属色）</td><td data-label="规格" class="spec">2950 × 1180<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥95</td><td data-label="打印参考价" class="price print-price">¥105</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="摩洛石（金属色） 2950*1180" data-kind="standard"><td data-label="序号" class="index">088</td><td data-label="产品名称" class="name">摩洛石（金属色）</td><td data-label="规格" class="spec">2950 × 1180<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥95</td><td data-label="打印参考价" class="price print-price">¥105</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="峭壁岩 1060*590" data-kind="standard"><td data-label="序号" class="index">089</td><td data-label="产品名称" class="name">峭壁岩</td><td data-label="规格" class="spec">1060 × 590<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥75</td><td data-label="打印参考价" class="price print-price">¥85</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="岩板 1160*2950" data-kind="standard"><td data-label="序号" class="index">090</td><td data-label="产品名称" class="name">岩板</td><td data-label="规格" class="spec">1160 × 2950<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥80</td><td data-label="打印参考价" class="price print-price">¥90</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="岩板3D 1160*2950" data-kind="included"><td data-label="序号" class="index">091</td><td data-label="产品名称" class="name">岩板3D</td><td data-label="规格" class="spec">1160 × 2950<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">原表价已含打印；右列为额外＋10对照，开单默认不叠加</td></tr>
+<tr class="price-row section-start" data-search="大理石3D 1160*2950" data-kind="included"><td data-label="序号" class="index">092</td><td data-label="产品名称" class="name">大理石3D</td><td data-label="规格" class="spec">1160 × 2950<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">原表价已含打印；右列为额外＋10对照，开单默认不叠加</td></tr>
+<tr class="price-row" data-search="大理石3D 1200*2400" data-kind="included"><td data-label="序号" class="index">093</td><td data-label="产品名称" class="name">大理石3D</td><td data-label="规格" class="spec">1200 × 2400<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">原表价已含打印；右列为额外＋10对照，开单默认不叠加</td></tr>
+<tr class="price-row section-start" data-search="莱姆石3D 2800*1200" data-kind="included"><td data-label="序号" class="index">094</td><td data-label="产品名称" class="name">莱姆石3D</td><td data-label="规格" class="spec">2800 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">原表价已含打印；右列为额外＋10对照，开单默认不叠加</td></tr>
+<tr class="price-row section-start" data-search="粗夯土3D 3000*1200" data-kind="included"><td data-label="序号" class="index">095</td><td data-label="产品名称" class="name">粗夯土3D</td><td data-label="规格" class="spec">3000 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥85</td><td data-label="打印参考价" class="price print-price">¥95</td><td data-label="备注" class="note">原表价已含打印；右列为额外＋10对照，开单默认不叠加</td></tr>
+<tr class="price-row" data-search="粗夯土3D 2900*1160" data-kind="included"><td data-label="序号" class="index">096</td><td data-label="产品名称" class="name">粗夯土3D</td><td data-label="规格" class="spec">2900 × 1160<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥85</td><td data-label="打印参考价" class="price print-price">¥95</td><td data-label="备注" class="note">原表价已含打印；右列为额外＋10对照，开单默认不叠加</td></tr>
+<tr class="price-row" data-search="粗夯土3D 2800*1030" data-kind="included"><td data-label="序号" class="index">097</td><td data-label="产品名称" class="name">粗夯土3D</td><td data-label="规格" class="spec">2800 × 1030<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥85</td><td data-label="打印参考价" class="price print-price">¥95</td><td data-label="备注" class="note">原表价已含打印；右列为额外＋10对照，开单默认不叠加</td></tr>
+<tr class="price-row" data-search="粗夯土3D 2680*930" data-kind="included"><td data-label="序号" class="index">098</td><td data-label="产品名称" class="name">粗夯土3D</td><td data-label="规格" class="spec">2680 × 930<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥85</td><td data-label="打印参考价" class="price print-price">¥95</td><td data-label="备注" class="note">原表价已含打印；右列为额外＋10对照，开单默认不叠加</td></tr>
+<tr class="price-row section-start" data-search="云丘 2950*1160" data-kind="standard"><td data-label="序号" class="index">099</td><td data-label="产品名称" class="name">云丘</td><td data-label="规格" class="spec">2950 × 1160<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="山丘 2680*1180" data-kind="standard"><td data-label="序号" class="index">100</td><td data-label="产品名称" class="name">山丘</td><td data-label="规格" class="spec">2680 × 1180<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="20圆柱 3000*1200" data-kind="standard"><td data-label="序号" class="index">101</td><td data-label="产品名称" class="name">20圆柱</td><td data-label="规格" class="spec">3000 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥95</td><td data-label="打印参考价" class="price print-price">¥105</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="30内圆 3000*1200" data-kind="standard"><td data-label="序号" class="index">102</td><td data-label="产品名称" class="name">30内圆</td><td data-label="规格" class="spec">3000 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="100内圆 3000*590" data-kind="standard"><td data-label="序号" class="index">103</td><td data-label="产品名称" class="name">100内圆</td><td data-label="规格" class="spec">3000 × 590<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥105</td><td data-label="打印参考价" class="price print-price">¥115</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="大峭壁岩 3000*1200" data-kind="standard"><td data-label="序号" class="index">104</td><td data-label="产品名称" class="name">大峭壁岩</td><td data-label="规格" class="spec">3000 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥95</td><td data-label="打印参考价" class="price print-price">¥105</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="腾编 3000*1200" data-kind="standard"><td data-label="序号" class="index">105</td><td data-label="产品名称" class="name">腾编</td><td data-label="规格" class="spec">3000 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥95</td><td data-label="打印参考价" class="price print-price">¥105</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="麻编 3000*1200" data-kind="standard"><td data-label="序号" class="index">106</td><td data-label="产品名称" class="name">麻编</td><td data-label="规格" class="spec">3000 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥95</td><td data-label="打印参考价" class="price print-price">¥105</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="洞石拼接 3000*1200" data-kind="standard"><td data-label="序号" class="index">107</td><td data-label="产品名称" class="name">洞石拼接</td><td data-label="规格" class="spec">3000 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥100</td><td data-label="打印参考价" class="price print-price">¥110</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="岁月痕 3000*1200" data-kind="standard"><td data-label="序号" class="index">108</td><td data-label="产品名称" class="name">岁月痕</td><td data-label="规格" class="spec">3000 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥95</td><td data-label="打印参考价" class="price print-price">¥105</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="斧凿石 3000*1200" data-kind="standard"><td data-label="序号" class="index">109</td><td data-label="产品名称" class="name">斧凿石</td><td data-label="规格" class="spec">3000 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥95</td><td data-label="打印参考价" class="price print-price">¥105</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="山峰石 3000*1200" data-kind="standard"><td data-label="序号" class="index">110</td><td data-label="产品名称" class="name">山峰石</td><td data-label="规格" class="spec">3000 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥115</td><td data-label="打印参考价" class="price print-price">¥125</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="拼接文化石 2800*1200" data-kind="standard"><td data-label="序号" class="index">111</td><td data-label="产品名称" class="name">拼接文化石</td><td data-label="规格" class="spec">2800 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥95</td><td data-label="打印参考价" class="price print-price">¥105</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="条形文化石 2800*1200" data-kind="standard"><td data-label="序号" class="index">112</td><td data-label="产品名称" class="name">条形文化石</td><td data-label="规格" class="spec">2800 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥95</td><td data-label="打印参考价" class="price print-price">¥105</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="大板岩 3000*1200" data-kind="standard"><td data-label="序号" class="index">113</td><td data-label="产品名称" class="name">大板岩</td><td data-label="规格" class="spec">3000 × 1200<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥90</td><td data-label="打印参考价" class="price print-price">¥100</td><td data-label="备注" class="note">打印加价＋10元/㎡</td></tr>
+<tr class="price-row section-start" data-search="3D洞石 1200*2400" data-kind="special"><td data-label="序号" class="index">114</td><td data-label="产品名称" class="name">3D洞石</td><td data-label="规格" class="spec">1200 × 2400<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥75</td><td data-label="打印参考价" class="price print-price">¥85</td><td data-label="备注" class="note">开单打印选项不加价；右列仅为＋10对照，报价前确认</td></tr>
+<tr class="price-row" data-search="3D洞石 1200*2800" data-kind="special"><td data-label="序号" class="index">115</td><td data-label="产品名称" class="name">3D洞石</td><td data-label="规格" class="spec">1200 × 2800<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥75</td><td data-label="打印参考价" class="price print-price">¥85</td><td data-label="备注" class="note">开单打印选项不加价；右列仅为＋10对照，报价前确认</td></tr>
+<tr class="price-row" data-search="3D洞石 1200*600" data-kind="special"><td data-label="序号" class="index">116</td><td data-label="产品名称" class="name">3D洞石</td><td data-label="规格" class="spec">1200 × 600<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥55</td><td data-label="打印参考价" class="price print-price">¥65</td><td data-label="备注" class="note">开单打印选项不加价；右列仅为＋10对照，报价前确认</td></tr>
+<tr class="price-row section-start" data-search="3D新版洞石 1200*2400" data-kind="special"><td data-label="序号" class="index">117</td><td data-label="产品名称" class="name">3D新版洞石</td><td data-label="规格" class="spec">1200 × 2400<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥75</td><td data-label="打印参考价" class="price print-price">¥85</td><td data-label="备注" class="note">开单打印选项不加价；右列仅为＋10对照，报价前确认</td></tr>
+<tr class="price-row" data-search="3D新版洞石 1200*2800" data-kind="special"><td data-label="序号" class="index">118</td><td data-label="产品名称" class="name">3D新版洞石</td><td data-label="规格" class="spec">1200 × 2800<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥75</td><td data-label="打印参考价" class="price print-price">¥85</td><td data-label="备注" class="note">开单打印选项不加价；右列仅为＋10对照，报价前确认</td></tr>
+<tr class="price-row" data-search="3D新版洞石 1200*3000" data-kind="special"><td data-label="序号" class="index">119</td><td data-label="产品名称" class="name">3D新版洞石</td><td data-label="规格" class="spec">1200 × 3000<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥75</td><td data-label="打印参考价" class="price print-price">¥85</td><td data-label="备注" class="note">开单打印选项不加价；右列仅为＋10对照，报价前确认</td></tr>
+<tr class="price-row" data-search="3D新版洞石 1200*600" data-kind="special"><td data-label="序号" class="index">120</td><td data-label="产品名称" class="name">3D新版洞石</td><td data-label="规格" class="spec">1200 × 600<span class="unit">mm</span></td><td data-label="原表底价" class="price base">¥55</td><td data-label="打印参考价" class="price print-price">¥65</td><td data-label="备注" class="note">开单打印选项不加价；右列仅为＋10对照，报价前确认</td></tr>
+          </tbody>
+        </table>
+        <div id="empty" class="empty" hidden>没有找到对应产品或规格，请换个关键词。</div>
+      </div>
+    </section>
+    <footer class="footer" id="table-source"><span>数据来源：杰哥工具开单体系 · tools/product-data.js · 宁波仓目录（v2026.09.20.1）</span><span>本表为 2026-09-24 提取快照；目录更新后可重新生成。</span></footer>
+  </main>
+  <script>
+    const searchInput = document.querySelector('#search');
+    const priceRows = Array.from(document.querySelectorAll('#priceRows tr'));
+    const resultCount = document.querySelector('#resultCount');
+    const emptyState = document.querySelector('#empty');
+
+    function filterPrices() {
+        const query = searchInput.value.trim().toLocaleLowerCase();
+        let visibleCount = 0;
+        priceRows.forEach((row) => {
+            const visible = row.dataset.search.toLocaleLowerCase().includes(query);
+            row.hidden = !visible;
+            if (visible) visibleCount += 1;
+        });
+        resultCount.textContent = `显示 ${visibleCount} / ${priceRows.length} 组规格`;
+        emptyState.hidden = visibleCount !== 0;
+    }
+
+    searchInput.addEventListener('input', filterPrices);
+    document.querySelector('#printButton').addEventListener('click', () => window.print());
+  </script>
+</body>
+</html>

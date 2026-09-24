@@ -296,7 +296,7 @@
 <body class="apple-shell">
   <div class="app">
     <aside class="sidebar">
-      <div class="brand" title="v2026.09.20.1"><div class="brand-symbol" aria-hidden="true">杰</div><h1>杰哥工具</h1><small class="brand-version">5.1 · 苹果风版</small><span class="build-version">v2026.09.20.1</span></div>
+      <div class="brand" title="v2026.09.24.1"><div class="brand-symbol" aria-hidden="true">杰</div><h1>杰哥工具</h1><small class="brand-version">5.1 · 苹果风版</small><span class="build-version">v2026.09.24.1</span></div>
       <nav class="nav" id="toolNav" aria-label="工具列表"></nav>
       <div class="sidebar-footer">日常开单工作台<br><span>开单 · 查价 · 排版</span></div>
     </aside>
@@ -309,7 +309,18 @@
     </main>
   </div>
   <script>
-    const defaultTools = [{"id":"order-template","title":"开单模板","short":"开单模板","tag":"开单","desc":"鎏金板每日文字开单模板，快速生成可复制开单内容。"},{"id":"quote-generator","title":"文字报价","short":"文字报价","tag":"快速报价","desc":"输入产品、规格、数量和费用，自动生成可复制或打印的文字报价。"},{"id":"quick-price","title":"快速查价","short":"快速查价","tag":"查底价","desc":"输入产品关键词，快速查看鎏金板、宁波柔岩、美利来和混凝土各规格底价。"},{"id":"report-template","title":"报备模板","short":"报备模板","tag":"项目报备","desc":"快速填写项目报备信息，生成可复制的报备模板。"},{"id":"hole-1200","title":"1200×600 孔心排版","short":"孔心排版","tag":"孔位图","desc":"快速设置板宽、板高、孔数、孔径和边距，导出 SVG。"},{"id":"freight-gold","title":"鎏金板快速运费提交","short":"鎏金运费","tag":"运费模板","desc":"填写地址、规格和张数，自动生成重量、包装和 DB 模板。"},{"id":"ningbo-weight","title":"宁波重量木箱快速计算","short":"宁波重量","tag":"重量木箱","desc":"搜索产品，选择规格和数量，计算总重及木箱尺寸。"},{"id":"full-board-cut","title":"整板切割计算","short":"整板切割","tag":"切割排版","desc":"输入小板规格数量，自动估算整板用量并生成排版图。"},{"id":"wall-panel","title":"水泥板/混凝土上墙排版","short":"上墙排版","tag":"墙面排版","desc":"多墙面排版、孔位示意、裁切统计，并支持导出 SVG/PNG。"}];
+    const defaultTools = [
+      {"id":"order-template","title":"开单模板","short":"开单模板","tag":"开单","desc":"鎏金板每日文字开单模板，快速生成可复制开单内容。"},
+      {"id":"quote-generator","title":"文字报价","short":"文字报价","tag":"快速报价","desc":"输入产品、规格、数量和费用，自动生成可复制或打印的文字报价。"},
+      {"id":"quick-price","title":"快速查价","short":"快速查价","tag":"查底价","desc":"输入产品关键词，快速查看鎏金板、宁波柔岩、美利来和混凝土各规格底价。"},
+      {"id":"report-template","title":"报备模板","short":"报备模板","tag":"项目报备","desc":"快速填写项目报备信息，生成可复制的报备模板。"},
+      {"id":"freight-gold","title":"鎏金板快速运费提交","short":"鎏金运费","tag":"运费模板","desc":"填写地址、规格和张数，自动生成重量、包装和 DB 模板。"},
+      {"id":"ningbo-weight","title":"宁波重量木箱快速计算","short":"宁波重量","tag":"重量木箱","desc":"搜索产品，选择规格和数量，计算总重及木箱尺寸。"},
+      {"id":"full-board-cut","title":"整板切割计算","short":"整板切割","tag":"切割排版","desc":"输入小板规格数量，自动估算整板用量并生成排版图。"},
+      {"id":"wall-panel","title":"水泥板/混凝土上墙排版","short":"上墙排版","tag":"墙面排版","desc":"多墙面排版、孔位示意、裁切统计，并支持导出 SVG/PNG。"},
+      {"id":"hole-1200","title":"1200×600 孔心排版","short":"孔心排版","tag":"孔位图","desc":"快速设置板宽、板高、孔数、孔径和边距，导出 SVG。"},
+      {"id":"brick-layout","title":"水泥板砖纹排版","short":"砖纹排版","tag":"砖纹排版","desc":"1220×2440固定整板，自定义砖宽、砖高与缝隙，生成带尺寸的水泥质感图。"}
+    ];
     const toolOrderKey = 'jiege-tool-order-v1';
     let storedOrder = [];
     try {
@@ -317,10 +328,18 @@
     } catch (error) {
       storedOrder = [];
     }
-    const tools = storedOrder.length
-      ? storedOrder.map(function (id) { return defaultTools.find(function (tool) { return tool.id === id; }); }).filter(Boolean)
-        .concat(defaultTools.filter(function (tool) { return !storedOrder.includes(tool.id); }))
-      : defaultTools.slice();
+    function orderedTools(savedOrder) {
+        const ids = Array.isArray(savedOrder) ? [...new Set(savedOrder)] : [];
+        const ordered = ids.map((id) => defaultTools.find((tool) => tool.id === id)).filter(Boolean)
+            .concat(defaultTools.filter((tool) => !ids.includes(tool.id)));
+        // Upgrade existing saved orders once, preserving the relative order of all other tools.
+        if (!ids.includes('brick-layout')) {
+            return ordered.filter((tool) => !['hole-1200', 'brick-layout'].includes(tool.id))
+                .concat(defaultTools.filter((tool) => ['hole-1200', 'brick-layout'].includes(tool.id)));
+        }
+        return ordered;
+    }
+    const tools = orderedTools(storedOrder);
 
     function saveToolOrder() {
       try {
@@ -365,7 +384,7 @@
       });
     }
 
-    const toolPaths = {"order-template":"tools/order-template.html","quote-generator":"tools/quote-generator.html","quick-price":"tools/quick-price.html","report-template":"tools/report-template.html","hole-1200":"tools/hole-1200.html","freight-gold":"tools/freight-gold.html","ningbo-weight":"tools/ningbo-weight.html","full-board-cut":"tools/full-board-cut.html","wall-panel":"tools/wall-panel.html"};
+    const toolPaths = {"order-template":"tools/order-template.html","quote-generator":"tools/quote-generator.html","quick-price":"tools/quick-price.html","report-template":"tools/report-template.html","hole-1200":"tools/hole-1200.html","freight-gold":"tools/freight-gold.html","ningbo-weight":"tools/ningbo-weight.html","full-board-cut":"tools/full-board-cut.html","wall-panel":"tools/wall-panel.html","brick-layout":"tools/brick-layout.html"};
     const nav = document.getElementById('toolNav');
     const frameWrap = document.getElementById('frameWrap');
     const loading = document.getElementById('loading');

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>砖纹排版 · 杰哥工具</title>
+  <link rel="stylesheet" href="apple-ui.css?v=20260919-1">
+  <link rel="stylesheet" href="brick-layout.css?v=20260924-1">
+  <script src="brick-layout-core.js?v=20260924-1" defer></script>
+  <script src="brick-layout.js?v=20260924-1" defer></script>
+</head>
+<body class="apple-ui" data-page="brick-layout">
+  <main>
+    <header>
+      <div>
+        <h1>砖纹排版</h1>
+        <p class="subtitle">固定整板，调整砖纹尺寸与缝隙，实时查看水泥质感与尺寸标注。</p>
+      </div>
+    </header>
+    <div class="brick-workspace">
+      <section class="panel brick-settings" aria-labelledby="settingsTitle">
+        <h2 id="settingsTitle">排版参数</h2>
+        <div class="fixed-board"><span>整板尺寸 · 固定</span><strong>1220 × 2440 <small>mm</small></strong></div>
+        <form id="brickForm" novalidate>
+          <div class="brick-input-pair">
+            <label for="brickWidth">小砖宽 <span>mm</span><input id="brickWidth" type="number" min="1" max="1220" step="0.1" value="60" required inputmode="decimal"></label>
+            <label for="brickHeight">小砖高 <span>mm</span><input id="brickHeight" type="number" min="1" max="2440" step="0.1" value="240" required inputmode="decimal"></label>
+          </div>
+          <label class="gap-field" for="brickGap">缝隙宽 <span>mm</span><input id="brickGap" type="number" min="0" max="1220" step="0.1" value="5" required inputmode="decimal" aria-describedby="gapHelp"></label>
+          <p class="hint" id="gapHelp">尺寸为砖面净尺寸，不含缝。横、竖缝同宽；缝隙 0 表示不留槽。</p>
+          <div class="settings-actions"><button type="button" id="swapBrick" class="secondary">宽高互换</button><button type="button" id="resetBrick" class="secondary">载入示例</button></div>
+          <p class="hint">60 × 240、缝隙 5 mm 仅为示例，以上三项均可修改。</p>
+        </form>
+        <div id="brickError" class="brick-error" role="alert" hidden></div>
+        <div class="layout-rules">
+          <h3>对齐直缝排版</h3>
+          <p>从左上角起排，四周不另加边框。右侧和底部不足一格时按实际余量收边，不拉伸砖纹。</p>
+        </div>
+        <dl id="brickSummary" class="brick-summary" aria-live="polite"></dl>
+        <p class="material-note">灰色水泥颗粒与凹槽为效果示意。槽深未设定；实际颜色、槽型以实物为准。</p>
+      </section>
+      <section class="panel brick-preview" aria-labelledby="previewTitle">
+        <div class="preview-toolbar">
+          <div><h2 id="previewTitle">整板效果与尺寸</h2><p class="hint">尺寸单位 mm · 整板与局部同步更新</p></div>
+          <div class="export-actions"><button type="button" id="copyBrick">复制图片</button><button type="button" id="saveBrickPng" class="secondary">下载 PNG</button><button type="button" id="saveBrickSvg" class="secondary">导出 SVG</button></div>
+        </div>
+        <p id="exportStatus" role="status" aria-live="polite"></p>
+        <p class="canvas-scroll-hint hint">图纸可横向滑动查看；复制或下载包含完整标注。</p>
+        <div id="brickDrawing" class="brick-drawing"></div>
+        <div id="brickEmpty" class="brick-empty" hidden>请修正左侧参数后查看排版。无效参数不会保留上一张图。</div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

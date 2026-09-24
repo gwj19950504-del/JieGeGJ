@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>MM苗苗柔岩板价格表</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: #1d1d1f;
+      background: #f5f5f7;
+      font-synthesis: none;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .page { width: min(100% - 64px, 1220px); margin: 0 auto; padding: 44px 0 72px; }
+    .masthead { display: flex; align-items: center; gap: 14px; padding: 0 5px 28px; }
+    .mark { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: #1d1d1f; color: #fff; font-size: 14px; font-weight: 750; letter-spacing: -.08em; }
+    .brand { font-size: 13px; font-weight: 700; letter-spacing: .02em; }
+    .brand-en { display: block; margin-top: 3px; color: #86868b; font-size: 10px; font-weight: 600; letter-spacing: .16em; }
+    .surface { overflow: hidden; border: 1px solid #e5e5ea; border-radius: 24px; background: #fff; box-shadow: 0 20px 60px rgba(23, 32, 45, .045); }
+    .intro { padding: 48px 54px 42px; border-bottom: 1px solid #e9e9ed; }
+    .eyebrow { margin: 0 0 12px; color: #0066cc; font-size: 12px; font-weight: 700; letter-spacing: .16em; }
+    h1 { margin: 0; font-size: clamp(30px, 3.6vw, 46px); font-weight: 720; line-height: 1.18; letter-spacing: -.045em; }
+    .table-head { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 24px 38px 23px 54px; }
+    .table-heading { min-width: 0; }
+    h2 { margin: 0 0 5px; font-size: 18px; font-weight: 700; letter-spacing: -.02em; }
+    .count { margin: 0; color: #86868b; font-size: 12px; }
+    .controls { display: flex; align-items: center; gap: 10px; }
+    .search { display: flex; align-items: center; gap: 10px; width: 244px; height: 42px; padding: 0 14px; border: 1px solid #d8d8df; border-radius: 11px; background: #fafafc; color: #86868b; transition: border-color .15s, box-shadow .15s; }
+    .search:focus-within { border-color: #0066cc; box-shadow: 0 0 0 3px rgba(0, 102, 204, .12); }
+    .search svg { flex: none; }
+    .search input { width: 100%; min-width: 0; padding: 0; border: 0; outline: 0; background: transparent; color: #1d1d1f; font-size: 13px; }
+    .search input::placeholder { color: #8e8e93; opacity: .65; }
+    .button { display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 17px; border: 1px solid #e5e5ea; border-radius: 11px; background: #f5f5f7; color: #3a3a3c; text-decoration: none; font-size: 13px; font-weight: 650; white-space: nowrap; transition: background .15s, transform .15s; }
+    .button:hover { background: #ebebef; }
+    .button:active { transform: scale(.98); }
+    .button:focus-visible { outline: 3px solid rgba(0, 102, 204, .35); outline-offset: 2px; }
+    .button.primary { border-color: #0066cc; background: #0066cc; color: #fff; }
+    .button.primary:hover { background: #0059b3; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    col.col-name { width: 34%; }
+    col.col-spec { width: 24%; }
+    col.col-price { width: 22%; }
+    col.col-note { width: 20%; }
+    th { padding: 16px 16px; border-top: 1px solid #ededf0; border-bottom: 1px solid #ededf0; background: #fafafc; color: #6e6e73; font-size: 11px; font-weight: 700; letter-spacing: .015em; white-space: nowrap; }
+    th:first-child, td:first-child { padding-left: 54px; }
+    th:last-child, td:last-child { padding-right: 38px; }
+    th.price-heading { text-align: right; }
+    td { padding: 16px; border-bottom: 1px solid #f0f0f2; font-size: 13px; line-height: 1.4; vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #f8fbff; }
+    tbody tr.section-start:not(:first-child) td { border-top: 1px solid #e5e5ea; }
+    .name { font-weight: 650; }
+    .spec { color: #424245; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .unit { margin-left: 4px; color: #86868b; font-size: 11px; }
+    .price { color: #0066cc; text-align: right; font-size: 17px; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .note { color: #6e6e73; font-size: 12px; white-space: nowrap; }
+    .empty { padding: 45px 24px; color: #86868b; text-align: center; font-size: 13px; }
+    [hidden] { display: none !important; }
+    @media (max-width: 800px) {
+      .page { width: min(100% - 32px, 1220px); padding-top: 24px; }
+      .intro { padding: 38px 30px 34px; }
+      .table-head { align-items: stretch; flex-direction: column; padding: 23px 30px; }
+      .controls { flex-wrap: wrap; }
+      .search { flex: 1 1 220px; }
+      th:first-child, td:first-child { padding-left: 30px; }
+      th:last-child, td:last-child { padding-right: 30px; }
+    }
+    @media (max-width: 600px) {
+      .page { width: min(100% - 24px, 1220px); padding: 18px 0 34px; }
+      .masthead { padding-bottom: 20px; }
+      .surface { border-radius: 20px; }
+      .intro { padding: 30px 23px 28px; }
+      h1 { font-size: 31px; }
+      .table-head { padding: 23px 20px 17px; }
+      .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .search { grid-column: 1 / -1; width: 100%; }
+      .button { width: 100%; padding: 0 10px; }
+      table, tbody, tr { display: block; width: 100%; }
+      thead, colgroup { display: none; }
+      tbody { padding: 0 13px 14px; }
+      tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 9px 12px; margin-top: 10px; padding: 17px 16px 15px; border: 1px solid #e8e8ed; border-radius: 14px; background: #fff; }
+      tbody tr.section-start:not(:first-child) td { border-top: 0; }
+      tbody tr:hover { background: #fff; }
+      td, td:first-child, td:last-child { padding: 0; border: 0; }
+      td::before { content: attr(data-label); display: block; margin-bottom: 4px; color: #86868b; font-size: 10px; font-weight: 600; }
+      td.name { grid-column: 1 / -1; font-size: 15px; }
+      td.name::before { display: none; }
+      td.spec { align-self: end; font-size: 12px; }
+      td.price { align-self: end; font-size: 17px; }
+      td.note { grid-column: 1 / -1; padding-top: 10px; border-top: 1px solid #f0f0f2; font-size: 11px; }
+      td.note::before { display: none; }
+    }
+    @media print {
+      @page { size: A4 portrait; margin: 12mm; }
+      :root, body { background: #fff; }
+      .page { width: 100%; max-width: none; padding: 0; }
+      .masthead, .controls { display: none; }
+      .surface { border: 0; border-radius: 0; box-shadow: none; }
+      .intro { padding: 0 0 12px; border: 0; }
+      .eyebrow { display: none; }
+      h1 { font-size: 21px; }
+      .table-head { padding: 0 0 10px; }
+      .table-heading h2 { display: none; }
+      .count { font-size: 9px; }
+      table { display: table; width: 100%; border-collapse: collapse; }
+      colgroup { display: table-column-group; }
+      thead { display: table-header-group; }
+      tbody { display: table-row-group; padding: 0; }
+      tr, tbody tr { display: table-row; break-inside: avoid; margin: 0; padding: 0; border: 0; }
+      td, td:first-child, td:last-child { display: table-cell; padding: 6px 8px; border-bottom: 1px solid #e5e5ea; font-size: 9px; }
+      th, th:first-child, th:last-child { display: table-cell; padding: 7px 8px; font-size: 9px; }
+      td::before { display: none; }
+      td.name, td.spec, td.price, td.note { font-size: 9px; }
+      td.note { border-top: 0; }
+      .unit { font-size: 8px; }
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="masthead" aria-label="MM苗苗">
+      <span class="mark" aria-hidden="true">MM</span>
+      <div class="brand">MM苗苗<span class="brand-en">MIAOMIAO</span></div>
+    </div>
+    <div class="surface">
+      <header class="intro">
+        <p class="eyebrow">MM · MIAOMIAO</p>
+        <h1>MM苗苗柔岩板价格表</h1>
+      </header>
+      <section aria-label="产品价格">
+        <div class="table-head">
+          <div class="table-heading"><h2>产品价格</h2><p class="count" id="resultCount" aria-live="polite">共 __ROW_COUNT__ 组规格</p></div>
+          <div class="controls">
+            <label class="search" for="search">
+              <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8.8" cy="8.8" r="5.8" stroke="currentColor" stroke-width="1.6"/><path d="m13.2 13.2 4.2 4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              <input id="search" type="search" autocomplete="off" placeholder="搜索产品或规格" aria-label="搜索产品或规格">
+            </label>
+            <a class="button primary" href="./MM苗苗柔岩板价格表.xlsx" download>下载 Excel</a>
+            <button class="button" id="printButton" type="button">打印</button>
+          </div>
+        </div>
+        <table>
+          <colgroup><col class="col-name"><col class="col-spec"><col class="col-price"><col class="col-note"></colgroup>
+          <thead><tr><th scope="col">产品名称</th><th scope="col">规格（mm）</th><th scope="col" class="price-heading">出厂价（元/㎡）</th><th scope="col">备注</th></tr></thead>
+          <tbody id="priceRows">
+__ROWS__
+          </tbody>
+        </table>
+        <div id="empty" class="empty" hidden>没有找到对应产品或规格，请换个关键词。</div>
+      </section>
+    </div>
+  </main>
+  <script>
+    const searchInput = document.querySelector('#search');
+    const priceRows = Array.from(document.querySelectorAll('#priceRows tr'));
+    const resultCount = document.querySelector('#resultCount');
+    const emptyState = document.querySelector('#empty');
+
+    function filterPrices() {
+      const query = searchInput.value.trim().toLocaleLowerCase();
+      let visibleCount = 0;
+      priceRows.forEach((row) => {
+        const visible = row.dataset.search.toLocaleLowerCase().includes(query);
+        row.hidden = !visible;
+        if (visible) visibleCount += 1;
+      });
+      resultCount.textContent = query ? `找到 ${visibleCount} 组规格` : `共 ${visibleCount} 组规格`;
+      emptyState.hidden = visibleCount !== 0;
+    }
+
+    searchInput.addEventListener('input', filterPrices);
+    document.querySelector('#printButton').addEventListener('click', () => window.print());
+  </script>
+</body>
+</html>
