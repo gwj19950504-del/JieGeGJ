@@ -6,9 +6,10 @@
   <link rel="icon" href="data:,">
   <title>砖纹排版 · 杰哥工具</title>
   <link rel="stylesheet" href="apple-ui.css?v=20260919-1">
-  <link rel="stylesheet" href="brick-layout.css?v=20260924-1">
-  <script src="brick-layout-core.js?v=20260924-1" defer></script>
-  <script src="brick-layout.js?v=20260924-1" defer></script>
+  <link rel="stylesheet" href="brick-layout.css?v=20260924-2">
+  <script src="brick-layout-core.js?v=20260924-2" defer></script>
+  <script src="mm-watermark.js?v=20260924-2" defer></script>
+  <script src="brick-layout.js?v=20260924-2" defer></script>
 </head>
 <body class="apple-ui" data-page="brick-layout">
   <main>
@@ -24,11 +25,18 @@
         <div class="fixed-board"><span>整板尺寸 · 固定</span><strong>1220 × 2440 <small>mm</small></strong></div>
         <form id="brickForm" novalidate>
           <div class="brick-input-pair">
-            <label for="brickWidth">小砖宽 <span>mm</span><input id="brickWidth" type="number" min="1" max="1220" step="0.1" value="60" required inputmode="decimal"></label>
-            <label for="brickHeight">小砖高 <span>mm</span><input id="brickHeight" type="number" min="1" max="2440" step="0.1" value="240" required inputmode="decimal"></label>
+            <label for="brickWidth">小砖宽 <span>mm</span><input id="brickWidth" type="number" min="1" max="1220" step="0.000001" value="60" required inputmode="decimal" aria-describedby="widthSuggestions"></label>
+            <label for="brickHeight">小砖高 <span>mm</span><input id="brickHeight" type="number" min="1" max="2440" step="0.000001" value="240" required inputmode="decimal" aria-describedby="heightSuggestions"></label>
           </div>
-          <label class="gap-field" for="brickGap">缝隙宽 <span>mm</span><input id="brickGap" type="number" min="0" max="1220" step="0.1" value="5" required inputmode="decimal" aria-describedby="gapHelp"></label>
+          <label class="gap-field" for="brickGap">缝隙宽 <span>mm</span><input id="brickGap" type="number" min="0" max="1220" step="0.000001" value="5" required inputmode="decimal" aria-describedby="gapHelp"></label>
           <p class="hint" id="gapHelp">尺寸为砖面净尺寸，不含缝。横、竖缝同宽；缝隙 0 表示不留槽。</p>
+          <section class="division-suggestions" aria-labelledby="divisionTitle">
+            <h3 id="divisionTitle">就近均分尺寸</h3>
+            <p class="hint">已扣除缝隙。宽、高各选一档，整板不留裁切格。</p>
+            <div id="widthSuggestions" class="axis-suggestions" aria-live="polite"></div>
+            <div id="heightSuggestions" class="axis-suggestions" aria-live="polite"></div>
+            <p class="hint division-formula">净尺寸 =（整板尺寸 − 总缝宽）÷ 格数。≈ 为循环小数的近似显示；点击后按精确均分值绘图，不取整。</p>
+          </section>
           <div class="settings-actions"><button type="button" id="swapBrick" class="secondary">宽高互换</button><button type="button" id="resetBrick" class="secondary">载入示例</button></div>
           <p class="hint">60 × 240、缝隙 5 mm 仅为示例，以上三项均可修改。</p>
         </form>
@@ -42,8 +50,8 @@
       </section>
       <section class="panel brick-preview" aria-labelledby="previewTitle">
         <div class="preview-toolbar">
-          <div><h2 id="previewTitle">整板效果与尺寸</h2><p class="hint">尺寸单位 mm · 整板与局部同步更新</p></div>
-          <div class="export-actions"><button type="button" id="copyBrick">复制图片</button><button type="button" id="saveBrickPng" class="secondary">下载 PNG</button><button type="button" id="saveBrickSvg" class="secondary">导出 SVG</button></div>
+          <div><h2 id="previewTitle">整板效果与尺寸</h2><p class="hint">复制 / 导出自动带原版 M·M 水印，可直接粘贴图片。</p></div>
+          <div class="export-actions"><button type="button" id="copyBrick">复制此图</button><button type="button" id="saveBrickPng" class="secondary">下载 PNG</button><button type="button" id="saveBrickSvg" class="secondary">导出 SVG</button></div>
         </div>
         <p id="exportStatus" role="status" aria-live="polite"></p>
         <p class="canvas-scroll-hint hint">图纸可横向滑动查看；复制或下载包含完整标注。</p>

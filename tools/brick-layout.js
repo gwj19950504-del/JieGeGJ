@@ -12,7 +12,11 @@
     let texture = '';
 
     function format(value) {
-        return String(Math.round(value * 10) / 10);
+        return String(Math.round(value * 1000000) / 1000000);
+    }
+
+    function dimensionLabel(value) {
+        return `${Math.abs(Number(format(value)) - value) > 1e-9 ? '≈' : ''}${format(value)}`;
     }
 
     function hash(x, y, seed = 17) {
@@ -20,35 +24,34 @@
         return value - Math.floor(value);
     }
 
-    function noise(x, y, period) {
+    function noise(x, y) {
         const column = Math.floor(x);
         const row = Math.floor(y);
         const horizontal = x - column;
         const vertical = y - row;
         const smoothX = horizontal * horizontal * (3 - 2 * horizontal);
         const smoothY = vertical * vertical * (3 - 2 * vertical);
-        const top = hash(column % period, row % period) * (1 - smoothX)
-            + hash((column + 1) % period, row % period) * smoothX;
-        const bottom = hash(column % period, (row + 1) % period) * (1 - smoothX)
-            + hash((column + 1) % period, (row + 1) % period) * smoothX;
+        const top = hash(column, row) * (1 - smoothX) + hash(column + 1, row) * smoothX;
+        const bottom = hash(column, row + 1) * (1 - smoothX) + hash(column + 1, row + 1) * smoothX;
         return top * (1 - smoothY) + bottom * smoothY;
     }
 
     function cementTexture() {
         if (texture) return texture;
-        // Seamless, deterministic mineral grain: no network assets or photos containing perspective/shadows.
+        // One continuous surface, not raster tiles: fractional SVG tile edges can create ghost lines.
         const canvas = document.createElement('canvas');
-        canvas.width = canvas.height = 256;
+        canvas.width = 610;
+        canvas.height = 1220;
         const context = canvas.getContext('2d');
-        const pixels = context.createImageData(256, 256);
-        for (let row = 0; row < 256; row++) {
-            for (let column = 0; column < 256; column++) {
-                const grain = (noise(column / 32, row / 32, 8) - 0.5) * 14
-                    + (noise(column / 8, row / 8, 32) - 0.5) * 20
-                    + (noise(column / 2, row / 2, 128) - 0.5) * 26
+        const pixels = context.createImageData(canvas.width, canvas.height);
+        for (let row = 0; row < canvas.height; row++) {
+            for (let column = 0; column < canvas.width; column++) {
+                const grain = (noise(column / 8, row / 8) - 0.5) * 14
+                    + (noise(column / 2, row / 2) - 0.5) * 20
+                    + (noise(column, row) - 0.5) * 26
                     + (hash(column, row, 39) - 0.5) * 26;
                 const pore = hash(column, row, 57) < 0.055 ? -24 : 0;
-                const offset = (row * 256 + column) * 4;
+                const offset = (row * canvas.width + column) * 4;
                 [166, 164, 158].forEach((base, channel) => { pixels.data[offset + channel] = base + grain + pore; });
                 pixels.data[offset + 3] = 255;
             }
@@ -81,7 +84,7 @@
     }
 
     function boardMarkup(data, width = data.boardWidth, height = data.boardHeight) {
-        const elements = [`<rect width="${width}" height="${height}" fill="url(#cementGrain)"/>`];
+        const elements = [`<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" overflow="hidden"><use href="#cementSurface"/></svg>`];
         for (const [row, vertical] of data.vertical.bricks.entries()) {
             if (vertical.start >= height) break;
             for (const [column, horizontal] of data.horizontal.bricks.entries()) {
@@ -146,7 +149,7 @@
           <title id="brickSvgTitle">砖纹排版：整板1220×2440mm，小砖${format(data.brickWidth)}×${format(data.brickHeight)}mm，缝隙${format(data.gap)}mm</title>
           <desc id="brickSvgDesc">对齐直缝，从左上角起排。${edgeDescription(data.horizontal, data.boardWidth, '右侧')}；${edgeDescription(data.vertical, data.boardHeight, '底部')}。右侧含局部放大和尺寸标注。</desc>
           <defs>
-            <pattern id="cementGrain" width="128" height="128" patternUnits="userSpaceOnUse"><image href="${cementTexture()}" width="128" height="128" preserveAspectRatio="none"/></pattern>
+            <image id="cementSurface" href="${cementTexture()}" width="1220" height="2440" preserveAspectRatio="none"/>
             <linearGradient id="verticalGroove"><stop stop-color="#64665e"/><stop offset=".25" stop-color="#74776d"/><stop offset=".7" stop-color="#aaa99c"/><stop offset="1" stop-color="#deddd3"/></linearGradient>
             <linearGradient id="horizontalGroove" x2="0" y2="1"><stop stop-color="#64665e"/><stop offset=".25" stop-color="#74776d"/><stop offset=".7" stop-color="#aaa99c"/><stop offset="1" stop-color="#deddd3"/></linearGradient>
             <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M10 5L0 0V10Z" fill="#303333"/></marker>
@@ -154,7 +157,7 @@
           <rect width="1100" height="1310" fill="#fff"/>
           <g fill="#232627" font-family="-apple-system,BlinkMacSystemFont,PingFang SC,Microsoft YaHei,sans-serif">
             ${text(x, 53, '水泥板 · 砖纹排版', 28, 'font-weight="600"')}
-            ${text(x, 86, `小砖 ${format(data.brickWidth)} × ${format(data.brickHeight)} mm　|　缝隙 ${format(data.gap)} mm　|　对齐直缝`, 17)}
+            ${text(x, 86, `小砖 ${dimensionLabel(data.brickWidth)} × ${dimensionLabel(data.brickHeight)} mm　|　缝隙 ${format(data.gap)} mm　|　对齐直缝`, 17)}
             <rect x="${x + 3}" y="${y + 4}" width="${width}" height="${height}" fill="#000" opacity=".08"/>
             <g data-board="full" transform="translate(${x} ${y}) scale(${scale})">${boardMarkup(data)}</g>
             <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="none" stroke="#72766e" stroke-width="1"/>
@@ -164,8 +167,8 @@
             ${text(detailX, 198, '标注为净尺寸，砖面不含缝隙', 15)}
             <g data-board="detail" transform="translate(${detailX} ${detailY}) scale(${zoom})">${boardMarkup(data, detailWidth, detailHeight)}</g>
             <rect x="${detailX}" y="${detailY}" width="${renderedWidth}" height="${renderedHeight}" fill="none" stroke="#72766e" stroke-width=".8"/>
-            ${horizontalDimension(detailX, detailX + data.brickWidth * zoom, detailY - 18, detailY - 4, `宽 ${format(data.brickWidth)} mm`)}
-            ${verticalDimension(detailY, detailY + data.brickHeight * zoom, detailX + renderedWidth + 32, detailX + renderedWidth + 4, `高 ${format(data.brickHeight)} mm`)}
+            ${horizontalDimension(detailX, detailX + data.brickWidth * zoom, detailY - 18, detailY - 4, `宽 ${dimensionLabel(data.brickWidth)} mm`)}
+            ${verticalDimension(detailY, detailY + data.brickHeight * zoom, detailX + renderedWidth + 32, detailX + renderedWidth + 4, `高 ${dimensionLabel(data.brickHeight)} mm`)}
             ${gapAnnotation}
             ${text(detailX, 800, '排版与收边', 22, 'font-weight="600"')}
             ${text(detailX, 838, `${data.horizontal.bricks.length} 列 × ${data.vertical.bricks.length} 行 · 共 ${data.total} 格`, 17)}
@@ -176,15 +179,63 @@
             ${text(detailX, 1036, '水泥质感及槽内阴影为效果示意，', 15)}
             ${text(detailX, 1064, '槽深未设定，颜色与槽型以实物为准。', 15)}
             ${text(x, 1170, '整板正视图 · 1220 × 2440 mm', 19, 'font-weight="600"')}
-            ${text(x, 1203, `砖纹净尺寸 ${format(data.brickWidth)} × ${format(data.brickHeight)} mm　|　横竖缝 ${format(data.gap)} mm`, 17)}
+            ${text(x, 1203, `砖纹净尺寸 ${dimensionLabel(data.brickWidth)} × ${dimensionLabel(data.brickHeight)} mm　|　横竖缝 ${format(data.gap)} mm`, 17)}
             <path d="M${x} 1230H1000" stroke="#dddde2"/>
-            ${text(x, 1262, '按实际尺寸绘制 · 整板四周不另加边框 · 不足一格不拉伸', 16)}
+            ${text(x, 1262, '按实际尺寸绘制 · 四周不另加边框 · ≈ 为近似标注，均分按精确值计算', 16)}
           </g>
         </svg>`;
     }
 
+    function updateSuggestions() {
+        [core.BOARD_WIDTH, core.BOARD_HEIGHT].forEach((length, index) => {
+            const target = document.getElementById(index === 0 ? 'widthSuggestions' : 'heightSuggestions');
+            const label = index === 0 ? '宽度' : '高度';
+            const unit = index === 0 ? '列' : '行';
+            target.replaceChildren();
+            const heading = document.createElement('h4');
+            heading.textContent = `${label}均分`;
+            target.append(heading);
+            try {
+                const options = core.suggestions(length, fields[index].value, fields[2].value);
+                const current = document.createElement('span');
+                current.textContent = options.current ? `当前已均分 · ${options.current.count} ${unit}` : '当前未均分，选择最近一档';
+                heading.append(current);
+                for (const [key, direction] of [['lower', '较小'], ['upper', '较大']]) {
+                    const option = options[key];
+                    if (!option) {
+                        const note = document.createElement('p');
+                        note.className = 'division-unavailable';
+                        note.textContent = `${direction}：有效范围内无均分尺寸`;
+                        target.append(note);
+                        continue;
+                    }
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'division-option';
+                    button.dataset.axis = index;
+                    button.dataset.direction = key;
+                    button.setAttribute('aria-label', `${label}采用${direction}均分尺寸 ${dimensionLabel(option.size)} mm，${option.count} ${unit}`);
+                    button.innerHTML = `<span>${direction}<span class="option-size"><strong>${dimensionLabel(option.size)}</strong> mm</span></span><small>${option.count} ${unit} · 采用</small>`;
+                    button.disabled = busy;
+                    button.addEventListener('click', () => {
+                        fields[index].value = option.input;
+                        update();
+                        fields[index].focus();
+                    });
+                    target.append(button);
+                }
+            } catch (error) {
+                const note = document.createElement('p');
+                note.className = 'division-unavailable';
+                note.textContent = `请输入有效${label}和缝隙后查看建议。`;
+                target.append(note);
+            }
+        });
+    }
+
     function update() {
         status.textContent = '';
+        updateSuggestions();
         fields.forEach((field) => field.removeAttribute('aria-invalid'));
         try {
             fields.forEach((field) => {
@@ -210,6 +261,32 @@
             document.getElementById('brickEmpty').hidden = false;
         }
         exportButtons.forEach((button) => { button.disabled = !currentLayout || busy; });
+    }
+
+    function watermarkedSvg() {
+        if (!window.JieGeWatermarkSource) throw new Error('原版水印未载入，请刷新后重试');
+        const svg = drawing.querySelector('svg').cloneNode(true);
+        const namespace = 'http://www.w3.org/2000/svg';
+        const clip = document.createElementNS(namespace, 'clipPath');
+        clip.id = 'brickWatermarkClip';
+        const rectangle = document.createElementNS(namespace, 'rect');
+        rectangle.setAttribute('width', '1220');
+        rectangle.setAttribute('height', '2440');
+        clip.append(rectangle);
+        svg.querySelector('defs').append(clip);
+        const group = document.createElementNS(namespace, 'g');
+        group.setAttribute('clip-path', 'url(#brickWatermarkClip)');
+        group.setAttribute('data-watermark', 'original-mm');
+        const watermark = document.createElementNS(namespace, 'image');
+        const height = 1220 * 2522 / 1933;
+        watermark.setAttribute('href', window.JieGeWatermarkSource);
+        watermark.setAttribute('width', '1220');
+        watermark.setAttribute('height', height);
+        watermark.setAttribute('y', (2440 - height) / 2);
+        watermark.setAttribute('opacity', '.82');
+        group.append(watermark);
+        svg.querySelector('[data-board="full"]').append(group);
+        return new XMLSerializer().serializeToString(svg);
     }
 
     function saveBlob(blob, filename) {
@@ -243,34 +320,36 @@
 
     async function exportDrawing(kind) {
         if (!currentLayout || busy) return;
-        const svg = new XMLSerializer().serializeToString(drawing.querySelector('svg'));
         const filename = `砖纹排版-1220x2440-砖${format(currentLayout.brickWidth)}x${format(currentLayout.brickHeight)}-缝${format(currentLayout.gap)}`;
         busy = true;
-        [...exportButtons, ...fields, document.getElementById('swapBrick'), document.getElementById('resetBrick')]
+        const controls = [...exportButtons, ...fields, ...document.querySelectorAll('.division-option'),
+            document.getElementById('swapBrick'), document.getElementById('resetBrick')];
+        controls
             .forEach((control) => { control.disabled = true; });
         status.textContent = '正在生成图片…';
         try {
+            const svg = watermarkedSvg();
             if (kind === 'svg') {
                 saveBlob(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }), `${filename}.svg`);
-                status.textContent = 'SVG 已导出，包含材质与尺寸标注。';
+                status.textContent = 'SVG 已导出，包含原版 M·M 水印、材质与尺寸标注。';
             } else if (kind === 'copy' && navigator.clipboard?.write && window.ClipboardItem) {
                 const imagePromise = pngBlob(svg);
                 try {
                     await navigator.clipboard.write([new ClipboardItem({ 'image/png': imagePromise })]);
-                    status.textContent = '图片已复制，可直接粘贴发送。';
+                    status.textContent = '图片已复制，已带原版 M·M 水印，可直接粘贴发送。';
                 } catch (error) {
                     saveBlob(await imagePromise, `${filename}.png`);
                     status.textContent = '浏览器未允许复制，已改为下载 PNG。';
                 }
             } else {
                 saveBlob(await pngBlob(svg), `${filename}.png`);
-                status.textContent = kind === 'copy' ? '此浏览器不支持图片复制，已下载 PNG。' : 'PNG 已下载，包含整板、局部与尺寸。';
+                status.textContent = kind === 'copy' ? '此浏览器不支持图片复制，已下载带水印 PNG。' : 'PNG 已下载，包含原版 M·M 水印、整板、局部与尺寸。';
             }
         } catch (error) {
             status.textContent = `导出失败，请重试：${error.message}`;
         } finally {
             busy = false;
-            [...exportButtons, ...fields, document.getElementById('swapBrick'), document.getElementById('resetBrick')]
+            controls
                 .forEach((control) => { control.disabled = false; });
         }
     }

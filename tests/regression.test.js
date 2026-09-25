@@ -903,7 +903,7 @@ test("所有仓库共用的合计框未填写时不显示示例数字", () => {
 
 test("主页版本号和所有工具入口完整", () => {
   const index = read("index.html");
-  assert.match(index, /v2026\.09\.24\.1/);
+  assert.ok(index.includes('v2026.09.24.2'), '主页版本应为v2026.09.24.2');
   const routeMatch = index.match(/const toolPaths = (\{[^;]+\});/);
   assert.ok(routeMatch, "未找到工具入口表");
   const routes = JSON.parse(routeMatch[1]);

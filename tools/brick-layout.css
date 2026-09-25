@@ -12,10 +12,23 @@ h1,h2,h3,p { margin: 0; }
 .brick-settings label { display: block; }
 .brick-settings label span { color: #62626b; font-size: 12px; font-weight: 400; }
 .brick-settings input { display: block; margin-top: 7px; }
+body.apple-ui[data-page="brick-layout"] .brick-input-pair input { font-size: 14px !important; padding-inline: 7px !important; font-variant-numeric: tabular-nums; appearance: textfield; }
+.brick-input-pair input::-webkit-inner-spin-button,.brick-input-pair input::-webkit-outer-spin-button { appearance: none; margin: 0; }
 .gap-field { margin-top: 16px; }
 .brick-settings .hint { margin-top: 10px; }
 .settings-actions { display: flex; gap: 8px; margin-top: 16px; }
 .settings-actions button { flex: 1; white-space: nowrap; }
+.division-suggestions { margin-top: 20px; padding-top: 18px; border-top: 1px solid #e5e5ea; }
+.axis-suggestions { margin-top: 16px; }
+.axis-suggestions h4 { margin: 0 0 7px; font-size: 13px; font-weight: 600; }
+.axis-suggestions h4 span { display: block; margin-top: 3px; font-size: 12px; font-weight: 400; color: #62626b; }
+body.apple-ui[data-page="brick-layout"] .division-option { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 6px; padding: 9px 10px !important; min-height: 44px; text-align: left; color: #252528 !important; background: #f5f5f7 !important; border: 1px solid #d9d9df !important; font-size: 12px !important; font-weight: 400; }
+.division-option strong { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.division-option small { flex-shrink: 0; color: #62626b; font-size: 12px; }
+.division-option .option-size { display: block; margin-top: 2px; }
+body.apple-ui[data-page="brick-layout"] .division-option:hover { background: #e9eef6 !important; border-color: #a5bbd4 !important; }
+.division-unavailable { font-size: 12px; color: #62626b; margin-top: 8px; }
+.division-formula { font-size: 12px !important; line-height: 1.6; }
 .layout-rules { border-top: 1px solid #e5e5ea; margin-top: 22px; padding-top: 18px; }
 .layout-rules p,.material-note { color: #62626b; font-size: 13px; line-height: 1.7; margin-top: 8px; }
 .brick-summary { margin: 18px 0 0; padding-top: 14px; border-top: 1px solid #e5e5ea; font-size: 13px; }
@@ -32,7 +45,7 @@ body.apple-ui[data-page="brick-layout"] button:disabled { opacity: .45; cursor: 
 .brick-error { margin-top: 16px; padding: 12px; color: #b42318; background: #fff0ee; border-radius: 8px; font-size: 13px; }
 body.apple-ui[data-page="brick-layout"] input[aria-invalid="true"] { border-color: #b42318 !important; }
 #exportStatus { font-size: 13px; color: #424249; min-height: 20px; margin-top: 10px; }
-.brick-drawing svg { display: block; width: 100%; height: auto; }
+.brick-drawing > svg { display: block; width: 100%; height: auto; }
 .canvas-scroll-hint { display: none; }
 .brick-empty { padding: 100px 24px; text-align: center; color: #62626b; }
 @media(max-width:1100px) {
@@ -55,7 +68,7 @@ body.apple-ui[data-page="brick-layout"] input[aria-invalid="true"] { border-colo
   .export-actions { width: 100%; }
   .export-actions button { flex: 1; padding: 10px 6px !important; font-size: 13px !important; white-space: nowrap; }
   .brick-drawing { overflow-x: auto; }
-  .brick-drawing svg { min-width: 620px; }
+  .brick-drawing > svg { min-width: 620px; }
   .canvas-scroll-hint { display: block; margin-bottom: 10px; }
 }
 @media print {

@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const root = path.resolve(__dirname, '..');
-const output = process.env.OUTPUT_DIR || path.resolve(root, '../work/brick-layout-20260924');
+const output = process.env.OUTPUT_DIR || path.resolve(root, '../work/brick-layout-20260924-v2');
 
 async function values(page, width, height, gap) {
     for (const [id, value] of [['brickWidth', width], ['brickHeight', height], ['brickGap', gap]]) {
@@ -37,6 +37,7 @@ async function run() {
                     if (window.rejectClipboard) throw new Error('Test clipboard denial');
                     const blob = await items[0].getType('image/png');
                     window.copyImageInfo = { type: blob.type, size: blob.size };
+                    window.copiedPng = blob;
                 },
             } });
         });
@@ -85,7 +86,43 @@ async function run() {
         assert.equal(await page.locator('#brickGap').inputValue(), '8');
         console.log('PASS 多规格、小数、零缝、单格、末端槽、极值、宽高互换与滚轮保护');
 
-        for (const [width, height, gap] of [['', 240, 5], [-1, 240, 5], [60, 0, 5], [60, 240, -1], [1221, 240, 5], [60.01, 240, 5], [1, 1, 0]]) {
+        await values(page, 100, 1220, 5);
+        assert.match(await page.locator('#widthSuggestions').innerText(), /97.083333/);
+        assert.match(await page.locator('#widthSuggestions').innerText(), /106.363636/);
+        assert.match(await page.locator('#heightSuggestions').innerText(), /1217.5/);
+        assert.match(await page.locator('#heightSuggestions').innerText(), /2440/);
+        await download(page, '#saveBrickPng', '100x1220连续材质.png');
+        await page.locator('[data-axis="0"][data-direction="lower"]').click();
+        await page.locator('[data-axis="1"][data-direction="lower"]').click();
+        assert.equal(await page.locator('#brickWidth').inputValue(), '97.083333');
+        assert.equal(await page.locator('#brickHeight').inputValue(), '1217.5');
+        assert.match(await page.locator('#brickSummary').innerText(), /24 \/ 0 格/);
+        assert.match(await page.locator('#widthSuggestions').innerText(), /当前已均分 · 12 列/);
+        assert.match(await page.locator('#heightSuggestions').innerText(), /当前已均分 · 2 行/);
+        assert.equal(await page.locator('#brickWidth').getAttribute('aria-invalid'), null);
+        for (const width of [1600, 1280, 1024, 768, 390, 320]) {
+            await page.setViewportSize({ width, height: 1000 });
+            const fits = await page.locator('#brickWidth,#brickHeight').evaluateAll((nodes) => nodes.every((node) => {
+                const style = getComputedStyle(node);
+                const context = document.createElement('canvas').getContext('2d');
+                context.font = `${style.fontSize} ${style.fontFamily}`;
+                const available = node.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+                return context.measureText('1217.123456').width <= available;
+            }));
+            assert.equal(fits, true, `six-decimal field not clipped ${width}`);
+        }
+        await page.setViewportSize({ width: 1440, height: 1000 });
+        await page.screenshot({ path: path.join(output, 'nearest-divisions.png'), fullPage: true });
+        const uniform = await download(page, '#saveBrickPng', '均分24格.png');
+        assert.ok(uniform.length > 100000);
+        await page.locator('#brickGap').fill('8');
+        assert.match(await page.locator('#widthSuggestions').innerText(), /当前未均分/);
+        await page.locator('#brickHeight').fill('');
+        assert.equal(await page.locator('#widthSuggestions button').count(), 2);
+        assert.equal(await page.locator('#heightSuggestions button').count(), 0);
+        console.log('PASS 宽高严格上下档建议、精确均分无收边、缝隙联动、单轴错误不屏蔽另一轴');
+
+        for (const [width, height, gap] of [['', 240, 5], [-1, 240, 5], [60, 0, 5], [60, 240, -1], [1221, 240, 5], [60.0000001, 240, 5], [1, 1, 0]]) {
             await values(page, width, height, gap);
             assert.equal(await page.locator('#brickDrawing svg').count(), 0);
             assert.equal(await page.locator('#brickError').isVisible(), true);
@@ -102,12 +139,17 @@ async function run() {
         assert.match(svg.toString(), /href="data:image\/png;base64,/);
         assert.match(svg.toString(), /小砖60×240mm，缝隙5mm/);
         assert.doesNotMatch(svg.toString(), /href="https?:/);
+        assert.equal(svg.toString().includes('<pattern'), false);
+        assert.equal(svg.toString().includes('data-watermark="original-mm"'), true);
+        assert.equal(svg.toString().includes('clip-path="url(#brickWatermarkClip)"'), true);
         const png = await download(page, '#saveBrickPng', '砖纹示例.png');
         assert.equal(png.readUInt32BE(16), 2200);
         assert.equal(png.readUInt32BE(20), 2620);
         await page.locator('#copyBrick').click();
         await page.waitForFunction(() => window.copyImageInfo?.size > 100000);
         assert.equal((await page.evaluate(() => window.copyImageInfo)).type, 'image/png');
+        const copiedBytes = await page.evaluate(async () => Array.from(new Uint8Array(await window.copiedPng.arrayBuffer())));
+        assert.ok(Buffer.from(copiedBytes).equals(png), 'clipboard PNG equals watermarked downloaded PNG');
         await page.waitForFunction(() => !document.getElementById('copyBrick').disabled);
         await page.evaluate(() => { window.rejectClipboard = true; });
         await download(page, '#copyBrick', '复制受限自动下载.png');
@@ -115,7 +157,7 @@ async function run() {
         await values(page, 90, 300, 6);
         const changed = await download(page, '#saveBrickSvg', '自定义90x300缝6.svg');
         assert.match(changed.toString(), /小砖90×300mm，缝隙6mm/);
-        console.log('PASS SVG自带材质、PNG2200×2620、真实PNG复制、拒绝复制时下载及自定义参数导出');
+        console.log('PASS SVG连续材质/原PNG水印、PNG2200×2620、模拟剪贴板PNG与下载一致、拒绝时回退及自定义参数导出');
 
         const exported = await context.newPage();
         await exported.goto(pathToFileURL(path.join(output, '砖纹示例.svg')).href);
@@ -129,7 +171,7 @@ async function run() {
         assert.deepEqual(ids.slice(-2), ['hole-1200', 'brick-layout']);
         assert.equal(ids.length, 10);
         const frame = shell.frameLocator('iframe[title="水泥板砖纹排版"]');
-        await frame.locator('#brickDrawing svg').waitFor();
+        await frame.locator('#brickDrawing > svg').waitFor();
         await frame.locator('#brickWidth').fill('90');
         await shell.locator('[data-tool="hole-1200"]').click();
         await shell.frameLocator('iframe[title="1200×600 孔心排版"]').locator('svg').first().waitFor();
