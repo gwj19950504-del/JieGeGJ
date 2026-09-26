@@ -1566,7 +1566,7 @@
     }
 
 </style>
-  <link rel="stylesheet" href="apple-ui.css?v=20260919-1">
+  <link rel="stylesheet" href="apple-ui.css?v=20260926-1">
 </head>
 <body class="apple-ui" data-page="quote-generator">
   <main>
@@ -2321,6 +2321,17 @@
     }
 
     function updateQuoteFreight() {
+        if (els.multiMode.checked && els.shipmentMode() === 'different') {
+            const message = '不同仓库发货，请按仓库分别询价。';
+            const notice = '各仓包装、重量和运费需分别核算，不能合并为一票。上方产品报价不受影响。';
+            setQuoteFreightEmpty(message, notice);
+            setQuoteShunxinResult({ quoteText: message, processText: notice });
+            els.copyQuoteFreightBtn.disabled = true;
+            els.copyQuoteShunxinBtn.disabled = true;
+            els.copyQuoteFreightBtn.textContent = '复制运费提问';
+            els.copyQuoteShunxinBtn.textContent = '复制顺心捷达报价';
+            return;
+        }
       const items = currentGoldFreightItems();
       if (!items.length) {
         setQuoteFreightEmpty("请填写鎏金板产品、规格和数量。", "其它产品不生成鎏金板运费提问。");

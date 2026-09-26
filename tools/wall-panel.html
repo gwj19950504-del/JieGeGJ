@@ -946,14 +946,14 @@
     }
 
 </style>
-  <link rel="stylesheet" href="apple-ui.css?v=20260919-1">
+  <link rel="stylesheet" href="apple-ui.css?v=20260926-1">
 </head>
 <body class="apple-ui" data-page="wall-panel">
   <div class="app">
     <aside>
       <h1>板材上墙排版确认</h1>
 
-      <label>墙面列表</label>
+      <label for="wallSelect">墙面列表（宽 × 高）</label>
       <select id="wallSelect"></select>
 
       <div class="wall-actions">
@@ -994,7 +994,7 @@
       </div>
 
       <h2>板材留缝</h2>
-      <div class="grid">
+      <div class="grid joint-gap-controls">
         <div class="field">
           <label for="jointGapPreset">板间缝隙</label>
           <select id="jointGapPreset">
@@ -1514,7 +1514,7 @@
     function renderWallSelect() {
       els.wallSelect.innerHTML = walls.map((wall, index) => {
         const label = wall.wallW && wall.wallH
-          ? `${wall.name} ${wall.wallH} x ${wall.wallW}mm`
+          ? `${wall.name} ${wall.wallW} × ${wall.wallH}mm`
           : `${wall.name} 待输入尺寸`;
         return `<option value="${index}">${escapeHtml(label)}</option>`;
       }).join("");

@@ -5,15 +5,15 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const pages = ['order-template', 'quote-generator', 'quick-price', 'report-template', 'ningbo-weight', 'freight-gold', 'full-board-cut', 'hole-1200', 'wall-panel'];
+const pages = ['order-template', 'quote-generator', 'quick-price', 'report-template', 'ningbo-weight', 'freight-gold', 'full-board-cut', 'hole-1200', 'wall-panel', 'brick-layout'];
 const css = read('tools/apple-ui.css');
 
-test('首页及九个子工具接入各自最新苹果风样式，完整包不遗漏 CSS', () => {
+test('首页及十个子工具接入各自最新苹果风样式，完整包不遗漏 CSS', () => {
   assert.match(read('index.html'), /tools\/apple-shell\.css\?v=20260907-3/);
   assert.ok(fs.existsSync(path.join(root, 'tools/apple-shell.css')));
   for (const page of pages) {
     const html = read(`tools/${page}.html`);
-    assert.match(html, /apple-ui\.css\?v=20260919-1/);
+    assert.match(html, /apple-ui\.css\?v=20260926-1/);
     assert.ok(html.includes(`class="apple-ui" data-page="${page}"`), page);
     assert.ok(html.indexOf('apple-ui.css') < html.indexOf('</head>'), page);
   }
