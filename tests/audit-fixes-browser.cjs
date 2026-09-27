@@ -93,9 +93,9 @@ async function noOverflow(page) {
                 assert.equal(await page.locator('#materialPreview').innerText(), '1250.26');
                 assert.equal(await page.locator('#kdPreview').innerText(), '749.74');
                 const orderCopy = await copy(page, '#copyBtn');
-                assert.match(orderCopy, /6片（单片约208.38元，小计1250.26元）/);
+                assert.match(orderCopy, /6片\*208.38=1250.26/);
                 assert.match(orderCopy, /KD：749.74/);
-                assert.doesNotMatch(orderCopy, /6片\*208.38=/);
+                assert.doesNotMatch(orderCopy, /单片约|小计/);
                 await shot('order-detail', page.locator('#result'));
                 await page.locator('#result').fill('人工开单正文保留');
                 await page.locator('#sqmPrice').fill('80');

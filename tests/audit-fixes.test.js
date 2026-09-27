@@ -26,16 +26,17 @@ function loadFunctions(context, file, names) {
     return context;
 }
 
-test('开单显示单片舍入造成的差额时改为约单价和小计，不展示错误等式', () => {
+test('开单金额正常展示为片数乘单片价等于小计，不插入舍入解释', () => {
     const context = loadFunctions({}, 'order-template.html', ['money', 'piecePriceDetail']);
-    assert.equal(context.piecePriceDetail(6, 208.376, 1250.256), '6片（单片约208.38元，小计1250.26元）');
-    assert.equal(context.piecePriceDetail(1000, 208.376, 208376), '1000片（单片约208.38元，小计208376元）');
+    assert.equal(context.piecePriceDetail(3, 208.376, 625.128), '3片*208.38=625.13');
+    assert.equal(context.piecePriceDetail(6, 208.376, 1250.256), '6片*208.38=1250.26');
+    assert.equal(context.piecePriceDetail(1000, 208.376, 208376), '1000片*208.38=208376');
     assert.equal(context.piecePriceDetail(6, 208.38, 1250.28), '6片*208.38=1250.28');
     assert.equal(context.piecePriceDetail(28, 216, 6048), '28片*216=6048');
     assert.equal(context.piecePriceDetail(0, 208.376, 0), '0片*208.38=0');
 });
 
-test('自动面积单价的明细提示适用于鎏金及其它品类，保留原始金额与手工单价', () => {
+test('鎏金及其它品类共用正常开单格式，保留原始金额与手工单价', () => {
     const spec = { value: 'test', label: '硬质-1220*2440*6mm', width: 1.22, length: 2.44 };
     const context = loadFunctions({
         currentWarehouse: () => 'zhejiang', currentCategory: () => 'liujin',
@@ -48,13 +49,33 @@ test('自动面积单价的明细提示适用于鎏金及其它品类，保留�
     const expected = 70 * (1.22 * 2.44) * 6;
     for (const product of [context.readLiujinProduct(row), context.readOtherProduct(row)]) {
         assert.equal(product.materialAmount, expected);
-        assert.match(product.detail, /6片（单片约208.38元，小计1250.26元）/);
+        assert.match(product.detail, /6片\*208.38=1250.26/);
+        assert.doesNotMatch(product.detail, /单片约|小计/);
         assert.match(product.detail, /（70\/平）$/);
     }
     row.unitPrice.value = '216';
     const manual = context.readOtherProduct(row);
     assert.equal(manual.materialAmount, 1296);
     assert.match(manual.detail, /6片\*216=1296（216\/片）$/);
+});
+
+test('四项混装案例不把显示舍入反算进材料费与KD', () => {
+    const context = loadFunctions({
+        areaFromSpecText: spec => spec === '1200*2440mm' ? 1.2 * 2.44 : 1.22 * 2.44
+    }, 'order-template.html', ['money', 'piecePriceDetail', 'numberValue', 'readOtherProduct']);
+    const products = [
+        ['1200*2440mm', '1', '100'], ['1200*2440mm', '1', '80'],
+        ['1220*2440*6mm', '3', '70'], ['1220*2440*6mm', '7', '75']
+    ].map(([specText, qty, sqmPrice]) => context.readOtherProduct(Object.fromEntries(
+        Object.entries({ productName: '测试板', specText, qty, sqmPrice, unitPrice: '' })
+            .map(([key, value]) => [key, { value }])
+    )));
+    assert.equal(products[2].detail, '测试板1220*2440*6mm*3片*208.38=625.13（70/平）');
+    assert.equal(products[2].materialAmount, 625.128);
+    const material = products.reduce((sum, product) => sum + product.materialAmount, 0);
+    assert.equal(context.money(material), '2714.99');
+    assert.equal(context.money(3800 - 200 - material), '885.01');
+    assert.doesNotMatch(products.map(product => product.detail).join('\n'), /单片约|小计/);
 });
 
 test('墙面列表统一宽乘高并转义名称，不改变墙面几何或选中项', () => {

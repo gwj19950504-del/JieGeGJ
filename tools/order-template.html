@@ -2324,7 +2324,7 @@
     }
 
 </style>
-  <link rel="stylesheet" href="apple-ui.css?v=20260926-1">
+  <link rel="stylesheet" href="apple-ui.css?v=20260926-2">
 </head>
 <body class="apple-ui" data-page="order-template">
   <main>
@@ -3301,12 +3301,8 @@
     }
 
     function piecePriceDetail(quantity, unitPrice, materialAmount) {
-        const displayedUnitPrice = money(unitPrice);
-        const displayedAmount = money(materialAmount);
-        if (money(Number(displayedUnitPrice) * quantity) !== displayedAmount) {
-            return `${quantity}片（单片约${displayedUnitPrice}元，小计${displayedAmount}元）`;
-        }
-        return `${quantity}片*${displayedUnitPrice}=${displayedAmount}`;
+      // 正文只输出开单明细；显示舍入不反算材料费，也不追加解释。
+      return `${quantity}片*${money(unitPrice)}=${money(materialAmount)}`;
     }
 
     function numberValue(input) {

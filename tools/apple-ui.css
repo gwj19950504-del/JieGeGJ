@@ -427,6 +427,7 @@
   body.apple-ui[data-page="ningbo-weight"] :is(.result-value, .crate-size) { color: var(--apple-ink) !important; }
   body.apple-ui[data-page="freight-gold"] .panel { padding: 0; }
   body.apple-ui[data-page="freight-gold"] .quantity-product-row { grid-template-columns: 1fr !important; }
+  body.apple-ui[data-page="freight-gold"] .item-material .option span { min-height: var(--tool-control-height) !important; height: auto !important; }
   body.apple-ui[data-page="freight-gold"] .freight-item-remove { background: var(--apple-red-soft) !important; color: var(--apple-red) !important; }
   body.apple-ui :is(.shunxin-options) { grid-template-columns: repeat(4,minmax(0,1fr)) !important; }
   body.apple-ui .shunxin-total { white-space: normal; }

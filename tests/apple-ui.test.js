@@ -13,7 +13,7 @@ test('首页及十个子工具接入各自最新苹果风样式，完整包不�
   assert.ok(fs.existsSync(path.join(root, 'tools/apple-shell.css')));
   for (const page of pages) {
     const html = read(`tools/${page}.html`);
-    assert.match(html, /apple-ui\.css\?v=20260926-1/);
+    assert.match(html, /apple-ui\.css\?v=20260926-2/);
     assert.ok(html.includes(`class="apple-ui" data-page="${page}"`), page);
     assert.ok(html.indexOf('apple-ui.css') < html.indexOf('</head>'), page);
   }
@@ -23,6 +23,15 @@ test('全工具占位提示统一半透明，不覆盖实际输入内容或使�
   assert.match(css, /body\.apple-ui :is\(input, textarea\)::placeholder\s*\{[^}]*color: #74747d !important;[^}]*opacity: 0\.5 !important;[^}]*font-weight: 400 !important;/);
   assert.equal((css.match(/::placeholder/g) || []).length, 1);
   assert.doesNotMatch(css, /#totalAmount::placeholder/);
+});
+
+test('鎏金材质组选项不套分段灰底，动态行与44px点击区域保持一致', () => {
+  const freight = read('tools/freight-gold.html');
+  assert.match(freight, /<div class="item-material">/);
+  assert.doesNotMatch(freight, /class="item-material segmented"/);
+  assert.match(css, /body\.apple-ui\[data-page="freight-gold"\] \.item-material \.option span \{ min-height: var\(--tool-control-height\) !important; height: auto !important;/);
+  assert.match(freight, /\.freight-item \.item-material \{[^}]*background: transparent !important;[^}]*padding: 0 !important;/);
+  assert.match(css, /\.option input:focus-visible \+ span/);
 });
 
 test('报备两处复制重置及局部对齐规则保持完整', () => {
