@@ -29,11 +29,33 @@ function loadFunctions(context, file, names) {
 test('开单金额正常展示为片数乘单片价等于小计，不插入舍入解释', () => {
     const context = loadFunctions({}, 'order-template.html', ['money', 'piecePriceDetail']);
     assert.equal(context.piecePriceDetail(3, 208.376, 625.128), '3片*208.38=625.13');
+    assert.equal(context.piecePriceDetail(5, 208.376, 1041.88), '5片*208.38=1041.88');
     assert.equal(context.piecePriceDetail(6, 208.376, 1250.256), '6片*208.38=1250.26');
     assert.equal(context.piecePriceDetail(1000, 208.376, 208376), '1000片*208.38=208376');
     assert.equal(context.piecePriceDetail(6, 208.38, 1250.28), '6片*208.38=1250.28');
     assert.equal(context.piecePriceDetail(28, 216, 6048), '28片*216=6048');
     assert.equal(context.piecePriceDetail(0, 208.376, 0), '0片*208.38=0');
+});
+
+test('历史约单价括号只转正常明细，兼容中文英文标点、换行和重复复制', () => {
+    const context = loadFunctions({}, 'order-template.html', ['normalizeLegacyPiecePriceNotes']);
+    const old = '货物明细：测试板1220*2440*6mm*5片（单片约208.38元，小计1041.88元）（70/平）\nKD：338.12，备注：【货好拍照】';
+    const expected = '货物明细：测试板1220*2440*6mm*5片*208.38=1041.88（70/平）\nKD：338.12，备注：【货好拍照】';
+    assert.equal(context.normalizeLegacyPiecePriceNotes(old), expected);
+    assert.equal(context.normalizeLegacyPiecePriceNotes(expected), expected);
+    assert.equal(context.normalizeLegacyPiecePriceNotes('5片 ( 单片约208.38元,\n小计1041.88元 )'), '5片*208.38=1041.88');
+    // Old explanations after a hand-written formula must not replace its amounts.
+    assert.equal(context.normalizeLegacyPiecePriceNotes('3片*208.376=635.128（单片约208.38元，小计625.13元）'), '3片*208.376=635.128');
+    assert.equal(context.normalizeLegacyPiecePriceNotes('（单片约208.38元，小计1041.88元）'), '');
+});
+
+test('历史解释清理不动其它括号、手工金额、备注或近似但非旧格式的文字', () => {
+    const context = loadFunctions({}, 'order-template.html', ['normalizeLegacyPiecePriceNotes']);
+    for (const text of ['', '艺术板(粉黛雪融)5片*208.38=1041.88（70/平）',
+        '备注：小计待确认（单片价格待定），😀谢谢', '（单片约208.38元，小计待确认）',
+        '（单片约' + '1'.repeat(10000) + 'x元，小计20元）']) {
+        assert.equal(context.normalizeLegacyPiecePriceNotes(text), text);
+    }
 });
 
 test('鎏金及其它品类共用正常开单格式，保留原始金额与手工单价', () => {

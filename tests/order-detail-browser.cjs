@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const root = path.resolve(__dirname, '..');
-const output = process.env.OUTPUT_DIR || path.resolve(root, '../work/order-detail-20260927');
+const output = process.env.OUTPUT_DIR || path.resolve(root, '../work/order-detail-20260927-v2');
 const checks = [], errors = [];
 
 (async () => {
@@ -29,11 +29,11 @@ const checks = [], errors = [];
             async function fill(values) {
                 for (const [id, value] of Object.entries(values)) await page.locator(`#${id}`).fill(value);
             }
-            async function copy() {
-                assert.equal(await page.locator('#copyBtn').isDisabled(), false);
-                await page.locator('#copyBtn').click();
-                const text = await page.evaluate(() => window.__copied);
-                assert.equal(text, await page.locator('#result').textContent());
+            async function copy(scope = page) {
+                assert.equal(await scope.locator('#copyBtn').isDisabled(), false);
+                await scope.locator('#copyBtn').click();
+                const text = await scope.evaluate(() => window.__copied);
+                assert.equal(text, await scope.locator('#result').innerText());
                 return text;
             }
             async function verify(expectedMaterial, expectedKd, expectedDetail) {
@@ -81,6 +81,60 @@ const checks = [], errors = [];
             await fill({ otherUnitPrice: '216' });
             await verify('648', '352', '3片*216=648（216/片）');
             checks.push({ width, scenario: '其它品类自动面积计价及手填单片价' });
+
+            // Serve all resources locally, but simulate an old response for the unversioned order URL.
+            await context.route('https://order-regression.test/**', async route => {
+                const url = new URL(route.request().url());
+                if (url.pathname === '/tools/order-template.html' && !url.searchParams.has('v')) {
+                    return route.fulfill({ contentType: 'text/html', body: '<p id="stale">旧开单缓存：单片约208.38元，小计1041.88元</p>' });
+                }
+                const file = path.resolve(root, '.' + url.pathname);
+                assert.ok(file.startsWith(root + path.sep));
+                const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript', '.png': 'image/png' };
+                return route.fulfill({ contentType: types[path.extname(file)] || 'application/octet-stream', body: fs.readFileSync(file) });
+            });
+            await page.goto('https://order-regression.test/tools/order-template.html');
+            assert.equal(await page.locator('#stale').count(), 1, '旧固定地址的响应应先复现');
+            await page.goto('https://order-regression.test/index.html?tool=order-template');
+            const frame = await (await page.locator('iframe').first().elementHandle()).contentFrame();
+            await frame.locator('#quantity').waitFor();
+            assert.equal(new URL(frame.url()).searchParams.get('v'), '20260927-2');
+            assert.equal(await frame.locator('meta[name="jiege-build"]').getAttribute('content'), 'v2026.09.27.2');
+            for (const [id, value] of Object.entries({ productName: '测试板(保留款式括号)',
+                quantity: '5', sqmPrice: '70', crateFee: '200', totalAmount: '1580' })) {
+                await frame.locator('#' + id).fill(value);
+            }
+            const five = await copy(frame);
+            assert.match(five, /5片\*208.38=1041.88（70\/平）/);
+            assert.doesNotMatch(five, /单片约|小计/);
+            assert.equal(await frame.locator('#materialPreview').innerText(), '1041.88');
+            assert.equal(await frame.locator('#kdPreview').innerText(), '338.12');
+            await frame.locator('#result').screenshot({ path: path.join(output, `five-shell-${width}.png`) });
+            const legacy = five.replace('5片*208.38=1041.88', '5片（单片约208.38元，小计1041.88元）') + '\n人工备注保留';
+            await frame.locator('#result').fill(legacy);
+            const manualExpected = (await frame.locator('#result').innerText())
+                .replace('5片（单片约208.38元，小计1041.88元）', '5片*208.38=1041.88');
+            await frame.locator('#quantity').focus();
+            assert.equal(await frame.locator('#result').textContent(), manualExpected, '离开编辑框只清理旧说明，保留可见换行');
+            // A programmatic click must also clean text, without relying on blur.
+            await frame.locator('#result').fill(legacy);
+            await frame.locator('#copyBtn').dispatchEvent('click');
+            await frame.waitForFunction(() => window.__copied === document.querySelector('#result').textContent && !window.__copied.includes('单片约'));
+            assert.equal(await frame.evaluate(() => window.__copied), manualExpected);
+            await page.locator('[data-tool="quick-price"]').click();
+            await page.locator('[data-tool="order-template"]').click();
+            assert.equal(await frame.locator('#quantity').inputValue(), '5');
+            assert.equal((await copy(frame)), manualExpected);
+            await frame.locator('#resumeAutoBtn').click();
+            assert.equal(await copy(frame), five);
+            assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);
+            // Clipboard rejection must select the already-cleaned text for manual copying.
+            await frame.evaluate(() => { navigator.clipboard.writeText = async () => { throw new Error('test clipboard denied'); }; });
+            await frame.locator('#result').fill(legacy);
+            await frame.locator('#copyBtn').dispatchEvent('click');
+            await frame.waitForFunction(() => document.querySelector('#copyBtn').textContent === '已选中，可手动复制');
+            assert.equal(await frame.evaluate(() => window.getSelection().toString()), manualExpected);
+            checks.push({ width, scenario: '首页版本加载、5片、旧格式清理、复制失败兜底、导航保留草稿' });
             console.log(`PASS order details, clipboard, totals, manual mode and layout ${width}px`);
             await context.close();
         }

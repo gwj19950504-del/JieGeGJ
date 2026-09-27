@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="jiege-build" content="v2026.09.27.2">
   <link rel="icon" href="data:,">
   <title>鎏金板每日文字开单工具</title>
   <style>
@@ -3305,6 +3306,30 @@
       return `${quantity}片*${money(unitPrice)}=${money(materialAmount)}`;
     }
 
+    function normalizeLegacyPiecePriceNotes(text) {
+      const source = String(text);
+      // 只识别旧版自动说明；不重算金额，不触碰商品括号或其它手工文字。
+      const legacyNote = /[（(]\s*单片约\s*(?<unit>\d+(?:\.\d+)?)\s*元\s*[，,]\s*小计\s*(?<total>\d+(?:\.\d+)?)\s*元\s*[）)]/gu;
+      let normalized = "";
+      let cursor = 0;
+      for (const match of source.matchAll(legacyNote)) {
+        const before = source.slice(cursor, match.index);
+        normalized += /\d片\s*$/u.test(before)
+          ? `${before.trimEnd()}*${match.groups.unit}=${match.groups.total}`
+          : before;
+        cursor = match.index + match[0].length;
+      }
+      return normalized + source.slice(cursor);
+    }
+
+    function cleanLegacyOrderResult() {
+      // contenteditable粘贴可能以div/br表示换行；按可见文字读取，不能用textContent压平。
+      const current = els.result.innerText;
+      const cleaned = normalizeLegacyPiecePriceNotes(current);
+      if (cleaned !== current) els.result.textContent = cleaned;
+      return cleaned;
+    }
+
     function numberValue(input) {
       if (!input || input.value.trim() === "") return 0;
       return Number(input.value) || 0;
@@ -5734,7 +5759,7 @@
       updateOrderShunxin(built, rawAddress, warehouse, isLiujin, logistics, total);
       if (!manualResultMode) {
         renderingResult = true;
-        els.result.textContent = lines.join("\n");
+        els.result.textContent = normalizeLegacyPiecePriceNotes(lines.join("\n"));
         renderingResult = false;
       }
 
@@ -6192,8 +6217,9 @@
     els.copyBtn.addEventListener("click", async () => {
       calculate();
       if (els.copyBtn.disabled) return;
+      const copyText = cleanLegacyOrderResult();
       try {
-        await navigator.clipboard.writeText(els.result.textContent);
+        await navigator.clipboard.writeText(copyText);
         els.copyBtn.textContent = "已复制";
         window.setTimeout(() => { els.copyBtn.textContent = "复制整段开单信息"; }, 1200);
       } catch (error) {
@@ -6255,6 +6281,8 @@
       els.formNotice.className = "notice";
       applyOrderValidation();
     });
+    // 离开编辑框再规范旧格式，避免输入过程中移动光标；复制兜底同样处理。
+    els.result.addEventListener("blur", cleanLegacyOrderResult);
 
     els.resetNextBtn.addEventListener("click", resetForNextOrder);
     els.fillDemoBtn.addEventListener("click", fillDemo);

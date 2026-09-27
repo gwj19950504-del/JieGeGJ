@@ -903,13 +903,32 @@ test("所有仓库共用的合计框未填写时不显示示例数字", () => {
 
 test("主页版本号和所有工具入口完整", () => {
   const index = read("index.html");
-  assert.ok(index.includes('v2026.09.27.1'), '主页版本应为v2026.09.27.1');
+  assert.ok(index.includes('v2026.09.27.2'), '主页版本应为v2026.09.27.2');
   const routeMatch = index.match(/const toolPaths = (\{[^;]+\});/);
   assert.ok(routeMatch, "未找到工具入口表");
   const routes = JSON.parse(routeMatch[1]);
   Object.values(routes).forEach((relativePath) => {
     assert.ok(fs.existsSync(path.join(root, relativePath)), `缺少工具文件：${relativePath}`);
   });
+});
+
+test("首页给子工具HTML加发布版本并保留已打开页面的表单", () => {
+  const index = read('index.html');
+  const toolPaths = JSON.parse(index.match(/const toolPaths = (\{[^;]+\});/)[1]);
+  const version = /const toolPageVersion = '([^']+)'/.exec(index);
+  assert.ok(version, '子页必须独立携带发布版本，不能只修改首页文字');
+  const context = {
+    toolPaths, toolPageVersion: version[1], frames: {}, activeId: '',
+    document: { createElement: () => ({ addEventListener() {} }) },
+    loading: {}, frameWrap: { insertBefore() {} }
+  };
+  vm.createContext(context);
+  vm.runInContext(functionSource('index.html', 'getFrame'), context);
+  for (const [id, path] of Object.entries(toolPaths)) {
+    const frame = context.getFrame({ id, title: id });
+    assert.equal(frame.src, `${path}?v=${version[1]}`);
+    assert.equal(context.getFrame({ id, title: id }), frame, '导航切换不应丢失草稿');
+  }
 });
 
 test("宁波B款产品和规格级重量使用原始资料而非泛关键词", () => {
