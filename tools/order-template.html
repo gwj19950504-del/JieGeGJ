@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="jiege-build" content="v2026.09.27.2">
+  <meta name="jiege-build" content="v2026.10.06.1">
   <link rel="icon" href="data:,">
   <title>鎏金板每日文字开单工具</title>
   <style>
@@ -4383,9 +4383,24 @@
         return [logistics, payment].filter(Boolean).join('，');
     }
 
+    function isRemarkPresetAvailable(value) {
+      return value !== "修补剂随货发，谢谢！" || !isCementWarehouse();
+    }
+
+    function syncRemarkPresetAvailability() {
+      document.querySelectorAll(".remarkPreset").forEach((item) => {
+        const available = isRemarkPresetAvailable(item.value);
+        // 保留其它仓的勾选状态；水泥板只停用快捷项，不改手写备注。
+        item.disabled = !available;
+        item.closest("label").classList.toggle("hidden", !available);
+      });
+    }
+
     function selectedRemarks() {
       syncCoatingRemarks();
-      const presets = Array.from(document.querySelectorAll(".remarkPreset:checked")).map((item) => item.value);
+      const presets = Array.from(document.querySelectorAll(".remarkPreset:checked"))
+        .filter((item) => isRemarkPresetAvailable(item.value))
+        .map((item) => item.value);
       const custom = els.remarkCustom.value.trim();
       return [custom, ...presets].filter(Boolean).join("");
     }
@@ -5630,6 +5645,7 @@
     }
 
     function calculate() {
+      syncRemarkPresetAvailability();
       const warehouse = currentWarehouse();
       const category = currentCategory();
       const isCement = category === "cement";

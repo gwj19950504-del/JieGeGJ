@@ -26,6 +26,39 @@ function loadFunctions(context, file, names) {
     return context;
 }
 
+test('只有水泥板主仓停用修补剂随货发快捷项，手写同文及其它快捷项保留', () => {
+    let warehouse = '水泥板仓库';
+    const repair = '修补剂随货发，谢谢！';
+    const items = [repair, '【货好拍照】', '【有尾款等通知发货】'].map(value => ({
+        value, checked: true, disabled: false, hidden: false,
+        closest() { return { classList: { toggle: (_name, hidden) => { this.hidden = hidden; } } }; }
+    }));
+    const context = loadFunctions({
+        currentWarehouseGroup: () => warehouse,
+        syncCoatingRemarks: () => {},
+        els: { remarkCustom: { value: '' } },
+        document: { querySelectorAll: selector => selector.endsWith(':checked') ? items.filter(item => item.checked) : items }
+    }, 'order-template.html', ['isCementWarehouse', 'isRemarkPresetAvailable', 'syncRemarkPresetAvailability', 'selectedRemarks']);
+    context.syncRemarkPresetAvailability();
+    assert.equal(items[0].hidden, true);
+    assert.equal(items[0].disabled, true);
+    assert.equal(items[0].checked, true, '停用不能破坏其它仓的勾选草稿');
+    assert.equal(context.selectedRemarks(), '【货好拍照】【有尾款等通知发货】');
+    context.els.remarkCustom.value = repair;
+    assert.equal(context.selectedRemarks(), repair + '【货好拍照】【有尾款等通知发货】');
+    context.els.remarkCustom.value = '';
+    for (warehouse of ['浙江仓', '宁波仓', '美利来', '混凝土仓', '自选仓']) {
+        context.syncRemarkPresetAvailability();
+        assert.equal(items[0].hidden, false, warehouse);
+        assert.equal(items[0].disabled, false, warehouse);
+        assert.equal(context.selectedRemarks(), repair + '【货好拍照】【有尾款等通知发货】');
+    }
+    items[0].checked = false;
+    context.syncRemarkPresetAvailability();
+    assert.equal(items[0].checked, false, '其它仓手动取消不能被计算重新勾选');
+    assert.equal(context.selectedRemarks(), '【货好拍照】【有尾款等通知发货】');
+});
+
 test('开单金额正常展示为片数乘单片价等于小计，不插入舍入解释', () => {
     const context = loadFunctions({}, 'order-template.html', ['money', 'piecePriceDetail']);
     assert.equal(context.piecePriceDetail(3, 208.376, 625.128), '3片*208.38=625.13');
