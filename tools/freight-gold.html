@@ -389,7 +389,7 @@
       color: #6f2019;
     }
 
-    .shunxin-section {
+    .best-section {
       margin-top: 18px;
       border: 1px solid var(--line);
       border-radius: 18px;
@@ -398,7 +398,7 @@
       box-shadow: 0 12px 30px rgba(17, 24, 39, 0.08);
     }
 
-    .shunxin-head {
+    .best-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -408,7 +408,7 @@
       background: #f7f7f7;
     }
 
-    .shunxin-title {
+    .best-title {
       display: flex;
       align-items: center;
       gap: 12px;
@@ -417,7 +417,7 @@
       color: #1f2937;
     }
 
-    .shunxin-logo {
+    .best-logo {
       width: 92px;
       height: 48px;
       border-radius: 6px;
@@ -426,20 +426,20 @@
       flex: 0 0 auto;
     }
 
-    .shunxin-subtitle {
+    .best-subtitle {
       color: var(--muted);
       font-size: 13px;
       font-weight: 700;
     }
 
-    .shunxin-total {
+    .best-total {
       color: #111827;
       font-size: 24px;
       font-weight: 950;
       white-space: nowrap;
     }
 
-    .shunxin-options {
+    .best-options {
       display: grid;
       grid-template-columns: minmax(260px, 1.45fr) minmax(250px, 1.2fr) minmax(150px, 0.72fr) minmax(150px, 0.72fr);
       align-items: stretch;
@@ -449,7 +449,7 @@
       background: #fcfcfc;
     }
 
-    .shunxin-option-cell {
+    .best-option-cell {
       display: grid;
       grid-template-rows: 18px 52px;
       align-content: end;
@@ -457,7 +457,7 @@
       min-width: 0;
     }
 
-    .shunxin-option-label {
+    .best-option-label {
       color: var(--muted);
       font-size: 13px;
       font-weight: 850;
@@ -468,7 +468,7 @@
       margin: 0;
     }
 
-    .shunxin-option-cell input[type="number"] {
+    .best-option-cell input[type="number"] {
       width: 100%;
       min-width: 0;
       height: 52px;
@@ -477,7 +477,7 @@
       margin: 0;
     }
 
-    .shunxin-upstairs-toggle {
+    .best-pickup-toggle {
       display: flex;
       align-items: center;
       gap: 8px;
@@ -495,7 +495,7 @@
       cursor: pointer;
     }
 
-    .shunxin-upstairs-toggle input {
+    .best-pickup-toggle input {
       width: 18px;
       height: 18px;
       min-height: auto;
@@ -504,7 +504,7 @@
       accent-color: #2563eb;
     }
 
-    .shunxin-fee-badge {
+    .best-fee-badge {
       min-width: 0;
       height: 52px;
       min-height: 52px;
@@ -520,7 +520,7 @@
       font-weight: 900;
     }
 
-    .shunxin-body {
+    .best-body {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 220px;
       gap: 14px;
@@ -528,7 +528,7 @@
       align-items: stretch;
     }
 
-    .shunxin-box {
+    .best-box {
       min-height: 170px;
       border-radius: 14px;
       background: #18181b;
@@ -541,7 +541,7 @@
       overflow-wrap: anywhere;
     }
 
-    .shunxin-process {
+    .best-process {
       border-radius: 14px;
       background: #fff7ed;
       border: 1px solid #fed7aa;
@@ -553,11 +553,11 @@
       overflow-wrap: anywhere;
     }
 
-    .shunxin-actions {
+    .best-actions {
       padding: 0 18px 18px;
     }
 
-    .shunxin-actions button {
+    .best-actions button {
       background: #111827;
       min-width: 190px;
     }
@@ -593,17 +593,17 @@
         grid-template-columns: 1fr;
       }
 
-      .shunxin-head,
-      .shunxin-body {
+      .best-head,
+      .best-body {
         grid-template-columns: 1fr;
       }
 
-      .shunxin-head {
+      .best-head {
         align-items: flex-start;
         flex-direction: column;
       }
 
-      .shunxin-options {
+      .best-options {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
@@ -624,7 +624,7 @@
         grid-template-columns: 1fr;
       }
 
-      .shunxin-options {
+      .best-options {
         grid-template-columns: 1fr;
       }
     }
@@ -1442,7 +1442,7 @@
     }
 
 </style>
-  <link rel="stylesheet" href="apple-ui.css?v=20260926-2">
+  <link rel="stylesheet" href="apple-ui.css?v=20261008-1">
 </head>
 <body class="apple-ui" data-page="freight-gold">
   <main>
@@ -1512,44 +1512,47 @@
           </div>
           <div id="notice" class="notice"></div>
 
-          <div class="shunxin-section" id="shunxinSection">
-            <div class="shunxin-head">
-              <div class="shunxin-title">
-                <img class="shunxin-logo" src="assets/shunxin-jieda-logo.png" alt="顺心捷达">
+          <div class="best-section" id="bestSection">
+            <div class="best-head">
+              <div class="best-title">
+                <div class="best-brand" aria-label="百世快运">百世<strong>快运</strong><small>BEST FREIGHT</small></div>
                 <div>
-                  <div>顺心捷达自动报价</div>
-                  <div class="shunxin-subtitle">仅用于鎏金板，根据地址、重量、包装和官方报价表自动估算。</div>
+                  <div>百世快运自动报价</div>
+                  <div class="best-subtitle">鎏金板 · 实重与体积重取大值 · 2026-09-22费率</div>
                 </div>
               </div>
-              <div class="shunxin-total" id="shunxinTotal">-</div>
+              <div class="best-total" id="bestTotal">-</div>
             </div>
-            <div class="shunxin-options">
-              <div class="shunxin-option-cell">
-                <label class="shunxin-option-label" for="shunxinDeclaredValue">货值总金额（元，可不填）</label>
-                <input id="shunxinDeclaredValue" type="number" min="0" step="0.01" inputmode="decimal" placeholder="不填按2000元以内，保费5元">
+            <div class="best-options">
+              <div class="best-option-cell">
+                <label class="best-option-label" for="bestPaymentMode">运费付款（最终向上取整）</label>
+                <select id="bestPaymentMode">
+                  <option value="collect">到付（加3%）</option>
+                  <option value="prepaid">我们付（不加3%）</option>
+                </select>
               </div>
-              <div class="shunxin-option-cell">
-                <span class="shunxin-option-label">上门服务</span>
-                <label class="shunxin-upstairs-toggle">
-                  <input id="shunxinIncludeUpstairs" type="checkbox">
-                  <span>需要上门（默认不上门）</span>
+              <div class="best-option-cell">
+                <span class="best-option-label">送货方式</span>
+                <label class="best-pickup-toggle">
+                  <input id="bestDestinationPickup" type="checkbox">
+                  <span>到站自提（免重货送货费）</span>
                 </label>
               </div>
-              <div class="shunxin-option-cell">
-                <span class="shunxin-option-label">保价费用</span>
-                <span class="shunxin-fee-badge" id="shunxinInsuranceFee">保费：5元</span>
+              <div class="best-option-cell">
+                <span class="best-option-label">易碎品保险</span>
+                <span class="best-fee-badge" id="bestInsuranceFee">保费：待计算</span>
               </div>
-              <div class="shunxin-option-cell">
-                <span class="shunxin-option-label">上门费用</span>
-                <span class="shunxin-fee-badge" id="shunxinUpstairsFee">上门费：待计算</span>
+              <div class="best-option-cell">
+                <span class="best-option-label">送货费用</span>
+                <span class="best-fee-badge" id="bestDeliveryFee">送货费：待计算</span>
               </div>
             </div>
-            <div class="shunxin-body">
-              <div class="shunxin-box" id="shunxinQuote">请填写地址和规格数量</div>
-              <div class="shunxin-process" id="shunxinProcess">自动显示计算过程</div>
+            <div class="best-body">
+              <div class="best-box" id="bestQuote">请填写地址和规格数量</div>
+              <div class="best-process" id="bestProcess">自动显示计算过程</div>
             </div>
-            <div class="shunxin-actions">
-              <button type="button" id="copyShunxinBtn">复制顺心捷达报价</button>
+            <div class="best-actions">
+              <button type="button" id="copyBestBtn">复制百世快运报价</button>
             </div>
           </div>
         </div>
@@ -1557,8 +1560,8 @@
     </div>
   </main>
 
-  <script src="shunxin-rates.js?v=20260815-1"></script>
-  <script src="freight-gold-core.js?v=20260919-1"></script>
+  <script src="best-rates.js?v=20261008-1"></script>
+  <script src="freight-gold-core.js?v=20261008-4"></script>
   <script>
     const freightCore = window.GoldFreightCore;
     const specs = freightCore.specs;
@@ -1582,14 +1585,14 @@
       copyBtn: document.querySelector("#copyBtn"),
       clearBtn: document.querySelector("#clearBtn"),
       resetFreightBtn: document.querySelector("#resetFreightBtn"),
-      shunxinDeclaredValue: document.querySelector("#shunxinDeclaredValue"),
-      shunxinIncludeUpstairs: document.querySelector("#shunxinIncludeUpstairs"),
-      shunxinInsuranceFee: document.querySelector("#shunxinInsuranceFee"),
-      shunxinUpstairsFee: document.querySelector("#shunxinUpstairsFee"),
-      shunxinTotal: document.querySelector("#shunxinTotal"),
-      shunxinQuote: document.querySelector("#shunxinQuote"),
-      shunxinProcess: document.querySelector("#shunxinProcess"),
-      copyShunxinBtn: document.querySelector("#copyShunxinBtn")
+      bestDestinationPickup: document.querySelector("#bestDestinationPickup"),
+      bestPaymentMode: document.querySelector("#bestPaymentMode"),
+      bestInsuranceFee: document.querySelector("#bestInsuranceFee"),
+      bestDeliveryFee: document.querySelector("#bestDeliveryFee"),
+      bestTotal: document.querySelector("#bestTotal"),
+      bestQuote: document.querySelector("#bestQuote"),
+      bestProcess: document.querySelector("#bestProcess"),
+      copyBestBtn: document.querySelector("#copyBestBtn")
     };
 
     function renderItems() {
@@ -1687,22 +1690,22 @@
       });
     }
 
-    function shunxinFeeLabel(label, value, suffix = "") {
+    function bestFeeLabel(label, value, suffix = "") {
       if (!Number.isFinite(value)) return `${label}：待计算`;
       const amount = Math.round((value + Number.EPSILON) * 100) / 100;
       return `${label}：${amount}元${suffix}`;
     }
 
-    function setShunxinResult(result = {}) {
-      els.shunxinTotal.textContent = result.totalText || "-";
-      els.shunxinQuote.textContent = result.quoteText || "请填写地址和规格数量";
-      els.shunxinProcess.textContent = result.processText || "自动显示计算过程";
-      els.shunxinInsuranceFee.textContent = shunxinFeeLabel("保费", result.insuranceFee);
-      els.shunxinUpstairsFee.textContent = shunxinFeeLabel("上门费", result.upstairsFee, els.shunxinIncludeUpstairs.checked ? "（已计入）" : "（未计入）");
+    function setBestResult(result = {}) {
+      els.bestTotal.textContent = result.totalText || "-";
+      els.bestQuote.textContent = result.quoteText || "请填写地址和规格数量";
+      els.bestProcess.textContent = result.processText || "自动显示计算过程";
+      els.bestInsuranceFee.textContent = bestFeeLabel("保费", result.insuranceFee);
+      els.bestDeliveryFee.textContent = bestFeeLabel("送货费", result.deliveryFee);
     }
 
-    function updateShunxinQuote({ address, totalWeight, pkg, weightLine, packageLine, dbLine, db }) {
-      const result = freightCore.buildShunxinQuote({
+    function updateBestQuote({ address, totalWeight, pkg, weightLine, packageLine, dbLine, db }) {
+      const result = freightCore.buildBestQuote({
         address,
         totalWeight,
         pkg,
@@ -1710,23 +1713,23 @@
         packageLine,
         dbLine,
         db,
-        declaredValue: els.shunxinDeclaredValue.value,
-        includeUpstairsFee: els.shunxinIncludeUpstairs.checked
+        destinationPickup: els.bestDestinationPickup.checked,
+        paymentMode: els.bestPaymentMode.value
       });
-      setShunxinResult(result);
+      setBestResult(result);
     }
 
     function calculate() {
       const allItems = shipmentItems();
       els.copyBtn.disabled = true;
-      els.copyShunxinBtn.disabled = true;
+      els.copyBestBtn.disabled = true;
       const invalidItem = allItems.find((item) => String(item.quantity).trim() !== '' && (!Number.isSafeInteger(Number(item.quantity)) || Number(item.quantity) <= 0));
       if (invalidItem || [...document.querySelectorAll('.item-quantity')].some((input) => input.validity.badInput)) {
         els.weightLine.textContent = "-";
         els.packageLine.textContent = "-";
         els.dbLine.textContent = "-";
         els.result.textContent = `${els.address.value.trim() || "请粘贴地址"}\n\n请输入大于 0 的整数数量`;
-        setShunxinResult({ quoteText: "请输入大于 0 的整数数量", processText: "需要先完成自动核算。" });
+        setBestResult({ quoteText: "请输入大于 0 的整数数量", processText: "需要先完成自动核算。" });
         els.notice.textContent = "每一组规格的数量都需要填写大于 0 的整数。";
         els.notice.className = "notice error";
         return;
@@ -1738,7 +1741,7 @@
         els.packageLine.textContent = "-";
         els.dbLine.textContent = "-";
         els.result.textContent = `${els.address.value.trim() || "请粘贴地址"}\n\n请填写至少一组规格数量`;
-        setShunxinResult({ quoteText: "请填写至少一组规格数量", processText: "需要先完成自动核算。" });
+        setBestResult({ quoteText: "请填写至少一组规格数量", processText: "需要先完成自动核算。" });
         els.notice.textContent = "可以新增多组规格；同一票发货会按总张数、最长规格统一核算包装。";
         els.notice.className = "notice";
         return;
@@ -1752,20 +1755,20 @@
         els.weightLine.textContent = "-";
         els.packageLine.textContent = shipment.type === "overflow" ? "需拆分" : "需确认";
         els.dbLine.textContent = shipment.dbLine || "-";
-        setShunxinResult({ quoteText: message, processText: "需要先完成自动核算。" });
+        setBestResult({ quoteText: message, processText: "需要先完成自动核算。" });
         return;
       }
 
       const address = els.address.value.trim() || "请粘贴地址";
       els.copyBtn.disabled = false;
-      els.copyShunxinBtn.disabled = false;
+      els.copyBestBtn.disabled = false;
       const template = `${address}\n\n${shipment.weightLine}\n${shipment.packageLine}\n${shipment.dbLine}`;
 
       els.weightLine.innerHTML = `${shipment.weightLine}<span class="shipment-lines">${shipment.detailLine}</span>`;
       els.packageLine.textContent = shipment.packageLine;
       els.dbLine.textContent = shipment.dbLine;
       els.result.textContent = template;
-      updateShunxinQuote({
+      updateBestQuote({
         address,
         totalWeight: shipment.totalWeight,
         pkg: shipment.pkg,
@@ -1780,8 +1783,8 @@
     }
 
     els.address.addEventListener("input", calculate);
-    els.shunxinDeclaredValue.addEventListener("input", calculate);
-    els.shunxinIncludeUpstairs.addEventListener("change", calculate);
+    els.bestDestinationPickup.addEventListener("change", calculate);
+    els.bestPaymentMode.addEventListener("change", calculate);
     els.addItemBtn.addEventListener("click", addItem);
 
     els.clearBtn.addEventListener("click", () => {
@@ -1792,8 +1795,8 @@
 
     els.resetFreightBtn.addEventListener("click", () => {
       els.address.value = "";
-      els.shunxinDeclaredValue.value = "";
-      els.shunxinIncludeUpstairs.checked = false;
+      els.bestDestinationPickup.checked = false;
+      els.bestPaymentMode.value = "collect";
       state.items = [
         { id: 1, material: "hard", specKey: "hard-2440", quantity: "" }
       ];
@@ -1822,22 +1825,22 @@
       }
     });
 
-    els.copyShunxinBtn.addEventListener("click", async () => {
+    els.copyBestBtn.addEventListener("click", async () => {
       calculate();
-      if (els.copyShunxinBtn.disabled) return;
+      if (els.copyBestBtn.disabled) return;
       try {
-        await navigator.clipboard.writeText(els.shunxinQuote.textContent);
-        els.copyShunxinBtn.textContent = "已复制";
+        await navigator.clipboard.writeText(els.bestQuote.textContent);
+        els.copyBestBtn.textContent = "已复制";
         window.setTimeout(() => {
-          els.copyShunxinBtn.textContent = "复制顺心捷达报价";
+          els.copyBestBtn.textContent = "复制百世快运报价";
         }, 1200);
       } catch (error) {
         const range = document.createRange();
-        range.selectNodeContents(els.shunxinQuote);
+        range.selectNodeContents(els.bestQuote);
         const selection = window.getSelection();
         selection.removeAllRanges();
         selection.addRange(range);
-        els.copyShunxinBtn.textContent = "已选中，可手动复制";
+        els.copyBestBtn.textContent = "已选中，可手动复制";
       }
     });
 

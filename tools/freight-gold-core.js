@@ -272,63 +272,63 @@
     return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/\.?0+$/, "");
   }
 
-  function shunxinData() {
-    return window.SHUNXIN_RATE_DATA || {};
+  function bestData() {
+    return window.BEST_RATE_DATA || {};
   }
 
-  function matchShunxinRate(address) {
+  function containsPlace(text, name) {
+    const index = text.indexOf(name);
+    return index >= 0 && !/^[路街巷道]/.test(text.slice(index + name.length));
+  }
+
+  function matchBestRate(address, heavy = false) {
     const text = String(address || "").replace(/\s+/g, "");
     if (!text || text === "请粘贴地址") return { type: "empty" };
-
-    const data = shunxinData();
-    const specialArea = (data.specialAreas || []).find((area) => {
-      if (area.endsWith("岛")) return text.includes(area);
-      return text.includes(`${area}市`) || text.includes(`省${area}`) || text.startsWith(area);
+    const data = bestData();
+    const standardRows = data.standardRows || [];
+    const heavyRows = data.heavyRows || [];
+    const explicit = standardRows.filter(row => containsPlace(text, row.province));
+    const prefixed = standardRows.filter(row => text.startsWith(row.region)
+      && !/^[路街巷道]/.test(text.slice(row.region.length)));
+    let regions = [...new Set([...explicit, ...prefixed].map(row => row.region))];
+    if (!regions.length) {
+      // A district alone cannot identify its province; only table-listed cities can.
+      regions = [...new Set(heavyRows.filter(row => /市$|自治州$/.test(row.city)
+        && containsPlace(text, row.city)).map(row => row.region))];
+    }
+    if (regions.length > 1) return { type: "ambiguous", regions };
+    if (!regions.length) return { type: "none" };
+    const region = regions[0];
+    const provinceRow = standardRows.find(row => row.region === region);
+    if (!heavy) return { type: "rate", row: provinceRow };
+    const provinceRows = heavyRows.filter(row => row.region === region);
+    if (!provinceRows.length) return { type: "missing-heavy", region };
+    let localText = text;
+    for (const prefix of [provinceRow.province, provinceRow.region]) {
+      if (localText.startsWith(prefix)) { localText = localText.slice(prefix.length); break; }
+    }
+    const candidates = provinceRows.filter(row => {
+      if (row.city === "市区") return localText.startsWith("市区");
+      if (containsPlace(text, row.city)) return true;
+      const shortName = row.city.replace(/自治州$|市$|区$|县$/, "");
+      return localText.startsWith(shortName) && !/^[路街巷道]/.test(localText.slice(shortName.length));
     });
-    if (specialArea) return { type: "special", area: specialArea };
-
-    const candidates = (data.rows || []).flatMap((row, rowIndex) =>
-      (row.aliases || []).map((alias, aliasIndex) => ({
-        row,
-        rowIndex,
-        alias,
-        aliasIndex,
-        index: alias ? text.indexOf(alias) : -1,
-        administrative: /省$|市$|自治区$/.test(alias || "") ? 1 : 0
-      })).filter((item) => item.index >= 0 && (item.administrative || (item.aliasIndex === 0 && item.index === 0)))
-    );
-    const explicitRegions = [...new Set(candidates.filter((item) => item.administrative).map((item) => item.row.region))];
-    if (explicitRegions.length > 1) return { type: "ambiguous", regions: explicitRegions };
-    candidates.sort((a, b) =>
-      b.administrative - a.administrative
-      || a.index - b.index
-      || b.alias.length - a.alias.length
-      || a.rowIndex - b.rowIndex
-    );
-    return candidates.length ? { type: "rate", row: candidates[0].row } : { type: "none" };
+    const cities = [...new Set(candidates.map(row => row.city))];
+    if (!cities.length) return { type: "missing-city", region };
+    if (cities.length > 1) return { type: "ambiguous-city", region, cities };
+    const override = (data.confirmedOverrides || []).find(item => item.region === region && item.city === cities[0]);
+    if (override) {
+      const confirmedRow = candidates.find(row => row.rate === override.rate);
+      if (confirmedRow) return { type: "rate", row: confirmedRow, confirmation: override.note };
+    }
+    const prices = new Set(candidates.map(row => `${row.rate}/${row.delivery}/${row.eta}`));
+    if (prices.size > 1) return { type: "conflict", region, city: cities[0], rows: candidates };
+    return { type: "rate", row: candidates[0] };
   }
 
-  function shunxinTier(chargeWeight) {
-    const tiers = shunxinData().tiers || [];
-    const index = tiers.findIndex((tier) => {
-      const min = Number(tier.min);
-      const max = tier.max === null || tier.max === undefined ? null : Number(tier.max);
-      const aboveMin = tier.minExclusive ? chargeWeight > min : chargeWeight >= min;
-      const belowMax = max === null ? true : (tier.maxExclusive ? chargeWeight < max : chargeWeight <= max);
-      return Number.isFinite(min) && aboveMin && belowMax;
-    });
-    return index >= 0 ? { index, tier: tiers[index] } : null;
-  }
-
-  function packageDimensions(pkg) {
-    const values = packageDimensionText(pkg).match(/\d+(?:\.\d+)?/g);
-    if (!values || values.length < 3) return null;
-    const dimensions = values.slice(0, 3).map(Number);
-    return dimensions.every((value) => Number.isFinite(value) && value > 0) ? dimensions : null;
-  }
-
-  function manualShunxinQuote(address, message, processText) {
+  function manualBestQuote(address, message, processText) {
     return {
+      quoted: false,
       totalText: "人工询价",
       quoteText: `${address ? `${address}\n\n` : ""}${message}`,
       processText
@@ -336,141 +336,113 @@
   }
 
   function roundMoney(value) {
-    return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
+    const cents = Number(value) * 100;
+    return Math.round(cents + Math.abs(cents) * Number.EPSILON) / 100;
   }
 
-  function shunxinInsuranceFee(declaredValue) {
-    const value = Number(declaredValue);
-    if (!Number.isFinite(value) || value <= 2000) return 5;
-    return roundMoney(value * 0.003);
+  function bestInsuranceFee(weight) {
+    const value = Number(weight);
+    return Number.isFinite(value) && value > 0 ? Math.ceil(value / 300) * 5 : 0;
   }
 
-  function shunxinUpstairsFee(chargeWeight) {
-    const weight = Number(chargeWeight);
-    if (!Number.isFinite(weight) || weight <= 40) return 0;
-    return roundMoney(25 + weight * 0.1);
-  }
-
-  function buildShunxinQuote({
-    address,
-    totalWeight,
-    pkg,
-    weightLine,
-    packageLine,
-    dbLine,
-    db,
-    declaredValue,
-    includeUpstairsFee = false
-  }) {
+  function buildBestQuote({ address, totalWeight, pkg, weightLine, packageLine, dbLine, db = 0, destinationPickup = false, paymentMode = "collect" }) {
     if (!Number.isFinite(totalWeight) || totalWeight <= 0 || !pkg) {
-      return { totalText: "-", quoteText: "请填写地址和规格数量", processText: "自动显示计算过程" };
+      return { quoted: false, totalText: "-", quoteText: "请填写地址和规格数量", processText: "自动显示计算过程" };
     }
-
-    const match = matchShunxinRate(address);
-    if (match.type === "empty") {
-      return { totalText: "-", quoteText: "请先填写收货地址", processText: "需要地址后才能匹配顺心捷达费率。" };
+    if (!Number.isFinite(db) || db < 0) {
+      return manualBestQuote(address, "DB金额不完整，请人工确认。", "请先完成公共重量、包装和DB核算。");
     }
-    if (match.type === "special") {
-      return manualShunxinQuote(
-        address,
-        `${match.area}需单独询价。`,
-        `报价单注明${match.area}需单独询价。`
-      );
+    if (paymentMode !== "collect" && paymentMode !== "prepaid") {
+      return manualBestQuote(address, "请确认百世运费付款方式。", "到付加3%，我们付不加3%；两种方式最终均向上取整到元。");
     }
+    const provinceMatch = matchBestRate(address);
+    if (provinceMatch.type === "empty") {
+      return { quoted: false, totalText: "-", quoteText: "请先填写收货地址", processText: "需要地址后才能匹配百世快运费率。" };
+    }
+    const dimensionText = String(packageDimensionText(pkg));
+    const parts = dimensionText.split(/[×xX*]/).map(part => part.trim());
+    const dimensions = parts.map(Number);
+    const rawVolume = dimensions.reduce((volume, value) => volume * value, 1);
+    if (parts.length !== 3 || parts.some(part => !/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(part))
+      || dimensions.some(value => !Number.isFinite(value) || value <= 0)
+      || !Number.isFinite(rawVolume) || rawVolume <= 0) {
+      return manualBestQuote(address, "包装长宽高不完整，无法核算百世体积重，请人工确认。", "百世按实重与体积重取较大值；缺少尺寸时不猜体积，也不直接套实际重量报价。");
+    }
+    const volume = roundMoney(rawVolume);
+    const volumetricWeight = roundMoney(volume * 200);
+    if (!Number.isFinite(volumetricWeight)) {
+      return manualBestQuote(address, "包装尺寸超出有效计算范围，请人工确认。", "无法取得有效体积重，不继续生成运费。");
+    }
+    const chargeWeight = Math.max(totalWeight, volumetricWeight);
+    const isVolumetric = volumetricWeight > totalWeight;
+    const heavy = chargeWeight > 1000;
+    const match = heavy ? matchBestRate(address, true) : provinceMatch;
     if (match.type === "none") {
-      return manualShunxinQuote(address, "未匹配到顺心捷达费率，请手动查询。", "当前地址没有匹配到报价表里的省份。请检查省份是否填写完整。");
+      return manualBestQuote(address, "未匹配到百世快运费率，请补充省市后人工确认。", "不会按道路名称推测目的地，也不会使用其它省市的价格。");
     }
     if (match.type === "ambiguous") {
-      return manualShunxinQuote(address, "地址中识别到多个省级地区，请人工确认目的地后询价。", `识别到：${match.regions.join("、")}。系统不按出现顺序猜测。`);
+      return manualBestQuote(address, "地址中识别到多个省级地区，请人工确认目的地。", `识别到：${match.regions.join("、")}。系统不按出现顺序猜测。`);
     }
-
+    if (match.type === "missing-heavy") {
+      return manualBestQuote(address, `${match.region}在1吨以上报价表中没有价格，请人工询价。`, "超过1000KG不能沿用1吨以下价格或套用其它省份。");
+    }
+    if (match.type === "missing-city") {
+      return manualBestQuote(address, `${match.region}重货未匹配到具体目的地，请补充城市或区县并人工核对。`, "重货按表内城市/区县计价；“市区”范围原表未定义，不把所有未列区县自动归入市区。");
+    }
+    if (match.type === "ambiguous-city") {
+      return manualBestQuote(address, "识别到多个重货目的地，请人工确认。", `识别到：${match.cities.join("、")}。`);
+    }
+    if (match.type === "conflict") {
+      return manualBestQuote(address, `${match.region}${match.city}原表存在冲突价格，请人工询价。`, `重货表${match.rows.map(row => `第${row.sourceRow}行：${row.rate}元/KG`).join("；")}。不自动取高价或低价。`);
+    }
     const row = match.row;
-    const dimensions = packageDimensions(pkg);
-    if (!dimensions) {
-      return manualShunxinQuote(address, "包装尺寸不完整，请手动查询。", "顺心捷达按实际重量和体积重量取大值，当前包装缺少完整长宽高。");
+    const rate = heavy ? row.rate : row.rates[chargeWeight <= 500 ? 0 : 1];
+    if (!Number.isFinite(rate) || rate <= 0 || (heavy && !Number.isFinite(row.delivery))) {
+      return manualBestQuote(address, "目的地价格数据不完整，请人工询价。", "没有可用单价或送货费，不按0元计费。");
     }
-
-    const [length, width, height] = dimensions;
-    const isPallet = Boolean(pkg.size);
-    if (isPallet && (length + width + height > 4.8 || height > 1.8 || totalWeight > 1000)) {
-      return manualShunxinQuote(
-        address,
-        "托盘超出顺心捷达自动报价限制，请手动查询。",
-        "托盘限制：三边之和不超过4.8米、高度不超过1.8米、实际重量不超过1000KG。"
-      );
-    }
-
-    const volumeWeight = length * width * height * 200;
-    const chargeWeight = Math.max(totalWeight, volumeWeight);
-    const tierMatch = shunxinTier(chargeWeight);
-    if (!tierMatch) {
-      return manualShunxinQuote(
-        address,
-        `计费重量${formatWeight(chargeWeight)}KG，未匹配到最新报价表重量档，请手动查询。`,
-        `实际重量${formatWeight(totalWeight)}KG，体积重量${formatWeight(volumeWeight)}KG；最新报价表100KG起计，当前取大值后无法匹配报价档。`
-      );
-    }
-
-    const rate = Number(row.rates[tierMatch.index]);
-    if (!Number.isFinite(rate)) {
-      return manualShunxinQuote(address, "当前地区缺少对应重量档价格，请手动查询。", "报价表中没有可用单价。");
-    }
-
-    const freightFee = Math.ceil(chargeWeight * rate);
-    const declaredAmount = Number(declaredValue);
-    const insuranceFee = shunxinInsuranceFee(declaredValue);
-    const upstairsFee = shunxinUpstairsFee(chargeWeight);
-    const parsedDb = Number.isFinite(Number(db))
-      ? Number(db)
-      : Number((String(dbLine || "").match(/\d+(?:\.\d+)?/) || [0])[0]);
-    const includedUpstairsFee = includeUpstairsFee ? upstairsFee : 0;
-    const totalFee = roundMoney(freightFee + insuranceFee + parsedDb + includedUpstairsFee);
-    const feeSummary = [
-      `运费${formatMoney(freightFee)}元`,
-      `保费${formatMoney(insuranceFee)}元`,
-      `DB${formatMoney(parsedDb)}元`,
-      includeUpstairsFee ? `上门费${formatMoney(upstairsFee)}元` : ""
-    ].filter(Boolean).join("、");
-    const quoteText = `${address}\n\n${weightLine}\n${packageLine}\n${dbLine}\n\n顺心捷达预估：${formatMoney(totalFee)}元（${feeSummary}）`;
-    const insuranceText = Number.isFinite(declaredAmount) && declaredAmount > 2000
-      ? `保费：${formatMoney(insuranceFee)}元（${formatMoney(declaredAmount)}*0.003）`
-      : `保费：${formatMoney(insuranceFee)}元（2000元以内默认保费5元）`;
-    const upstairsText = upstairsFee === 0
-      ? "上门费：0元（40KG以内免费）"
-      : `上门费：${formatMoney(upstairsFee)}元（${includeUpstairsFee ? "已计入合计" : "未勾选，不计入合计"}）`;
-    const rateData = shunxinData();
-    const sourceText = rateData.source
-      ? `费率来源：${rateData.source}${rateData.updatedAt ? `，更新于${rateData.updatedAt}` : ""}`
-      : "";
-    const conditionalFeeText = (rateData.conditionalFeeNotes || []).length
-      ? `附加条件（未自动计入）：${rateData.conditionalFeeNotes.join("；")}`
-      : "";
+    const tierLabel = heavy ? "1000KG以上" : chargeWeight <= 500 ? "500KG以内" : "超过500至1000KG";
+    const freightFee = roundMoney(chargeWeight * rate);
+    const insuranceFee = bestInsuranceFee(chargeWeight);
+    const listedDeliveryFee = heavy ? row.delivery : 0;
+    const deliveryFee = heavy && chargeWeight < 5000 && !destinationPickup ? listedDeliveryFee : 0;
+    const deliveryReason = !heavy ? "1吨以内门到门已含送货，不含上楼费"
+      : destinationPickup ? "到站自提，免送货费"
+      : chargeWeight >= 5000 ? "计费重量5吨及以上免送货费" : "按目的地送货费";
+    const subtotal = roundMoney(freightFee + insuranceFee + deliveryFee + db);
+    const isCollect = paymentMode === "collect";
+    // 用整数分计算百分比，避免整数边界的浮点尾差；加3%后不先舍入到分。
+    const payableBeforeRounding = Math.round(subtotal * 100) * (isCollect ? 103 : 100) / 10000;
+    const totalFee = Math.ceil(payableBeforeRounding);
+    const payableText = payableBeforeRounding.toFixed(4).replace(/\.?0+$/, "");
+    const paymentLine = isCollect
+      ? `到付：${formatMoney(subtotal)}元*1.03=${payableText}元，向上取整=${formatMoney(totalFee)}元`
+      : `我们付：${formatMoney(subtotal)}元（不加3%），向上取整=${formatMoney(totalFee)}元`;
+    const feeSummary = `运费${formatMoney(freightFee)}元、易碎品保险${formatMoney(insuranceFee)}元、送货费${formatMoney(deliveryFee)}元、DB${formatMoney(db)}元`;
+    const caveat = "预估仅供核对；偏远/特殊派送区域、上楼及未列费用另询。";
+    const volumeLine = `体积：${dimensionText}=${formatMoney(volume)}方（四舍五入保留2位）`;
+    const volumetricLine = `体积重：${formatMoney(volume)}方*200KG/方=${formatWeight(volumetricWeight)}KG`;
+    const chargeLine = `计费重量：实重${formatWeight(totalWeight)}KG与体积重${formatWeight(volumetricWeight)}KG取大值=${formatWeight(chargeWeight)}KG（${isVolumetric ? "抛货" : "按实重"}）`;
+    const quoteText = [address, "", weightLine, packageLine, volumeLine, volumetricLine, chargeLine, dbLine, "", `费用小计：${formatMoney(subtotal)}元（${feeSummary}）`, paymentLine, `百世快运预估：${formatMoney(totalFee)}元`, `送货：${deliveryReason}。`, caveat].filter(line => line !== undefined).join("\n");
+    const source = heavy ? `${bestData().heavyFile} · 重货!D${row.sourceRow}:F${row.sourceRow}` : `${bestData().standardFile} · Sheet1!B${row.sourceRow}:D${row.sourceRow}`;
     const processText = [
-      sourceText,
-      `匹配：${row.region}，时效约${row.eta}${row.note ? `；${row.note}` : ""}`,
-      `包装：${formatMoney(length)}*${formatMoney(width)}*${formatMoney(height)}米`,
-      `实际重量：${formatWeight(totalWeight)}KG`,
-      `体积重量：${formatMoney(length)}*${formatMoney(width)}*${formatMoney(height)}*200=${formatWeight(volumeWeight)}KG`,
-      `计费重量：MAX(${formatWeight(totalWeight)}, ${formatWeight(volumeWeight)})=${formatWeight(chargeWeight)}KG`,
-      `运费：${formatWeight(chargeWeight)}KG*${formatMoney(rate)}元/KG=${freightFee}元（${tierMatch.tier.label}）`,
-      insuranceText,
-      upstairsText,
-      `DB：${formatMoney(parsedDb)}元`,
-      `合计：${freightFee}+${formatMoney(insuranceFee)}+${formatMoney(parsedDb)}${includeUpstairsFee ? `+${formatMoney(upstairsFee)}` : ""}=${formatMoney(totalFee)}元`,
-      conditionalFeeText
+      `费率来源：${source}，2026-09-22`,
+      `匹配：${row.region}${heavy ? ` · ${row.city}` : ""}，时效约${row.eta}`,
+      match.confirmation || "",
+      `实际总重量：${formatWeight(totalWeight)}KG（含包装）`,
+      volumeLine,
+      volumetricLine,
+      chargeLine,
+      `运费：${formatWeight(chargeWeight)}KG*${formatMoney(rate)}元/KG=${formatMoney(freightFee)}元（${tierLabel}）`,
+      `易碎品保险：按计费重量每开始300KG收5元，${Math.ceil(chargeWeight / 300)}档*5=${formatMoney(insuranceFee)}元`,
+      `送货费：${formatMoney(deliveryFee)}元（${deliveryReason}${heavy && deliveryFee === 0 ? `；表列${formatMoney(listedDeliveryFee)}元` : ""}）`,
+      !heavy && destinationPickup ? "1吨以内原表未单列可扣减的送货费，自提不自动减价。" : "",
+      `DB：${formatMoney(db)}元`,
+      `费用小计：${formatMoney(freightFee)}+${formatMoney(insuranceFee)}+${formatMoney(deliveryFee)}+${formatMoney(db)}=${formatMoney(subtotal)}元`,
+      paymentLine,
+      heavy ? "原表表头写“元/吨”，用户已确认数值实际按元/公斤；重货报价含税。" : "",
+      caveat
     ].filter(Boolean).join("\n");
-
-    return {
-      totalText: `${formatMoney(totalFee)}元`,
-      quoteText,
-      processText,
-      freightFee,
-      insuranceFee,
-      upstairsFee,
-      includedUpstairsFee,
-      totalFee,
-      chargeWeight
-    };
+    return { quoted: true, totalText: `${formatMoney(totalFee)}元`, quoteText, processText, freightFee, insuranceFee, listedDeliveryFee, deliveryFee, subtotal, paymentMode, payableBeforeRounding, totalFee, actualWeight: totalWeight, volume, volumetricWeight, chargeWeight, isVolumetric, rate, tierLabel };
   }
 
   window.GoldFreightCore = {
@@ -486,9 +458,8 @@
     calculateShipment,
     formatWeight,
     packageQuestionLine,
-    shunxinInsuranceFee,
-    shunxinUpstairsFee,
-    matchShunxinRate,
-    buildShunxinQuote
+    bestInsuranceFee,
+    matchBestRate,
+    buildBestQuote
   };
 })();

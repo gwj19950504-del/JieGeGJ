@@ -119,27 +119,27 @@ async function noOverflow(page) {
                 for (const address of ['山东省枣庄市薛城区另一测试地址', '']) {
                     await page.locator('#quoteFreightAddress').fill(address);
                     await assertBlocked(page, '#copyQuoteFreightBtn');
-                    await assertBlocked(page, '#copyQuoteShunxinBtn');
+                    await assertBlocked(page, '#copyQuoteBestBtn');
                     assert.equal(await page.locator('#quoteFreightWeight').innerText(), '-');
-                    assert.equal(await page.locator('#quoteShunxinTotal').innerText(), '-');
+                    assert.equal(await page.locator('#quoteBestTotal').innerText(), '-');
                 }
-                assert.match(await page.locator('#quoteShunxinQuote').innerText(), /不同仓库发货，请按仓库分别询价/);
+                assert.match(await page.locator('#quoteBestQuote').innerText(), /不同仓库发货，请按仓库分别询价/);
                 assert.equal(await page.locator('#copyQuoteFreightBtn').innerText(), '复制运费提问');
-                assert.equal(await page.locator('#quoteShunxinQuote').isVisible(), true);
+                assert.equal(await page.locator('#quoteBestQuote').isVisible(), true);
                 await shot('different-freight', page.getByRole('region', { name: '鎏金板运费快速提问', exact: true }));
                 await page.locator('#clearQuoteFreightBtn').click();
                 await assertBlocked(page, '#copyQuoteFreightBtn');
                 await page.getByText('同一个仓库发货', { exact: true }).click();
                 await page.locator('#quoteFreightAddress').fill('山东省枣庄市薛城区测试路1号');
                 assert.match(await copy(page, '#copyQuoteFreightBtn'), /293KG/);
-                assert.equal(await page.locator('#copyQuoteShunxinBtn').isDisabled(), false);
+                assert.equal(await page.locator('#copyQuoteBestBtn').isDisabled(), false);
                 await page.getByText('不同仓库发货', { exact: true }).click();
                 await page.locator('#multiMode').uncheck();
                 await fill(page, { product: '鎏金板', spec: '硬质-1220*3050*6mm', quantity: '3', unitPrice: '70' });
                 assert.match(await copy(page, '#copyQuoteFreightBtn'), /179KG/);
                 await page.locator('#quantity').fill('-1');
                 await assertBlocked(page, '#copyQuoteFreightBtn');
-                await assertBlocked(page, '#copyQuoteShunxinBtn');
+                await assertBlocked(page, '#copyQuoteBestBtn');
                 await noOverflow(page);
                 pass(`不同仓拦截、修改清空地址、同仓及单产品恢复、非法值保护 ${width}px`);
             }

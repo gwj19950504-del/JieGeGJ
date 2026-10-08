@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="jiege-build" content="v2026.10.06.1">
+  <meta name="jiege-build" content="v2026.10.08.4">
   <link rel="icon" href="data:,">
   <title>鎏金板每日文字开单工具</title>
   <style>
@@ -1099,7 +1099,7 @@
       border-color: rgba(47, 143, 91, 0.42);
     }
 
-    .shunxin-section {
+    .best-section {
       margin-top: 18px;
       border: 1px solid var(--line);
       border-radius: 10px;
@@ -1108,7 +1108,7 @@
       box-shadow: 0 10px 26px rgba(17, 24, 39, 0.07);
     }
 
-    .shunxin-head {
+    .best-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -1118,7 +1118,7 @@
       background: #f7f7f7;
     }
 
-    .shunxin-title {
+    .best-title {
       display: flex;
       align-items: center;
       gap: 12px;
@@ -1127,7 +1127,7 @@
       color: #1f2937;
     }
 
-    .shunxin-logo {
+    .best-logo {
       width: 92px;
       height: 48px;
       border-radius: 6px;
@@ -1136,20 +1136,20 @@
       flex: 0 0 auto;
     }
 
-    .shunxin-subtitle {
+    .best-subtitle {
       color: var(--muted);
       font-size: 13px;
       font-weight: 700;
     }
 
-    .shunxin-total {
+    .best-total {
       color: #111827;
       font-size: 24px;
       font-weight: 950;
       white-space: nowrap;
     }
 
-    .shunxin-options {
+    .best-options {
       display: grid;
       grid-template-columns: minmax(260px, 1.45fr) minmax(250px, 1.2fr) minmax(150px, 0.72fr) minmax(150px, 0.72fr);
       align-items: stretch;
@@ -1159,7 +1159,7 @@
       background: #fcfcfc;
     }
 
-    .shunxin-option-cell {
+    .best-option-cell {
       display: grid;
       grid-template-rows: 18px 52px;
       align-content: end;
@@ -1167,7 +1167,7 @@
       min-width: 0;
     }
 
-    .shunxin-option-label {
+    .best-option-label {
       color: var(--muted);
       font-size: 13px;
       font-weight: 850;
@@ -1178,7 +1178,7 @@
       margin: 0;
     }
 
-    .shunxin-upstairs-toggle {
+    .best-pickup-toggle {
       display: flex;
       align-items: center;
       gap: 8px;
@@ -1196,7 +1196,7 @@
       cursor: pointer;
     }
 
-    .shunxin-upstairs-toggle input {
+    .best-pickup-toggle input {
       width: 18px;
       height: 18px;
       min-height: auto;
@@ -1205,7 +1205,7 @@
       accent-color: var(--accent);
     }
 
-    .shunxin-fee-badge {
+    .best-fee-badge {
       min-width: 0;
       height: 52px;
       min-height: 52px;
@@ -1221,7 +1221,7 @@
       font-weight: 900;
     }
 
-    .shunxin-body {
+    .best-body {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 220px;
       gap: 14px;
@@ -1229,7 +1229,7 @@
       align-items: stretch;
     }
 
-    .shunxin-box {
+    .best-box {
       min-height: 170px;
       border-radius: 8px;
       background: #18181b;
@@ -1242,7 +1242,7 @@
       overflow-wrap: anywhere;
     }
 
-    .shunxin-process {
+    .best-process {
       border-radius: 8px;
       background: #f0fdf4;
       border: 1px solid #bbf7d0;
@@ -1254,9 +1254,9 @@
       overflow-wrap: anywhere;
     }
 
-    .shunxin-actions { padding: 0 16px 16px; }
+    .best-actions { padding: 0 16px 16px; }
 
-    .shunxin-actions button {
+    .best-actions button {
       min-width: 190px;
       border-color: #111827;
       background: #111827;
@@ -1307,13 +1307,13 @@
     .hidden { display: none !important; }
 
     @media (max-width: 760px) {
-      .shunxin-head { align-items: flex-start; flex-direction: column; }
-      .shunxin-body { grid-template-columns: 1fr; }
-      .shunxin-options { grid-template-columns: 1fr; }
+      .best-head { align-items: flex-start; flex-direction: column; }
+      .best-body { grid-template-columns: 1fr; }
+      .best-options { grid-template-columns: 1fr; }
     }
 
     @media (min-width: 761px) and (max-width: 1100px) {
-      .shunxin-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .best-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (max-width: 1180px) {
@@ -2325,7 +2325,7 @@
     }
 
 </style>
-  <link rel="stylesheet" href="apple-ui.css?v=20260926-2">
+  <link rel="stylesheet" href="apple-ui.css?v=20261008-1">
 </head>
 <body class="apple-ui" data-page="order-template">
   <main>
@@ -3023,44 +3023,44 @@
               <button type="button" id="copyFreightQuestionBtn" class="secondary">复制运费提问</button>
             </div>
           </div>
-          <div class="shunxin-section hidden" id="orderShunxinSection">
-            <div class="shunxin-head">
-              <div class="shunxin-title">
-                <img class="shunxin-logo" src="assets/shunxin-jieda-logo.png" alt="顺心捷达">
+          <div class="best-section hidden" id="orderBestSection">
+            <div class="best-head">
+              <div class="best-title">
+                <div class="best-brand" aria-label="百世快运">百世<strong>快运</strong><small>BEST FREIGHT</small></div>
                 <div>
-                  <div>顺心捷达自动报价</div>
-                  <div class="shunxin-subtitle">仅用于浙江仓鎏金板，根据地址、重量、包装和官方报价表自动估算。</div>
+                  <div>百世快运自动报价</div>
+                  <div class="best-subtitle">浙江仓鎏金板 · 实重与体积重取大值 · 2026-09-22费率</div>
                 </div>
               </div>
-              <div class="shunxin-total" id="orderShunxinTotal">-</div>
+              <div class="best-total" id="orderBestTotal">-</div>
             </div>
-            <div class="shunxin-options">
-              <div class="shunxin-option-cell">
-                <span class="shunxin-option-label">货值来源</span>
-                <span class="shunxin-fee-badge">保价金额自动读取开单合计</span>
+            <div class="best-options">
+              <div class="best-option-cell">
+                <span class="best-option-label">运费付款（跟随上方付款类型）</span>
+                <span class="best-rule-badge" id="orderBestPaymentSummary">到付 · 加3%后向上取整</span>
               </div>
-              <div class="shunxin-option-cell">
-                <span class="shunxin-option-label">上门服务</span>
-                <label class="shunxin-upstairs-toggle">
-                  <input id="orderShunxinIncludeUpstairs" type="checkbox">
-                  <span>需要上门（默认不上门）</span>
+              <div class="best-option-cell">
+                <span class="best-option-label">送货方式</span>
+                <label class="best-pickup-toggle">
+                  <input id="orderBestDestinationPickup" type="checkbox">
+                  <span>到站自提（免重货送货费）</span>
                 </label>
               </div>
-              <div class="shunxin-option-cell">
-                <span class="shunxin-option-label">保价费用</span>
-                <span class="shunxin-fee-badge" id="orderShunxinInsuranceFee">保费：待计算</span>
+              <div class="best-option-cell">
+                <span class="best-option-label">易碎品保险</span>
+                <span class="best-fee-badge" id="orderBestInsuranceFee">保费：待计算</span>
               </div>
-              <div class="shunxin-option-cell">
-                <span class="shunxin-option-label">上门费用</span>
-                <span class="shunxin-fee-badge" id="orderShunxinUpstairsFee">上门费：待计算</span>
+              <div class="best-option-cell">
+                <span class="best-option-label">送货费用</span>
+                <span class="best-fee-badge" id="orderBestDeliveryFee">送货费：待计算</span>
               </div>
             </div>
-            <div class="shunxin-body">
-              <div class="shunxin-box" id="orderShunxinQuote">请填写鎏金板产品、规格、数量和地址</div>
-              <div class="shunxin-process" id="orderShunxinProcess">自动显示计算过程</div>
+            <div class="best-body">
+              <div class="best-box" id="orderBestQuote">请填写鎏金板产品、规格、数量和地址</div>
+              <div class="best-process" id="orderBestProcess">自动显示计算过程</div>
             </div>
-            <div class="shunxin-actions">
-              <button type="button" id="copyOrderShunxinBtn">复制顺心捷达报价</button>
+            <div class="best-actions">
+              <button type="button" id="copyOrderBestBtn">复制百世快运报价</button>
             </div>
           </div>
         </div>
@@ -3072,8 +3072,8 @@
 
   <script src="input-validation.js?v=20260919-1"></script>
   <script src="product-data.js?v=20260905-1"></script>
-  <script src="shunxin-rates.js?v=20260815-1"></script>
-  <script src="freight-gold-core.js?v=20260919-1"></script>
+  <script src="best-rates.js?v=20261008-1"></script>
+  <script src="freight-gold-core.js?v=20261008-4"></script>
   <script src="ningbo-freight-core.js?v=20260905-1"></script>
   <script>
     const productData = window.JieGeProductData;
@@ -3103,7 +3103,7 @@
     ];
 
     const logisticsByWarehouse = {
-      "浙江仓": ["默认", "姜冉", "西武", "安能", "顺心捷达", "跨越", "货拉拉", "自提"],
+      "浙江仓": ["默认", "姜冉", "西武", "安能", "百世", "跨越", "货拉拉", "自提"],
       "宁波仓": ["默认", "安能", "明邦", "货拉拉", "自提"],
       "美利来": ["默认", "自提"],
       "松诺": ["默认", "货拉拉", "自提", "工厂自提"],
@@ -3275,14 +3275,15 @@
       freightQuestionTitle: document.querySelector("#freightQuestionTitle"),
       freightQuestion: document.querySelector("#freightQuestion"),
       copyFreightQuestionBtn: document.querySelector("#copyFreightQuestionBtn"),
-      orderShunxinSection: document.querySelector("#orderShunxinSection"),
-      orderShunxinIncludeUpstairs: document.querySelector("#orderShunxinIncludeUpstairs"),
-      orderShunxinInsuranceFee: document.querySelector("#orderShunxinInsuranceFee"),
-      orderShunxinUpstairsFee: document.querySelector("#orderShunxinUpstairsFee"),
-      orderShunxinTotal: document.querySelector("#orderShunxinTotal"),
-      orderShunxinQuote: document.querySelector("#orderShunxinQuote"),
-      orderShunxinProcess: document.querySelector("#orderShunxinProcess"),
-      copyOrderShunxinBtn: document.querySelector("#copyOrderShunxinBtn"),
+      orderBestSection: document.querySelector("#orderBestSection"),
+      orderBestDestinationPickup: document.querySelector("#orderBestDestinationPickup"),
+      orderBestPaymentSummary: document.querySelector("#orderBestPaymentSummary"),
+      orderBestInsuranceFee: document.querySelector("#orderBestInsuranceFee"),
+      orderBestDeliveryFee: document.querySelector("#orderBestDeliveryFee"),
+      orderBestTotal: document.querySelector("#orderBestTotal"),
+      orderBestQuote: document.querySelector("#orderBestQuote"),
+      orderBestProcess: document.querySelector("#orderBestProcess"),
+      copyOrderBestBtn: document.querySelector("#copyOrderBestBtn"),
       copyBtn: document.querySelector("#copyBtn"),
       resumeAutoBtn: document.querySelector("#resumeAutoBtn"),
       resetNextBtn: document.querySelector("#resetNextBtn"),
@@ -4296,7 +4297,17 @@
       if (!raw) return;
       const phoneMatch = raw.match(/1[3-9](?:\s*\d){9}/);
       if (!phoneMatch) {
-        if (!els.receiverName.value.trim()) els.receiverName.value = raw;
+        const addressLabel = /^(?:收货地址|详细地址|地址)\s*[:：]\s*/;
+        const address = raw.replace(addressLabel, "").replace(/\s+/g, "");
+        // 地址可以先于联系人填写；保留纯姓名兜底，不凭公司名称猜目的地。
+        const isAddress = addressLabel.test(raw)
+          || /(?:省|自治区|特别行政区|市|区|县|镇|乡).+(?:市|区|县|镇|乡|村|街|路|巷|弄|号|大厦|小区|园区)/.test(address)
+          || /(?:路|街|巷|弄)\d+号/.test(address);
+        if (isAddress) {
+          if (!els.receiverAddress.value.trim()) els.receiverAddress.value = address;
+        } else if (!els.receiverName.value.trim()) {
+          els.receiverName.value = raw;
+        }
         return;
       }
 
@@ -4327,23 +4338,26 @@
       return packageLine;
     }
 
-    function setOrderShunxinResult(result = {}) {
-      els.orderShunxinTotal.textContent = result.totalText || "-";
-      els.orderShunxinQuote.textContent = result.quoteText || "请填写鎏金板产品、规格、数量和地址";
-      els.orderShunxinProcess.textContent = result.processText || "自动显示计算过程";
-      els.orderShunxinInsuranceFee.textContent = Number.isFinite(result.insuranceFee) ? `保费：${money(result.insuranceFee)}元` : "保费：待计算";
-      els.orderShunxinUpstairsFee.textContent = Number.isFinite(result.upstairsFee)
-        ? `上门费：${money(result.upstairsFee)}元${els.orderShunxinIncludeUpstairs.checked ? "（已计入）" : "（未计入）"}`
-        : "上门费：待计算";
+    function setOrderBestResult(result = {}) {
+      els.orderBestTotal.textContent = result.totalText || "-";
+      els.orderBestQuote.textContent = result.quoteText || "请填写鎏金板产品、规格、数量和地址";
+      els.orderBestProcess.textContent = result.processText || "自动显示计算过程";
+      els.orderBestInsuranceFee.textContent = Number.isFinite(result.insuranceFee) ? `保费：${money(result.insuranceFee)}元` : "保费：待计算";
+      els.orderBestDeliveryFee.textContent = Number.isFinite(result.deliveryFee)
+        ? `送货费：${money(result.deliveryFee)}元`
+        : "送货费：待计算";
     }
 
-    function updateOrderShunxin(built, address, warehouse, isLiujin, logistics, total) {
+    function updateOrderBest(built, address, warehouse, isLiujin) {
       const show = warehouse === "浙江仓" && isLiujin;
-      els.orderShunxinSection.classList.toggle("hidden", !show);
+      els.orderBestSection.classList.toggle("hidden", !show);
       if (!show) return;
 
+      const paymentMode = currentFreightPay() === "到付" ? "collect" : "prepaid";
+      els.orderBestPaymentSummary.textContent = paymentMode === "collect"
+        ? "到付 · 加3%后向上取整" : "我们付（代付）· 不加3%，向上取整";
       const shipment = built.freightShipment;
-      const result = window.GoldFreightCore.buildShunxinQuote({
+      const result = window.GoldFreightCore.buildBestQuote({
         address: address || "",
         totalWeight: shipment ? shipment.totalWeight : 0,
         pkg: shipment ? shipment.pkg : null,
@@ -4351,10 +4365,10 @@
         packageLine: shipment ? shipment.packageLine : "",
         dbLine: shipment ? shipment.dbLine : "",
         db: shipment ? shipment.db : 0,
-        declaredValue: total,
-        includeUpstairsFee: els.orderShunxinIncludeUpstairs.checked
+        destinationPickup: els.orderBestDestinationPickup.checked,
+        paymentMode
       });
-      setOrderShunxinResult(result);
+      setOrderBestResult(result);
     }
 
     function freightText() {
@@ -5632,7 +5646,7 @@
       const error = orderValidationError();
       els.copyBtn.disabled = Boolean(error);
       els.copyFreightQuestionBtn.disabled = Boolean(error);
-      els.copyOrderShunxinBtn.disabled = Boolean(error);
+      els.copyOrderBestBtn.disabled = Boolean(error);
       if (!error) return;
       els.formNotice.textContent = error;
       els.formNotice.className = 'notice error';
@@ -5640,7 +5654,7 @@
       els.kdPreview.textContent = '-';
       els.weightPreview.textContent = '-';
       els.freightQuestion.textContent = error;
-      setOrderShunxinResult({ quoteText: error, processText: '请先修正开单输入。' });
+      setOrderBestResult({ quoteText: error, processText: '请先修正开单输入。' });
       if (!manualResultMode) els.result.textContent = error;
     }
 
@@ -5772,7 +5786,7 @@
       els.freightQuestion.textContent = isNingboWarehouseActive() ? ningboFreightQuestion : zhejiangFreightQuestion;
       els.freightQuestionTitle.textContent = isNingboWarehouseActive() ? "宁波运费询价模板" : "运费快速提问";
       els.copyFreightQuestionBtn.textContent = isNingboWarehouseActive() ? "复制宁波运费询价" : "复制运费提问";
-      updateOrderShunxin(built, rawAddress, warehouse, isLiujin, logistics, total);
+      updateOrderBest(built, rawAddress, warehouse, isLiujin);
       if (!manualResultMode) {
         renderingResult = true;
         els.result.textContent = normalizeLegacyPiecePriceNotes(lines.join("\n"));
@@ -5825,7 +5839,7 @@
       els.receiverAddress.value = "";
       parseReceiver();
       renderLogistics();
-      document.querySelector("input[name='logistics'][value='顺心捷达']").checked = true;
+      document.querySelector("input[name='logistics'][value='百世']").checked = true;
       document.querySelector("input[name='freightPay'][value='到付']").checked = true;
       document.querySelector("input[name='category'][value='liujin']").checked = true;
       renderSpecOptions();
@@ -6054,7 +6068,7 @@
       els.taxAmount.disabled = false;
       els.taxAmount.value = "";
       els.totalAmount.value = "";
-      els.orderShunxinIncludeUpstairs.checked = false;
+      els.orderBestDestinationPickup.checked = false;
       clearPaymentChoice();
       els.remarkCustom.value = "";
       resetDefaultRemarks();
@@ -6273,20 +6287,20 @@
       }
     });
 
-    els.copyOrderShunxinBtn.addEventListener("click", async () => {
+    els.copyOrderBestBtn.addEventListener("click", async () => {
       calculate();
-      if (els.copyOrderShunxinBtn.disabled) return;
+      if (els.copyOrderBestBtn.disabled) return;
       try {
-        await navigator.clipboard.writeText(els.orderShunxinQuote.textContent);
-        els.copyOrderShunxinBtn.textContent = "已复制";
-        window.setTimeout(() => { els.copyOrderShunxinBtn.textContent = "复制顺心捷达报价"; }, 1200);
+        await navigator.clipboard.writeText(els.orderBestQuote.textContent);
+        els.copyOrderBestBtn.textContent = "已复制";
+        window.setTimeout(() => { els.copyOrderBestBtn.textContent = "复制百世快运报价"; }, 1200);
       } catch (error) {
         const range = document.createRange();
-        range.selectNodeContents(els.orderShunxinQuote);
+        range.selectNodeContents(els.orderBestQuote);
         const selection = window.getSelection();
         selection.removeAllRanges();
         selection.addRange(range);
-        els.copyOrderShunxinBtn.textContent = "已选中，可手动复制";
+        els.copyOrderBestBtn.textContent = "已选中，可手动复制";
       }
     });
 

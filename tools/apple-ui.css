@@ -157,7 +157,7 @@
   body.apple-ui :is(button.danger, .remove, .remove-product, .delete-history, .shipment-delete, .delete-btn, .concrete-promo-delete, .meililai-fee-delete, #refreshDrawing) {
     color: var(--apple-red) !important; background: var(--apple-red-soft) !important;
   }
-  body.apple-ui :is(#resetNextBtn, #resetTop, #resetSide, #resetBottom, #copyBtn, #copyButton, #copyFreightQuestionBtn, .shunxin-actions button, #downloadSvg, #exportSvg, #exportPng) {
+  body.apple-ui :is(#resetNextBtn, #resetTop, #resetSide, #resetBottom, #copyBtn, #copyButton, #copyFreightQuestionBtn, .best-actions button, #downloadSvg, #exportSvg, #exportPng) {
     background: var(--apple-blue) !important; border-color: transparent !important; color: white !important;
     border-radius: 9px !important; box-shadow: none !important; font-size: 15px !important; font-weight: 600 !important;
   }
@@ -227,7 +227,7 @@
   }
 
   /* Money and warnings have their own semantic colors, never just decoration. */
-  body.apple-ui :is(.total-field, .payment-deduction, .shunxin-process) {
+  body.apple-ui :is(.total-field, .payment-deduction, .best-process) {
     background: var(--apple-green-soft) !important; color: var(--apple-green) !important;
     border: 1px solid #c4e1ce !important; border-radius: 12px !important; box-shadow: none !important;
     padding: 16px !important;
@@ -247,8 +247,8 @@
   body.apple-ui .catalog-product-note:empty { padding: 0 !important; margin: 0 !important; }
   body.apple-ui .summary { gap: 0; background: #f5f5f7; border-radius: 12px; padding: 16px; }
   body.apple-ui .summary > div { background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 8px 16px !important; border-radius: 0 !important; }
-  body.apple-ui :is(.summary strong, .summary b, .summary .value, .stat strong, .metric .num, .price, .price-value, .shunxin-fee-badge) { color: var(--apple-green) !important; }
-  body.apple-ui :is(.result-box, .freight-question-box, .freight-output, .shunxin-box, .quote, #quote, #preview, .output, .output-text) {
+  body.apple-ui :is(.summary strong, .summary b, .summary .value, .stat strong, .metric .num, .price, .price-value, .best-fee-badge) { color: var(--apple-green) !important; }
+  body.apple-ui :is(.result-box, .freight-question-box, .freight-output, .best-box, .quote, #quote, #preview, .output, .output-text) {
     background: #f7f8fa !important; color: #27272d !important; border: 1px solid #e1e3e8 !important;
     border-radius: 12px !important; box-shadow: none !important; padding: 20px !important;
     font-family: inherit !important; font-size: 16px !important; line-height: 1.85 !important;
@@ -335,10 +335,10 @@
   }
   body.apple-ui .concrete-fee-row { grid-template-columns: minmax(0,1fr) minmax(120px,.5fr) 88px !important; }
   body.apple-ui .concrete-promo-delete { width: 88px !important; }
-  body.apple-ui .shunxin-options { gap: 16px; }
-  body.apple-ui .shunxin-option-cell { grid-template-rows: auto 44px; }
-  body.apple-ui :is(.shunxin-option-label, .shunxin-option-cell > label) { height: auto; min-height: 22px; }
-  body.apple-ui :is(.shunxin-fee-badge, .shunxin-upstairs-toggle) { height: 44px; min-height: 44px; border-radius: 9px; padding: 8px 12px; font-size: 13px; }
+  body.apple-ui .best-options { gap: 16px; }
+  body.apple-ui .best-option-cell { grid-template-rows: auto 44px; }
+  body.apple-ui :is(.best-option-label, .best-option-cell > label) { height: auto; min-height: 22px; }
+  body.apple-ui :is(.best-fee-badge, .best-pickup-toggle) { height: 44px; min-height: 44px; border-radius: 9px; padding: 8px 12px; font-size: 13px; }
 
   /* Quote / project report. Keep output light, with clear action hierarchy. */
   body.apple-ui[data-page="quote-generator"] .form { padding: 24px; gap: 24px; }
@@ -429,13 +429,25 @@
   body.apple-ui[data-page="freight-gold"] .quantity-product-row { grid-template-columns: 1fr !important; }
   body.apple-ui[data-page="freight-gold"] .item-material .option span { min-height: var(--tool-control-height) !important; height: auto !important; }
   body.apple-ui[data-page="freight-gold"] .freight-item-remove { background: var(--apple-red-soft) !important; color: var(--apple-red) !important; }
-  body.apple-ui :is(.shunxin-options) { grid-template-columns: repeat(4,minmax(0,1fr)) !important; }
-  body.apple-ui .shunxin-total { white-space: normal; }
-  body.apple-ui .shunxin-total { color: var(--apple-green) !important; font-size: 24px !important; }
-  body.apple-ui .shunxin-fee-badge { background: var(--apple-green-soft) !important; border-color: #c4e1ce !important; }
+  body.apple-ui :is(.best-options) { grid-template-columns: repeat(4,minmax(0,1fr)) !important; }
+  body.apple-ui .best-total { white-space: normal; }
+  body.apple-ui .best-total { color: var(--apple-green) !important; font-size: 24px !important; }
+  body.apple-ui .best-fee-badge { background: var(--apple-green-soft) !important; border-color: #c4e1ce !important; }
   body.apple-ui .rules code { background: #ededf2 !important; color: #424249 !important; border: 0 !important; padding: 2px 5px; border-radius: 4px; }
-  body.apple-ui .shunxin-section { border: 1px solid #d5e3ee !important; border-radius: 12px !important; box-shadow: none !important; background: #fff !important; }
-  body.apple-ui :is(.shunxin-head,.shunxin-header) { background: #f2f7fc !important; border-radius: 12px 12px 0 0; }
+  body.apple-ui .best-section { border: 1px solid #d5e3ee !important; border-radius: 12px !important; box-shadow: none !important; background: #fff !important; }
+  body.apple-ui :is(.best-head,.best-header) { background: #f2f7fc !important; border-radius: 12px 12px 0 0; }
+  body.apple-ui .best-brand { flex: 0 0 auto; color: #052742; font-size: 24px; line-height: 1.05; font-weight: 800; letter-spacing: -1px; white-space: nowrap; }
+  body.apple-ui .best-brand strong { color: #db061d !important; font-weight: 800; }
+  body.apple-ui .best-brand small { display: block; margin-top: 4px; font-size: 10px; font-weight: 600; letter-spacing: 1.6px; }
+  body.apple-ui .best-head { background: #f5f7fa !important; border-top: 3px solid #db061d; color: #052742; flex-wrap: wrap; }
+  body.apple-ui .best-title { min-width: 0; gap: 16px; flex: 1 1 280px; }
+  body.apple-ui .best-title > div:last-child { min-width: 0; }
+  body.apple-ui .best-rule-badge { display: flex; align-items: center; min-height: 44px; padding: 8px 12px; border-radius: 9px; background: #edf1f6; color: #052742; font-size: 13px; }
+  body.apple-ui .best-pickup-toggle { height: auto; min-height: 44px; white-space: normal; line-height: 1.4; }
+  @media (max-width: 680px) {
+    body.apple-ui .best-head { flex-direction: column; align-items: flex-start; }
+    body.apple-ui .best-title { flex: none; width: 100%; }
+  }
 
   /* Geometry: presentation only; never restyle SVG children or physical sizes. */
   body.apple-ui[data-page="full-board-cut"] .wrap > .grid { grid-template-columns: 320px minmax(0,1fr); gap: 24px; }
@@ -518,10 +530,10 @@
     body.apple-ui[data-page="freight-gold"] .summary { grid-template-columns: 1fr; }
     body.apple-ui[data-page="freight-gold"] .summary > div { padding: 8px 0 !important; min-height: 0; display: grid; grid-template-columns: 90px minmax(0,1fr); gap: 12px; align-items: start; }
     body.apple-ui[data-page="freight-gold"] .summary strong { overflow-wrap: anywhere; font-size: 20px; }
-    body.apple-ui[data-page="freight-gold"] .shunxin-options { grid-template-columns: repeat(2,minmax(0,1fr)) !important; padding: 16px; }
-    body.apple-ui[data-page="freight-gold"] .shunxin-head { flex-wrap: wrap; }
-    body.apple-ui[data-page="freight-gold"] .shunxin-title { min-width: 0; }
-    body.apple-ui[data-page="freight-gold"] .shunxin-body { grid-template-columns: minmax(0,1fr); }
+    body.apple-ui[data-page="freight-gold"] .best-options { grid-template-columns: repeat(2,minmax(0,1fr)) !important; padding: 16px; }
+    body.apple-ui[data-page="freight-gold"] .best-head { flex-wrap: wrap; }
+    body.apple-ui[data-page="freight-gold"] .best-title { min-width: 0; }
+    body.apple-ui[data-page="freight-gold"] .best-body { grid-template-columns: minmax(0,1fr); }
   }
   @media (min-width: 981px) and (max-width: 1400px) {
     body.apple-ui[data-page="order-template"] .payment-method-options { grid-template-columns: repeat(4,minmax(0,1fr)); }
@@ -534,7 +546,7 @@
   }
 
   @media (max-width: 1200px) {
-    body.apple-ui :is(.shunxin-options) { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+    body.apple-ui :is(.best-options) { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
     body.apple-ui[data-page="wall-panel"] .app { grid-template-columns: 290px minmax(0,1fr); }
     body.apple-ui[data-page="wall-panel"] aside { padding: 20px !important; }
   }
@@ -568,7 +580,7 @@
     body.apple-ui :is(.topbar, main > header, .wrap > .header) { flex-direction: column; align-items: flex-start !important; gap: 12px; margin-bottom: 20px !important; }
     body.apple-ui :is(.panel-inner, .form-panel, .panel.left, .panel.right, .search-panel, .card) { padding: 16px; }
     body.apple-ui .layout { gap: 16px !important; }
-    body.apple-ui :is(.result-box, .freight-question-box, .shunxin-box, .quote, #quote, #preview) { padding: 16px !important; font-size: 15px !important; }
+    body.apple-ui :is(.result-box, .freight-question-box, .best-box, .quote, #quote, #preview) { padding: 16px !important; font-size: 15px !important; }
     body.apple-ui[data-page="order-template"] .compact-order-row { grid-template-columns: 64px minmax(0,1fr); gap: 16px 12px; }
     body.apple-ui[data-page="order-template"] .compact-order-row > :nth-child(3) { grid-column: 1 / -1; }
     body.apple-ui .green-count-options { gap: 6px !important; justify-content: space-between; }
@@ -597,7 +609,7 @@
     body.apple-ui[data-page="quick-price"] .price-row { grid-template-columns: 1fr; gap: 16px; }
     body.apple-ui[data-page="quick-price"] .price-values { justify-content: flex-start; gap: 32px; }
     body.apple-ui[data-page="quick-price"] .price-values > b { text-align: left; }
-    body.apple-ui :is(.shunxin-options) { grid-template-columns: 1fr !important; }
+    body.apple-ui :is(.best-options) { grid-template-columns: 1fr !important; }
     body.apple-ui[data-page="ningbo-weight"] > header { width: calc(100% - 24px) !important; margin-top: 24px !important; flex-direction: column; align-items: flex-start; gap: 8px; }
     body.apple-ui[data-page="ningbo-weight"] .source { text-align: left; }
     body.apple-ui[data-page="ningbo-weight"] .list { grid-template-columns: 1fr; max-height: 240px; }

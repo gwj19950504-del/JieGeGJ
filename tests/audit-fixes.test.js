@@ -151,11 +151,11 @@ test('墙面列表统一宽乘高并转义名称，不改变墙面几何或选�
 });
 
 function freightContext() {
-    const calls = { shipment: 0, shunxin: 0 };
+    const calls = { shipment: 0, best: 0 };
     const validation = {};
     const ids = ['quoteFreightWeight', 'quoteFreightPackage', 'quoteFreightDb', 'quoteFreightBox', 'quoteFreightNotice',
-        'quoteShunxinTotal', 'quoteShunxinQuote', 'quoteShunxinProcess', 'quoteShunxinInsuranceFee', 'quoteShunxinUpstairsFee',
-        'copyQuoteFreightBtn', 'copyQuoteShunxinBtn', 'copyBtn', 'calcLine', 'multiCalcLine', 'quote'];
+        'quoteBestTotal', 'quoteBestQuote', 'quoteBestProcess', 'quoteBestInsuranceFee', 'quoteBestDeliveryFee',
+        'copyQuoteFreightBtn', 'copyQuoteBestBtn', 'copyBtn', 'calcLine', 'multiCalcLine', 'quote'];
     const context = {
         calls, mode: 'different', error: '', currentQuoteTotal: 2275, quoteManuallyEdited: true,
         els: Object.fromEntries(ids.map(id => [id, { textContent: '旧结果', disabled: false }])),
@@ -167,36 +167,37 @@ function freightContext() {
                 calls.shipment++;
                 return { ok: true, weightLine: '179KG', packageLine: '3米托盘', dbLine: 'DB6', notice: '一票货', detailLine: '3张' };
             },
-            buildShunxinQuote() {
-                calls.shunxin++;
-                return { totalText: '123元', quoteText: '同仓运费报价', processText: '同仓计算', insuranceFee: 10, upstairsFee: 20 };
+            buildBestQuote() {
+                calls.best++;
+                return { totalText: '123元', quoteText: '同仓运费报价', processText: '同仓计算', insuranceFee: 10, deliveryFee: 20 };
             }
         } }
     };
     context.els.multiMode = { checked: true };
     context.els.shipmentMode = () => context.mode;
     context.els.quoteFreightAddress = { value: '测试地址' };
-    context.els.quoteShunxinIncludeUpstairs = { checked: false };
+    context.els.quoteBestDestinationPickup = { checked: false };
+    context.els.quoteBestPaymentMode = { value: 'collect' };
     context.quoteValidationError = () => context.error;
-    return loadFunctions(context, 'quote-generator.html', ['setQuoteShunxinResult', 'setQuoteFreightEmpty', 'updateQuoteFreight', 'render']);
+    return loadFunctions(context, 'quote-generator.html', ['setQuoteBestResult', 'setQuoteFreightEmpty', 'updateQuoteFreight', 'render']);
 }
 
 test('不同仓发货不调用合票或顺心核算，清除旧结果并只禁用两个运费复制', () => {
     const context = freightContext();
     context.updateQuoteFreight();
-    assert.deepEqual(context.calls, { shipment: 0, shunxin: 0 });
-    for (const id of ['quoteFreightWeight', 'quoteFreightPackage', 'quoteFreightDb', 'quoteShunxinTotal']) {
+    assert.deepEqual(context.calls, { shipment: 0, best: 0 });
+    for (const id of ['quoteFreightWeight', 'quoteFreightPackage', 'quoteFreightDb', 'quoteBestTotal']) {
         assert.equal(context.els[id].textContent, '-');
     }
     assert.match(context.els.quoteFreightBox.textContent, /不同仓库发货，请按仓库分别询价/);
-    assert.match(context.els.quoteShunxinQuote.textContent, /不同仓库发货，请按仓库分别询价/);
-    assert.match(context.els.quoteShunxinProcess.textContent, /不能合并为一票/);
-    assert.equal(context.els.quoteShunxinInsuranceFee.textContent, '保费：待计算');
-    assert.equal(context.els.quoteShunxinUpstairsFee.textContent, '上门费：待计算');
+    assert.match(context.els.quoteBestQuote.textContent, /不同仓库发货，请按仓库分别询价/);
+    assert.match(context.els.quoteBestProcess.textContent, /不能合并为一票/);
+    assert.equal(context.els.quoteBestInsuranceFee.textContent, '保费：待计算');
+    assert.equal(context.els.quoteBestDeliveryFee.textContent, '送货费：待计算');
     assert.equal(context.els.copyQuoteFreightBtn.disabled, true);
-    assert.equal(context.els.copyQuoteShunxinBtn.disabled, true);
+    assert.equal(context.els.copyQuoteBestBtn.disabled, true);
     assert.equal(context.els.copyQuoteFreightBtn.textContent, '复制运费提问');
-    assert.equal(context.els.copyQuoteShunxinBtn.textContent, '复制顺心捷达报价');
+    assert.equal(context.els.copyQuoteBestBtn.textContent, '复制百世快运报价');
     assert.equal(context.els.copyBtn.disabled, false);
     assert.equal(context.currentQuoteTotal, 2275);
     assert.equal(context.els.quote.textContent, '旧结果');
@@ -205,18 +206,18 @@ test('不同仓发货不调用合票或顺心核算，清除旧结果并只禁�
 test('同仓切不同仓和地址更新不泄露旧询价；恢复同仓或单产品可算，非法输入仍拦截', () => {
     const context = freightContext();
     context.mode = 'same'; context.render();
-    assert.equal(context.els.quoteShunxinTotal.textContent, '123元');
+    assert.equal(context.els.quoteBestTotal.textContent, '123元');
     context.mode = 'different'; context.render();
     for (const address of ['另一个地址', '']) {
         context.els.quoteFreightAddress.value = address;
         context.updateQuoteFreight();
         assert.equal(context.els.copyQuoteFreightBtn.disabled, true);
-        assert.equal(context.els.quoteShunxinTotal.textContent, '-');
+        assert.equal(context.els.quoteBestTotal.textContent, '-');
     }
     assert.equal(context.calls.shipment, 1);
     context.mode = 'same'; context.render();
     assert.equal(context.calls.shipment, 2);
-    assert.equal(context.els.copyQuoteShunxinBtn.disabled, false);
+    assert.equal(context.els.copyQuoteBestBtn.disabled, false);
     context.mode = 'different'; context.render();
     context.els.multiMode.checked = false; context.render();
     assert.equal(context.calls.shipment, 3);
@@ -225,7 +226,7 @@ test('同仓切不同仓和地址更新不泄露旧询价；恢复同仓或单�
     assert.equal(context.calls.shipment, 3);
     assert.equal(context.els.copyBtn.disabled, true);
     assert.equal(context.els.copyQuoteFreightBtn.disabled, true);
-    assert.equal(context.els.copyQuoteShunxinBtn.disabled, true);
+    assert.equal(context.els.copyQuoteBestBtn.disabled, true);
     assert.equal(context.els.quote.textContent, '旧结果');
 });
 

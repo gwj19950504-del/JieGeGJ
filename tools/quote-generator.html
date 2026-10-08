@@ -260,14 +260,14 @@
       flex: 1 1 240px;
     }
 
-    .shunxin-section {
+    .best-section {
       overflow: hidden;
       border: 1px solid #d9dee7;
       border-radius: 8px;
       background: #fff;
     }
 
-    .shunxin-head {
+    .best-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -277,7 +277,7 @@
       background: #f7f8fa;
     }
 
-    .shunxin-title {
+    .best-title {
       display: flex;
       align-items: center;
       gap: 14px;
@@ -286,7 +286,7 @@
       font-weight: 800;
     }
 
-    .shunxin-logo {
+    .best-logo {
       width: 116px;
       height: 54px;
       flex: 0 0 auto;
@@ -295,7 +295,7 @@
       background: #050505;
     }
 
-    .shunxin-subtitle {
+    .best-subtitle {
       margin-top: 4px;
       color: var(--muted);
       font-size: 13px;
@@ -303,7 +303,7 @@
       line-height: 1.45;
     }
 
-    .shunxin-total {
+    .best-total {
       flex: 0 0 auto;
       color: #15181c;
       font-size: 26px;
@@ -311,7 +311,7 @@
       white-space: nowrap;
     }
 
-    .shunxin-options {
+    .best-options {
       display: grid;
       grid-template-columns: minmax(260px, 1.45fr) minmax(250px, 1.2fr) minmax(150px, 0.72fr) minmax(150px, 0.72fr);
       align-items: stretch;
@@ -321,7 +321,7 @@
       background: #fcfcfc;
     }
 
-    .shunxin-option-cell {
+    .best-option-cell {
       display: grid;
       grid-template-rows: 18px 52px;
       align-content: end;
@@ -329,7 +329,7 @@
       min-width: 0;
     }
 
-    .shunxin-option-label {
+    .best-option-label {
       color: var(--muted);
       font-size: 13px;
       font-weight: 800;
@@ -340,7 +340,7 @@
       margin: 0;
     }
 
-    .shunxin-upstairs-toggle {
+    .best-pickup-toggle {
       display: flex;
       align-items: center;
       gap: 8px;
@@ -358,7 +358,7 @@
       cursor: pointer;
     }
 
-    .shunxin-upstairs-toggle input {
+    .best-pickup-toggle input {
       width: 18px;
       height: 18px;
       min-height: auto;
@@ -367,7 +367,7 @@
       accent-color: #2563eb;
     }
 
-    .shunxin-fee-badge {
+    .best-fee-badge {
       min-width: 0;
       height: 52px;
       min-height: 52px;
@@ -384,15 +384,15 @@
       font-weight: 850;
     }
 
-    .shunxin-body {
+    .best-body {
       display: grid;
       grid-template-columns: minmax(0, 1.55fr) minmax(240px, 0.75fr);
       gap: 14px;
       padding: 16px;
     }
 
-    .shunxin-box,
-    .shunxin-process {
+    .best-box,
+    .best-process {
       min-height: 190px;
       border-radius: 8px;
       padding: 18px;
@@ -401,26 +401,26 @@
       line-height: 1.65;
     }
 
-    .shunxin-box {
+    .best-box {
       background: #171a1d;
       color: #fff;
       font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
       font-size: 15px;
     }
 
-    .shunxin-process {
+    .best-process {
       border: 1px solid #d9dee7;
       background: #f7f8fa;
       color: #485161;
       font-size: 14px;
     }
 
-    .shunxin-actions {
+    .best-actions {
       display: flex;
       padding: 0 16px 16px;
     }
 
-    .shunxin-actions button {
+    .best-actions button {
       min-width: 240px;
     }
 
@@ -833,37 +833,37 @@
         grid-template-columns: 1fr;
       }
 
-      .shunxin-head {
+      .best-head {
         align-items: flex-start;
       }
 
-      .shunxin-title {
+      .best-title {
         align-items: flex-start;
       }
 
-      .shunxin-logo {
+      .best-logo {
         width: 92px;
         height: 44px;
       }
 
-      .shunxin-total {
+      .best-total {
         font-size: 20px;
       }
 
-      .shunxin-options {
+      .best-options {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .shunxin-body {
+      .best-body {
         grid-template-columns: 1fr;
       }
 
-      .shunxin-box,
-      .shunxin-process {
+      .best-box,
+      .best-process {
         min-height: 150px;
       }
 
-      .shunxin-actions button {
+      .best-actions button {
         width: 100%;
       }
 
@@ -1566,7 +1566,7 @@
     }
 
 </style>
-  <link rel="stylesheet" href="apple-ui.css?v=20260926-2">
+  <link rel="stylesheet" href="apple-ui.css?v=20261008-1">
 </head>
 <body class="apple-ui" data-page="quote-generator">
   <main>
@@ -1806,44 +1806,47 @@
         </div>
       </section>
 
-      <section class="shunxin-section" id="quoteShunxinSection" aria-label="顺心捷达自动报价">
-        <div class="shunxin-head">
-          <div class="shunxin-title">
-            <img class="shunxin-logo" src="assets/shunxin-jieda-logo.png" alt="顺心捷达">
+      <section class="best-section" id="quoteBestSection" aria-label="百世快运自动报价">
+        <div class="best-head">
+          <div class="best-title">
+            <div class="best-brand" aria-label="百世快运">百世<strong>快运</strong><small>BEST FREIGHT</small></div>
             <div>
-              <div>顺心捷达自动报价</div>
-              <div class="shunxin-subtitle">仅用于鎏金板，根据上方规格、数量、地址和官方报价表自动估算。</div>
+              <div>百世快运自动报价</div>
+              <div class="best-subtitle">鎏金板 · 实重与体积重取大值 · 2026-09-22费率</div>
             </div>
           </div>
-          <div class="shunxin-total" id="quoteShunxinTotal">-</div>
+          <div class="best-total" id="quoteBestTotal">-</div>
         </div>
-        <div class="shunxin-options">
-          <div class="shunxin-option-cell">
-            <span class="shunxin-option-label">货值来源</span>
-            <span class="shunxin-fee-badge">保价金额自动读取报价总计</span>
+        <div class="best-options">
+          <div class="best-option-cell">
+            <label class="best-option-label" for="quoteBestPaymentMode">运费付款（最终向上取整）</label>
+            <select id="quoteBestPaymentMode">
+              <option value="collect">到付（加3%）</option>
+              <option value="prepaid">我们付（不加3%）</option>
+            </select>
           </div>
-          <div class="shunxin-option-cell">
-            <span class="shunxin-option-label">上门服务</span>
-            <label class="shunxin-upstairs-toggle">
-              <input id="quoteShunxinIncludeUpstairs" type="checkbox">
-              <span>需要上门（默认不上门）</span>
+          <div class="best-option-cell">
+            <span class="best-option-label">送货方式</span>
+            <label class="best-pickup-toggle">
+              <input id="quoteBestDestinationPickup" type="checkbox">
+              <span>到站自提（免重货送货费）</span>
             </label>
           </div>
-          <div class="shunxin-option-cell">
-            <span class="shunxin-option-label">保价费用</span>
-            <span class="shunxin-fee-badge" id="quoteShunxinInsuranceFee">保费：待计算</span>
+          <div class="best-option-cell">
+            <span class="best-option-label">易碎品保险</span>
+            <span class="best-fee-badge" id="quoteBestInsuranceFee">保费：待计算</span>
           </div>
-          <div class="shunxin-option-cell">
-            <span class="shunxin-option-label">上门费用</span>
-            <span class="shunxin-fee-badge" id="quoteShunxinUpstairsFee">上门费：待计算</span>
+          <div class="best-option-cell">
+            <span class="best-option-label">送货费用</span>
+            <span class="best-fee-badge" id="quoteBestDeliveryFee">送货费：待计算</span>
           </div>
         </div>
-        <div class="shunxin-body">
-          <div class="shunxin-box" id="quoteShunxinQuote">请填写鎏金板产品、规格、数量和地址</div>
-          <div class="shunxin-process" id="quoteShunxinProcess">自动显示计算过程</div>
+        <div class="best-body">
+          <div class="best-box" id="quoteBestQuote">请填写鎏金板产品、规格、数量和地址</div>
+          <div class="best-process" id="quoteBestProcess">自动显示计算过程</div>
         </div>
-        <div class="shunxin-actions">
-          <button type="button" id="copyQuoteShunxinBtn">复制顺心捷达报价</button>
+        <div class="best-actions">
+          <button type="button" id="copyQuoteBestBtn">复制百世快运报价</button>
         </div>
       </section>
     </div>
@@ -1862,8 +1865,8 @@
 
   <script src="input-validation.js?v=20260919-1"></script>
   <script src="product-data.js?v=20260905-1"></script>
-  <script src="shunxin-rates.js?v=20260815-1"></script>
-  <script src="freight-gold-core.js?v=20260919-1"></script>
+  <script src="best-rates.js?v=20261008-1"></script>
+  <script src="freight-gold-core.js?v=20261008-4"></script>
   <script>
     const els = {
       multiMode: document.querySelector("#multiMode"),
@@ -1916,14 +1919,15 @@
       quoteFreightNotice: document.querySelector("#quoteFreightNotice"),
       copyQuoteFreightBtn: document.querySelector("#copyQuoteFreightBtn"),
       clearQuoteFreightBtn: document.querySelector("#clearQuoteFreightBtn"),
-      quoteShunxinSection: document.querySelector("#quoteShunxinSection"),
-      quoteShunxinIncludeUpstairs: document.querySelector("#quoteShunxinIncludeUpstairs"),
-      quoteShunxinInsuranceFee: document.querySelector("#quoteShunxinInsuranceFee"),
-      quoteShunxinUpstairsFee: document.querySelector("#quoteShunxinUpstairsFee"),
-      quoteShunxinTotal: document.querySelector("#quoteShunxinTotal"),
-      quoteShunxinQuote: document.querySelector("#quoteShunxinQuote"),
-      quoteShunxinProcess: document.querySelector("#quoteShunxinProcess"),
-      copyQuoteShunxinBtn: document.querySelector("#copyQuoteShunxinBtn"),
+      quoteBestSection: document.querySelector("#quoteBestSection"),
+      quoteBestDestinationPickup: document.querySelector("#quoteBestDestinationPickup"),
+      quoteBestPaymentMode: document.querySelector("#quoteBestPaymentMode"),
+      quoteBestInsuranceFee: document.querySelector("#quoteBestInsuranceFee"),
+      quoteBestDeliveryFee: document.querySelector("#quoteBestDeliveryFee"),
+      quoteBestTotal: document.querySelector("#quoteBestTotal"),
+      quoteBestQuote: document.querySelector("#quoteBestQuote"),
+      quoteBestProcess: document.querySelector("#quoteBestProcess"),
+      copyQuoteBestBtn: document.querySelector("#copyQuoteBestBtn"),
       historyView: document.querySelector("#historyView"),
       historyList: document.querySelector("#historyList"),
       backToQuote: document.querySelector("#backToQuote"),
@@ -2301,14 +2305,14 @@
         .filter((item) => Number.isFinite(item.quantity) && item.quantity > 0);
     }
 
-    function setQuoteShunxinResult(result = {}) {
-      els.quoteShunxinTotal.textContent = result.totalText || "-";
-      els.quoteShunxinQuote.textContent = result.quoteText || "请填写鎏金板产品、规格、数量和地址";
-      els.quoteShunxinProcess.textContent = result.processText || "自动显示计算过程";
-      els.quoteShunxinInsuranceFee.textContent = Number.isFinite(result.insuranceFee) ? `保费：${money(result.insuranceFee)}元` : "保费：待计算";
-      els.quoteShunxinUpstairsFee.textContent = Number.isFinite(result.upstairsFee)
-        ? `上门费：${money(result.upstairsFee)}元${els.quoteShunxinIncludeUpstairs.checked ? "（已计入）" : "（未计入）"}`
-        : "上门费：待计算";
+    function setQuoteBestResult(result = {}) {
+      els.quoteBestTotal.textContent = result.totalText || "-";
+      els.quoteBestQuote.textContent = result.quoteText || "请填写鎏金板产品、规格、数量和地址";
+      els.quoteBestProcess.textContent = result.processText || "自动显示计算过程";
+      els.quoteBestInsuranceFee.textContent = Number.isFinite(result.insuranceFee) ? `保费：${money(result.insuranceFee)}元` : "保费：待计算";
+      els.quoteBestDeliveryFee.textContent = Number.isFinite(result.deliveryFee)
+        ? `送货费：${money(result.deliveryFee)}元`
+        : "送货费：待计算";
     }
 
     function setQuoteFreightEmpty(message, notice = "会跟随上方鎏金板报价自动更新。") {
@@ -2317,7 +2321,7 @@
       els.quoteFreightDb.textContent = "-";
       els.quoteFreightBox.textContent = message;
       els.quoteFreightNotice.textContent = notice;
-      setQuoteShunxinResult();
+      setQuoteBestResult();
     }
 
     function updateQuoteFreight() {
@@ -2325,11 +2329,11 @@
             const message = '不同仓库发货，请按仓库分别询价。';
             const notice = '各仓包装、重量和运费需分别核算，不能合并为一票。上方产品报价不受影响。';
             setQuoteFreightEmpty(message, notice);
-            setQuoteShunxinResult({ quoteText: message, processText: notice });
+            setQuoteBestResult({ quoteText: message, processText: notice });
             els.copyQuoteFreightBtn.disabled = true;
-            els.copyQuoteShunxinBtn.disabled = true;
+            els.copyQuoteBestBtn.disabled = true;
             els.copyQuoteFreightBtn.textContent = '复制运费提问';
-            els.copyQuoteShunxinBtn.textContent = '复制顺心捷达报价';
+            els.copyQuoteBestBtn.textContent = '复制百世快运报价';
             return;
         }
       const items = currentGoldFreightItems();
@@ -2351,7 +2355,7 @@
       els.quoteFreightDb.textContent = shipment.dbLine;
       els.quoteFreightBox.textContent = template;
       els.quoteFreightNotice.textContent = shipment.notice;
-      setQuoteShunxinResult(window.GoldFreightCore.buildShunxinQuote({
+      setQuoteBestResult(window.GoldFreightCore.buildBestQuote({
         address: els.quoteFreightAddress.value.trim(),
         totalWeight: shipment.totalWeight,
         pkg: shipment.pkg,
@@ -2359,8 +2363,8 @@
         packageLine: shipment.packageLine,
         dbLine: shipment.dbLine,
         db: shipment.db,
-        declaredValue: currentQuoteTotal,
-        includeUpstairsFee: els.quoteShunxinIncludeUpstairs.checked
+        destinationPickup: els.quoteBestDestinationPickup.checked,
+        paymentMode: els.quoteBestPaymentMode.value
       }));
     }
 
@@ -2493,7 +2497,7 @@
       validation.textContent = error;
       els.copyBtn.disabled = Boolean(error);
       els.copyQuoteFreightBtn.disabled = Boolean(error);
-      els.copyQuoteShunxinBtn.disabled = Boolean(error);
+      els.copyQuoteBestBtn.disabled = Boolean(error);
       if (error) {
         currentQuoteTotal = 0;
         els.calcLine.textContent = '待修正输入，暂不计算金额';
@@ -2532,7 +2536,8 @@
         customTax: els.customTax.value,
         noteExtra: els.noteExtra.value,
         quoteFreightAddress: els.quoteFreightAddress.value,
-        quoteShunxinIncludeUpstairs: els.quoteShunxinIncludeUpstairs.checked,
+        quoteBestDestinationPickup: els.quoteBestDestinationPickup.checked,
+        quoteBestPaymentMode: els.quoteBestPaymentMode.value,
         fees: { processingFee: els.processingFee.value, accessoryFee: els.accessoryFee.value, manualTaxFee: els.manualTaxFee.value },
         single: { product: els.product.value, spec: els.spec.value, quantity: els.quantity.value, originalPrice: els.originalPrice.value, unitPrice: els.unitPrice.value, pricingMode: els.pricingMode(), boxFee: els.boxFee.value, freightFee: els.freightFee.value },
         multi: { boxFee: els.multiBoxFee.value, freightFee: els.multiFreightFee.value, products: getProductCards().map((card) => ({ product: card.querySelector(".multi-product").value, spec: card.querySelector(".multi-spec").value, quantity: card.querySelector(".multi-quantity").value, originalPrice: card.querySelector(".multi-original-price").value, unitPrice: card.querySelector(".multi-unit-price").value, pricingMode: card.querySelector('input[type="radio"]:checked')?.value || "area", boxFee: card.querySelector(".multi-box-fee").value, freightFee: card.querySelector(".multi-freight-fee").value })) },
@@ -2547,7 +2552,8 @@
       els.customTax.value = state.customTax ?? 10;
       els.noteExtra.value = state.noteExtra || "";
       els.quoteFreightAddress.value = state.quoteFreightAddress || "";
-      els.quoteShunxinIncludeUpstairs.checked = !!state.quoteShunxinIncludeUpstairs;
+      els.quoteBestDestinationPickup.checked = !!state.quoteBestDestinationPickup;
+      els.quoteBestPaymentMode.value = state.quoteBestPaymentMode === "prepaid" ? "prepaid" : "collect";
       els.processingFee.value = state.fees?.processingFee ?? 0;
       els.accessoryFee.value = state.fees?.accessoryFee ?? 0;
       els.manualTaxFee.value = state.fees?.manualTaxFee ?? 0;
@@ -2632,7 +2638,8 @@
       els.customTax.value = 10;
       els.noteExtra.value = "";
       els.quoteFreightAddress.value = "";
-      els.quoteShunxinIncludeUpstairs.checked = false;
+      els.quoteBestDestinationPickup.checked = false;
+      els.quoteBestPaymentMode.value = "collect";
       els.multiBoxFee.value = 0;
       els.multiFreightFee.value = 0;
       els.multiProducts.innerHTML = "";
@@ -2715,12 +2722,12 @@
       els.copyQuoteFreightBtn.textContent = "已复制";
       setTimeout(() => { els.copyQuoteFreightBtn.textContent = "复制运费提问"; }, 1200);
     });
-    els.copyQuoteShunxinBtn.addEventListener("click", async () => {
+    els.copyQuoteBestBtn.addEventListener("click", async () => {
       render();
-      if (els.copyQuoteShunxinBtn.disabled) return;
-      await navigator.clipboard.writeText(els.quoteShunxinQuote.textContent);
-      els.copyQuoteShunxinBtn.textContent = "已复制";
-      setTimeout(() => { els.copyQuoteShunxinBtn.textContent = "复制顺心捷达报价"; }, 1200);
+      if (els.copyQuoteBestBtn.disabled) return;
+      await navigator.clipboard.writeText(els.quoteBestQuote.textContent);
+      els.copyQuoteBestBtn.textContent = "已复制";
+      setTimeout(() => { els.copyQuoteBestBtn.textContent = "复制百世快运报价"; }, 1200);
     });
     els.clearQuoteFreightBtn.addEventListener("click", () => {
       els.quoteFreightAddress.value = "";

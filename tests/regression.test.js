@@ -24,17 +24,17 @@ function read(relativePath) {
 }
 
 function loadCore(rateData) {
-  const context = { window: { SHUNXIN_RATE_DATA: rateData } };
+  const context = { window: { BEST_RATE_DATA: rateData } };
   vm.createContext(context);
   vm.runInContext(read("tools/freight-gold-core.js"), context);
   return context.window.GoldFreightCore;
 }
 
-function loadShunxinRateData() {
+function loadBestRateData() {
   const context = { window: {} };
   vm.createContext(context);
-  vm.runInContext(read("tools/shunxin-rates.js"), context);
-  return JSON.parse(JSON.stringify(context.window.SHUNXIN_RATE_DATA));
+  vm.runInContext(read("tools/best-rates.js"), context);
+  return JSON.parse(JSON.stringify(context.window.BEST_RATE_DATA));
 }
 
 function loadNingboCore() {
@@ -51,147 +51,7 @@ function loadProductData() {
   return context.window.JieGeProductData;
 }
 
-const sampleRates = {
-  tiers: [
-    { min: 100, max: 500, label: "100-500KG" },
-    { min: 501, max: 999, label: "501-999KG" },
-    { min: 1000, max: 1500, label: "1000-1500KG" }
-  ],
-  specialAreas: ["测试特别区"],
-  rows: [
-    { region: "测试省甲市", aliases: ["测试省甲市", "甲市"], rates: [1.4, 1.3, 1.2], eta: "2-3天", note: "" },
-    { region: "测试省乙市", aliases: ["测试省乙市", "乙市"], rates: [3, 2.8, 2.6], eta: "3-4天", note: "" }
-  ]
-};
-
-test("顺心捷达使用2026-08-15嘉兴最新四档报价", () => {
-  const data = loadShunxinRateData();
-  assert.equal(data.updatedAt, "2026-08-15");
-  assert.deepEqual(data.tiers.map((tier) => tier.label), [
-    "100kg-500kg",
-    "500kg-999kg",
-    "1000kg-2000kg",
-    "2000kg以上"
-  ]);
-  const actual = Object.fromEntries(data.rows.map((row) => [row.region, row.rates]));
-  assert.deepEqual(actual, {
-    "江浙沪": [0.6, 0.55, 0.5, 0.46],
-    "安徽省": [0.65, 0.6, 0.55, 0.5],
-    "广东省": [0.85, 0.8, 0.75, 0.7],
-    "福建省": [0.85, 0.8, 0.75, 0.7],
-    "山东省": [0.85, 0.8, 0.8, 0.7],
-    "江西省": [0.85, 0.85, 0.8, 0.7],
-    "湖北省": [0.9, 0.8, 0.8, 0.7],
-    "湖南省": [0.9, 0.85, 0.8, 0.7],
-    "河南省": [0.9, 0.78, 0.75, 0.7],
-    "天津": [1, 0.9, 0.75, 0.7],
-    "北京": [1, 0.9, 0.8, 0.77],
-    "河北省": [0.9, 0.85, 0.8, 0.77],
-    "陕西省": [1.3, 1.2, 1, 0.86],
-    "山西省": [1.3, 1.2, 1, 0.86],
-    "重庆市": [1.3, 1.2, 1, 0.86],
-    "四川": [1.3, 1.2, 1, 0.86],
-    "广西省": [1.3, 1.2, 1, 0.86],
-    "贵州": [1.3, 1.2, 1, 0.86],
-    "云南省": [1.4, 1.3, 1.2, 1.1],
-    "海南省": [1.9, 1.7, 1.5, 1.4],
-    "甘肃省": [1.5, 1.4, 1.3, 1.2],
-    "东北三省": [1.4, 1.2, 1.1, 1],
-    "内蒙古": [1.6, 1.5, 1.4, 1.3],
-    "青海省": [1.6, 1.5, 1.4, 1.2],
-    "宁夏省": [1.6, 1.5, 1.4, 1.2],
-    "西藏": [2.5, 2.3, 1.9, 1.7],
-    "新疆": [2.5, 2.3, 1.9, 1.7]
-  });
-  assert.equal(data.conditionalFeeNotes.length, 3);
-});
-
-test("顺心捷达最新重量档边界连续并支持2000kg以上", () => {
-  const data = loadShunxinRateData();
-  const core = loadCore(data);
-  const quote = (weight) => core.buildShunxinQuote({
-    address: "广东省广州市",
-    totalWeight: weight,
-    pkg: { outer: "1*1*1" },
-    weightLine: `${weight}KG`,
-    packageLine: "木箱：1*1*1",
-    dbLine: "",
-    db: 0
-  });
-  assert.match(quote(500).processText, /0\.85元\/KG=.*100kg-500kg/);
-  assert.match(quote(500.5).processText, /0\.8元\/KG=.*500kg-999kg/);
-  assert.match(quote(1000).processText, /0\.75元\/KG=.*1000kg-2000kg/);
-  assert.match(quote(2000).processText, /0\.75元\/KG=.*1000kg-2000kg/);
-  assert.match(quote(2000.5).processText, /0\.7元\/KG=.*2000kg以上/);
-  assert.match(quote(2000.5).processText, /到付手续费按到付金额的6%/);
-});
-
-function quoteInput(address, totalWeight) {
-  return {
-    address,
-    totalWeight,
-    pkg: { size: "2.46*1.25*0.25" },
-    weightLine: `${totalWeight}KG`,
-    packageLine: "2米托盘：2.46*1.25*0.25",
-    dbLine: "DB3",
-    db: 3
-  };
-}
-
-test("顺心捷达重量超过报价上限时停止自动报价", () => {
-  const core = loadCore(sampleRates);
-  const result = core.buildShunxinQuote(quoteInput("测试省甲市", 2001));
-  assert.equal(result.totalText, "人工询价");
-  assert.match(result.quoteText, /超出顺心捷达自动报价限制/);
-});
-
-test("顺心捷达按实际重量和体积重量取大值并加入DB", () => {
-  const core = loadCore(sampleRates);
-  const result = core.buildShunxinQuote(quoteInput("测试省甲市", 325));
-  assert.equal(result.totalText, "463元");
-  assert.match(result.processText, /计费重量：MAX\(325, 153\.8\)=325KG/);
-  assert.match(result.quoteText, /顺心捷达预估：463元/);
-});
-
-test("顺心捷达保费按货值千分之三计算且最低5元", () => {
-  const core = loadCore(sampleRates);
-  assert.equal(core.shunxinInsuranceFee(), 5);
-  assert.equal(core.shunxinInsuranceFee(2000), 5);
-  assert.equal(core.shunxinInsuranceFee(10000), 30);
-  const result = core.buildShunxinQuote({ ...quoteInput("测试省甲市", 325), declaredValue: 10000 });
-  assert.equal(result.insuranceFee, 30);
-  assert.equal(result.totalText, "488元");
-  assert.match(result.processText, /保费：30元（10000\*0\.003）/);
-});
-
-test("顺心捷达始终计算上门费，仅勾选后并入合计", () => {
-  const core = loadCore(sampleRates);
-  assert.equal(core.shunxinUpstairsFee(40), 0);
-  assert.equal(core.shunxinUpstairsFee(325), 57.5);
-  const defaultResult = core.buildShunxinQuote(quoteInput("测试省甲市", 325));
-  assert.equal(defaultResult.upstairsFee, 57.5);
-  assert.equal(defaultResult.totalText, "463元");
-  assert.match(defaultResult.processText, /上门费：57\.5元（未勾选，不计入合计）/);
-  const includedResult = core.buildShunxinQuote({ ...quoteInput("测试省甲市", 325), includeUpstairsFee: true });
-  assert.equal(includedResult.totalText, "520.5元");
-  assert.match(includedResult.processText, /上门费：57\.5元（已计入合计）/);
-});
-
-test("顺心捷达特殊地区转人工询价", () => {
-  const core = loadCore(sampleRates);
-  const result = core.buildShunxinQuote(quoteInput("测试特别区某路", 325));
-  assert.equal(result.totalText, "人工询价");
-  assert.match(result.processText, /单独询价/);
-});
-
-test("顺心捷达优先识别省级地址并拒绝道路名和多省歧义", () => {
-  const core = loadCore(loadShunxinRateData());
-  assert.equal(core.matchShunxinRate("湖北省武汉市上海路88号").row.region, "湖北省");
-  assert.equal(core.matchShunxinRate("江苏省南京市贵阳路10号").row.region, "江浙沪");
-  assert.equal(core.matchShunxinRate("贵阳路10号").type, "none");
-  assert.equal(core.matchShunxinRate("广东省广州市转浙江省杭州市").type, "ambiguous");
-  assert.equal(core.matchShunxinRate("南京市徐州路1号").type, "none");
-});
+const sampleRates = loadBestRateData();
 
 test("鎏金规格厚度由公共核心严格识别", () => {
   const core = loadCore(sampleRates);
@@ -218,10 +78,10 @@ test("公共包装核心统一处理硬软混装和多只小托盘", () => {
   assert.equal(small.pkg.size, undefined);
 });
 
-test("鎏金运费页面只使用公共顺心捷达核心", () => {
+test("鎏金运费页面只使用公共百世快运核心", () => {
   const html = read("tools/freight-gold.html");
-  assert.doesNotMatch(html, /function matchShunxinRate\(/);
-  assert.match(html, /freightCore\.buildShunxinQuote/);
+  assert.doesNotMatch(html, /function matchBestRate\(/);
+  assert.match(html, /freightCore\.buildBestQuote/);
 });
 
 test("鎏金运费不支持的规格不会回退成默认规格", () => {
@@ -267,15 +127,15 @@ test("浙江仓开单、鎏金运费和文字报价共用 DB 核心", () => {
   assert.doesNotMatch(order, /function chooseSmallPalletPackage\(/);
   assert.doesNotMatch(order, /totalQty \* 1\.5/);
   for (const file of ["tools/order-template.html", "tools/freight-gold.html", "tools/quote-generator.html"]) {
-    assert.match(read(file), /<script src="freight-gold-core\.js\?v=20260919-1"><\/script>/, file);
+    assert.match(read(file), /<script src="freight-gold-core\.js\?v=20261008-4"><\/script>/, file);
   }
 });
 
-test("浙江仓物流包含顺心捷达和跨越且不影响其它仓库", () => {
+test("浙江仓物流包含百世和跨越且不影响其它仓库", () => {
   const html = read("tools/order-template.html");
-  assert.match(html, /"浙江仓": \["默认", "姜冉", "西武", "安能", "顺心捷达", "跨越", "货拉拉", "自提"\]/);
+  assert.match(html, /"浙江仓": \["默认", "姜冉", "西武", "安能", "百世", "跨越", "货拉拉", "自提"\]/);
   assert.match(html, /"宁波仓": \["默认", "安能", "明邦", "货拉拉", "自提"\]/);
-  assert.doesNotMatch(html, /"(?:松诺|168|苏州仓|华中仓|淮海仓|昌盛仓|自选仓)": \[[^\]]*(?:安能|顺心捷达)/);
+  assert.doesNotMatch(html, /"(?:松诺|168|苏州仓|华中仓|淮海仓|昌盛仓|自选仓)": \[[^\]]*(?:安能|百世)/);
   assert.match(html, /function renderLogistics\(\)[\s\S]{0,500}index === 0 \? "checked" : ""/);
 });
 
@@ -287,37 +147,36 @@ test("浙江仓跨越和货拉拉把DB写进开单并扣除KD", () => {
   assert.match(html, /const dbLine = dbAsSeparateLine && built\.db > 0 \? `DB\$\{money\(built\.db\)\}` : "";/);
 });
 
-test("顺心捷达三个入口均接入保费和上门费", () => {
+test("百世快运三个入口均接入重量保费和到站自提", () => {
   const freight = read("tools/freight-gold.html");
   const order = read("tools/order-template.html");
   const quote = read("tools/quote-generator.html");
-  assert.match(freight, /id="shunxinDeclaredValue"/);
-  assert.match(freight, /declaredValue: els\.shunxinDeclaredValue\.value/);
-  assert.match(freight, /includeUpstairsFee: els\.shunxinIncludeUpstairs\.checked/);
-  assert.match(order, /declaredValue: total/);
-  assert.match(order, /includeUpstairsFee: els\.orderShunxinIncludeUpstairs\.checked/);
+  assert.doesNotMatch(freight, /DeclaredValue|declaredValue:/);
+  assert.match(freight, /destinationPickup: els\.bestDestinationPickup\.checked/);
+  assert.doesNotMatch(order, /declaredValue:/);
+  assert.match(order, /destinationPickup: els\.orderBestDestinationPickup\.checked/);
   assert.match(order, /const show = warehouse === "浙江仓" && isLiujin;/);
-  assert.match(quote, /declaredValue: currentQuoteTotal/);
-  assert.match(quote, /includeUpstairsFee: els\.quoteShunxinIncludeUpstairs\.checked/);
+  assert.doesNotMatch(quote, /declaredValue:/);
+  assert.match(quote, /destinationPickup: els\.quoteBestDestinationPickup\.checked/);
 });
 
-test("文字报价和开单模板始终保留顺心捷达报价窗口", () => {
+test("文字报价和开单模板始终保留百世快运报价窗口", () => {
   const order = read("tools/order-template.html");
   const quote = read("tools/quote-generator.html");
-  assert.match(quote, /<section class="shunxin-section" id="quoteShunxinSection"/);
-  assert.doesNotMatch(quote, /quoteShunxinSection\.classList\.(?:add|remove)\("hidden"\)/);
+  assert.match(quote, /<section class="best-section" id="quoteBestSection"/);
+  assert.doesNotMatch(quote, /quoteBestSection\.classList\.(?:add|remove)\("hidden"\)/);
   assert.match(order, /const show = warehouse === "浙江仓" && isLiujin;/);
-  assert.doesNotMatch(order, /isLiujin && logistics === "顺心捷达"/);
+  assert.doesNotMatch(order, /isLiujin && logistics === "百世快运"/);
 });
 
-test("顺心捷达三个入口的费用控件使用统一对齐栅格", () => {
+test("百世快运三个入口的费用控件使用统一对齐栅格", () => {
   ["tools/freight-gold.html", "tools/order-template.html", "tools/quote-generator.html"].forEach((file) => {
     const html = read(file);
-    assert.match(html, /\.shunxin-options\s*\{[\s\S]{0,260}display:\s*grid;/);
-    assert.match(html, /class="shunxin-option-cell"/);
-    assert.match(html, />上门服务</);
-    assert.match(html, />保价费用</);
-    assert.match(html, />上门费用</);
+    assert.match(html, /\.best-options\s*\{[\s\S]{0,260}display:\s*grid;/);
+    assert.match(html, /class="best-option-cell"/);
+    assert.match(html, />送货方式</);
+    assert.match(html, />易碎品保险</);
+    assert.match(html, />送货费用</);
   });
 });
 
@@ -845,17 +704,17 @@ test("美利来手填包装费开关紧跟标题且移动端不挤压税金栏",
 
 test("公共业务逻辑带版本标记避免浏览器继续使用旧缓存", () => {
   for (const file of ["tools/order-template.html", "tools/freight-gold.html", "tools/quote-generator.html"]) {
-    assert.match(read(file), /<script src="freight-gold-core\.js\?v=20260919-1"><\/script>/, file);
+    assert.match(read(file), /<script src="freight-gold-core\.js\?v=20261008-4"><\/script>/, file);
   }
   for (const file of ["tools/order-template.html", "tools/freight-gold.html", "tools/quote-generator.html"]) {
-    assert.match(read(file), /<script src="shunxin-rates\.js\?v=20260815-1"><\/script>/, file);
+    assert.match(read(file), /<script src="best-rates\.js\?v=20261008-1"><\/script>/, file);
   }
 });
 
-test("三处鎏金板业务共同使用顺心捷达且跨越只作为开单物流", () => {
+test("三处鎏金板业务共同使用百世快运且跨越只作为开单物流", () => {
   for (const file of ["tools/freight-gold.html", "tools/order-template.html", "tools/quote-generator.html"]) {
     const html = read(file);
-    assert.match(html, /buildShunxinQuote/, file);
+    assert.match(html, /buildBestQuote/, file);
     assert.doesNotMatch(html, /KYE|kye-rates|buildKyeQuote/, file);
   }
   assert.doesNotMatch(read("tools/freight-gold.html"), /跨越/);
@@ -903,7 +762,7 @@ test("所有仓库共用的合计框未填写时不显示示例数字", () => {
 
 test("主页版本号和所有工具入口完整", () => {
   const index = read("index.html");
-  assert.ok(index.includes('v2026.10.06.1'), '主页版本应为v2026.10.06.1');
+  assert.ok(index.includes('v2026.10.08.4'), '主页版本应为v2026.10.08.4');
   const routeMatch = index.match(/const toolPaths = (\{[^;]+\});/);
   assert.ok(routeMatch, "未找到工具入口表");
   const routes = JSON.parse(routeMatch[1]);
