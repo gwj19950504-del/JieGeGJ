@@ -98,8 +98,8 @@ const checks = [], errors = [];
             await page.goto('https://order-regression.test/index.html?tool=order-template');
             const frame = await (await page.locator('iframe').first().elementHandle()).contentFrame();
             await frame.locator('#quantity').waitFor();
-            assert.equal(new URL(frame.url()).searchParams.get('v'), '20261008-4');
-            assert.equal(await frame.locator('meta[name="jiege-build"]').getAttribute('content'), 'v2026.10.08.4');
+            assert.equal(new URL(frame.url()).searchParams.get('v'), '20261009-1');
+            assert.equal(await frame.locator('meta[name="jiege-build"]').getAttribute('content'), 'v2026.10.09.1');
             for (const [id, value] of Object.entries({ productName: '测试板(保留款式括号)',
                 quantity: '5', sqmPrice: '70', crateFee: '200', totalAmount: '1580' })) {
                 await frame.locator('#' + id).fill(value);

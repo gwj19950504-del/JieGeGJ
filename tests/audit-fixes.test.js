@@ -59,6 +59,61 @@ test('只有水泥板主仓停用修补剂随货发快捷项，手写同文及�
     assert.equal(context.selectedRemarks(), '【货好拍照】【有尾款等通知发货】');
 });
 
+test('单独包护角仅浙江主仓百世可用，切入默认勾选且同条件保留人工取消', () => {
+    let warehouse = '浙江仓';
+    let logistics = '默认';
+    const corner = '【单独包护角】';
+    const item = {
+        value: corner, checked: false, disabled: true, hidden: true,
+        closest() { return { classList: { toggle: (_name, hidden) => { this.hidden = hidden; } } }; }
+    };
+    const context = loadFunctions({
+        currentWarehouseGroup: () => warehouse, currentLogistics: () => logistics,
+        defaultRemarkPresets: new Set(['【货好拍照】', '修补剂随货发，谢谢！']),
+        syncCoatingRemarks: () => {}, els: { remarkCustom: { value: '' } },
+        document: { querySelectorAll: selector => selector.endsWith(':checked') && !item.checked ? [] : [item] }
+    }, 'order-template.html', ['isCementWarehouse', 'isRemarkPresetAvailable', 'syncRemarkPresetAvailability', 'selectedRemarks', 'resetDefaultRemarks']);
+    context.syncRemarkPresetAvailability();
+    assert.equal(item.hidden, true);
+    assert.equal(item.disabled, true);
+    assert.equal(context.selectedRemarks(), '');
+    logistics = '百世';
+    context.syncRemarkPresetAvailability();
+    assert.equal(item.hidden, false);
+    assert.equal(item.disabled, false);
+    assert.equal(item.checked, true);
+    assert.equal(context.selectedRemarks(), corner);
+    item.checked = false;
+    context.syncRemarkPresetAvailability();
+    assert.equal(item.checked, false);
+    assert.equal(context.selectedRemarks(), '');
+    context.resetDefaultRemarks();
+    context.syncRemarkPresetAvailability();
+    assert.equal(item.checked, true, '示例或显式重置备注时恢复该条件的默认勾选');
+    for (logistics of ['默认', '跨越', '姜冉', '西武', '货拉拉', '工厂自提']) {
+        item.checked = true;
+        assert.equal(context.selectedRemarks(), '', '输出独立过滤不适用的旧勾选');
+        context.syncRemarkPresetAvailability();
+        assert.equal(item.hidden, true, logistics);
+        assert.equal(item.disabled, true, logistics);
+        assert.equal(item.checked, false, logistics);
+    }
+    logistics = '百世';
+    context.syncRemarkPresetAvailability();
+    assert.equal(item.checked, true, '重新进入条件恢复默认勾选');
+    for (warehouse of ['宁波仓', '美利来', '混凝土仓', '水泥板仓库', '自选仓']) {
+        item.checked = true;
+        assert.equal(context.selectedRemarks(), '', warehouse);
+        context.syncRemarkPresetAvailability();
+        assert.equal(item.hidden, true, warehouse);
+        assert.equal(item.checked, false, warehouse);
+    }
+    context.els.remarkCustom.value = '手写保留：' + corner;
+    assert.equal(context.selectedRemarks(), '手写保留：' + corner);
+    context.resetDefaultRemarks();
+    assert.equal(item.checked, false);
+});
+
 test('开单金额正常展示为片数乘单片价等于小计，不插入舍入解释', () => {
     const context = loadFunctions({}, 'order-template.html', ['money', 'piecePriceDetail']);
     assert.equal(context.piecePriceDetail(3, 208.376, 625.128), '3片*208.38=625.13');

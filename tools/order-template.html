@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="jiege-build" content="v2026.10.08.4">
+  <meta name="jiege-build" content="v2026.10.09.1">
   <link rel="icon" href="data:,">
   <title>鎏金板每日文字开单工具</title>
   <style>
@@ -2982,6 +2982,7 @@
               <div class="checks">
                 <label class="checkline"><input type="checkbox" class="remarkPreset" value="【有尾款等通知发货】">【有尾款等通知发货】</label>
                 <label class="checkline"><input type="checkbox" class="remarkPreset" value="【货好拍照】" checked>【货好拍照】</label>
+                <label class="checkline hidden"><input type="checkbox" class="remarkPreset" value="【单独包护角】" disabled>【单独包护角】</label>
                 <label class="checkline"><input type="checkbox" class="remarkPreset" value="修补剂随货发，谢谢！" checked>修补剂随货发，谢谢！</label>
                 <label class="checkline"><input type="checkbox" class="remarkPreset" value="【耐磨罩面】">【耐磨罩面】</label>
                 <label class="checkline"><input type="checkbox" class="remarkPreset" value="【做好防水】">【做好防水】</label>
@@ -3928,7 +3929,8 @@
 
     function resetDefaultRemarks() {
       document.querySelectorAll(".remarkPreset").forEach((item) => {
-        item.checked = defaultRemarkPresets.has(item.value);
+        item.checked = item.value === "【单独包护角】"
+          ? isRemarkPresetAvailable(item.value) : defaultRemarkPresets.has(item.value);
       });
     }
 
@@ -4398,12 +4400,18 @@
     }
 
     function isRemarkPresetAvailable(value) {
+      if (value === "【单独包护角】") return currentWarehouseGroup() === "浙江仓" && currentLogistics() === "百世";
       return value !== "修补剂随货发，谢谢！" || !isCementWarehouse();
     }
 
     function syncRemarkPresetAvailability() {
       document.querySelectorAll(".remarkPreset").forEach((item) => {
         const available = isRemarkPresetAvailable(item.value);
+        if (item.value === "【单独包护角】") {
+          // 进入浙江百世时默认勾选；同条件下保留手动取消，离开时清除。
+          if (!available) item.checked = false;
+          else if (item.disabled) item.checked = true;
+        }
         // 保留其它仓的勾选状态；水泥板只停用快捷项，不改手写备注。
         item.disabled = !available;
         item.closest("label").classList.toggle("hidden", !available);
