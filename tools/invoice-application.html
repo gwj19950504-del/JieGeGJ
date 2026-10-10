@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="invoice-build" content="20261010-1">
+  <link rel="icon" href="data:,">
+  <title>开票申请 · 杰哥工具</title>
+  <link rel="stylesheet" href="apple-ui.css?v=20261008-1">
+  <link rel="stylesheet" href="invoice.css?v=20261010-1">
+</head>
+<body class="apple-ui" data-page="invoice-application">
+  <main>
+    <header class="topbar">
+      <div><h1>开票申请</h1><p class="subtitle">选开票主体，原文粘贴客户资料，自动组合申请文字。</p></div>
+      <div class="header-meta"><span class="pill">开票申请</span></div>
+    </header>
+    <div class="invoice-layout">
+      <section class="panel form-panel" aria-label="开票申请填写区">
+        <section class="form-section">
+          <div class="section-heading"><span class="step">01</span><h2>开票主体</h2></div>
+          <div class="segmented mode-tabs" aria-label="开票类别">
+            <button type="button" class="active" id="individualMode" aria-pressed="true">个体户开票 <small>普票</small></button>
+            <button type="button" id="companyMode" aria-pressed="false">公司开票 <small>普票 / 专票</small></button>
+          </div>
+          <div id="individualFields">
+            <fieldset class="issuer-options"><legend class="field-label">选择个体户</legend>
+              <div class="choices three">
+                <label class="option"><input type="radio" name="individual" value="yunmiao" checked><span>云苗<small>高炜杰</small></span></label>
+                <label class="option"><input type="radio" name="individual" value="anmiao"><span>安苗<small>张静静</small></span></label>
+                <label class="option"><input type="radio" name="individual" value="yuemiao"><span>悦苗<small>张振虎</small></span></label>
+              </div>
+            </fieldset>
+            <div class="seller-info"><span>开票名称</span><strong id="sellerName">义乌市云苗贸易商行（个体工商户）</strong></div>
+            <div class="form-grid two numbering">
+              <label>开票月份<input type="month" id="invoiceMonth"></label>
+              <label>当月流水号 <span class="label-note">可校正</span><input id="sequence" inputmode="numeric" autocomplete="off" aria-describedby="sequenceHint"></label>
+            </div>
+            <p class="hint" id="sequenceHint">三家共用月度流水号，复制成功后登记；重复复制本单不递增。</p>
+          </div>
+          <div id="companyFields" hidden>
+            <fieldset class="issuer-options"><legend class="field-label">选择开票模板</legend>
+              <div class="choices four">
+                <label class="option"><input type="radio" name="company" value="greenlive" checked><span>绿活<small>专票</small></span></label>
+                <label class="option"><input type="radio" name="company" value="jianan"><span>嘉南<small>专票</small></span></label>
+                <label class="option"><input type="radio" name="company" value="xinchengde"><span>鑫成德<small>普票</small></span></label>
+                <label class="option"><input type="radio" name="company" value="yongpei"><span>上海永沛<small>普票</small></span></label>
+              </div>
+            </fieldset>
+            <label class="checkline inline-check"><input type="checkbox" id="payOnInvoice">见票付款</label>
+            <p class="hint">抬头自动组合“公司－票种－总金额”；勾选后才追加“见票付款”。</p>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-heading"><span class="step">02</span><h2>客户开票资料</h2><button type="button" class="secondary small-button" id="demoBtn">填入示例</button></div>
+          <label for="customerRaw" class="field-label">粘贴客户发来的文字</label>
+          <textarea id="customerRaw" rows="8" placeholder="把客户发来的开票资料整段粘贴到这里，内容会原样放入申请文字。" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off" aria-describedby="customerRawHint"></textarea>
+          <p class="hint customer-raw-hint" id="customerRawHint">不识别、不拆分、不改写；保留原文换行和空格。需要修改时，直接在上方编辑。</p>
+        </section>
+
+        <section class="form-section">
+          <div class="section-heading"><span class="step">03</span><h2>开票明细</h2></div>
+          <label class="field-label" for="product">商品名称</label>
+          <input id="product" placeholder="例如：水泥板、鎏金水泥板" autocomplete="off">
+          <div class="form-grid product-grid">
+            <label>数量<input id="quantity" inputmode="decimal" placeholder="填写数量" autocomplete="off"></label>
+            <label>单位<select id="unit"><option value="片">片</option><option value="平">平</option></select></label>
+            <label>开票总金额（元）<input id="total" inputmode="decimal" placeholder="填写总金额" autocomplete="off"></label>
+          </div>
+          <div class="price-summary"><span>自动单价</span><strong id="unitPrice">—</strong><span id="priceUnit">元 / 片</span></div>
+          <p class="hint">总金额 ÷ 数量，最多4位小数直接截断；总金额以你填写的数值为准。</p>
+          <label class="field-label" for="remark">备注 <span class="label-note">选填</span></label>
+          <textarea id="remark" rows="2" placeholder="需要额外说明的开票要求，可在这里填写。税金不自动计算。"></textarea>
+        </section>
+      </section>
+
+      <aside class="panel output-panel" aria-label="申请文字预览">
+        <div class="preview-heading"><div><div class="section-heading"><span class="step">04</span><h2>申请文字</h2></div><p class="hint">核对后，一键复制发送</p></div><span class="type-badge" id="typeBadge">普票</span></div>
+        <div id="validation" class="validation" role="status"></div>
+        <textarea id="result" readonly aria-label="完整申请文字" spellcheck="false" placeholder="选择主体并填写客户资料、商品名称、数量和总金额后，这里会显示完整申请。"></textarea>
+        <div class="copy-actions"><button type="button" id="copyInvoiceBtn" disabled>复制申请文字</button><button type="button" class="secondary" id="nextBtn">下一份申请</button></div>
+        <button type="button" class="secondary" id="manualCopiedBtn" hidden>已手动复制，登记本单编号</button>
+        <p id="copyStatus" class="copy-status" role="status" aria-live="polite"></p>
+        <div class="local-note"><strong>仅在本机处理</strong><p>客户资料不上传、不保存。仅月度流水号保存在当前浏览器，不跨电脑、浏览器或手机同步。</p><p>首次使用请按已有申请校正流水号。编号仅用于申请，不代表发票已开具。</p></div>
+      </aside>
+    </div>
+  </main>
+  <script src="invoice-core.js?v=20261010-1"></script>
+  <script src="invoice-app.js?v=20261010-1"></script>
+</body>
+</html>

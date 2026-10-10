@@ -296,7 +296,7 @@
 <body class="apple-shell">
   <div class="app">
     <aside class="sidebar">
-      <div class="brand" title="v2026.10.09.1"><div class="brand-symbol" aria-hidden="true">杰</div><h1>杰哥工具</h1><small class="brand-version">5.1 · 苹果风版</small><span class="build-version">v2026.10.09.1</span></div>
+      <div class="brand" title="v2026.10.10.1"><div class="brand-symbol" aria-hidden="true">杰</div><h1>杰哥工具</h1><small class="brand-version">5.1 · 苹果风版</small><span class="build-version">v2026.10.10.1</span></div>
       <nav class="nav" id="toolNav" aria-label="工具列表"></nav>
       <div class="sidebar-footer">日常开单工作台<br><span>开单 · 查价 · 排版</span></div>
     </aside>
@@ -319,7 +319,8 @@
       {"id":"full-board-cut","title":"整板切割计算","short":"整板切割","tag":"切割排版","desc":"输入小板规格数量，自动估算整板用量并生成排版图。"},
       {"id":"wall-panel","title":"水泥板/混凝土上墙排版","short":"上墙排版","tag":"墙面排版","desc":"多墙面排版、孔位示意、裁切统计，并支持导出 SVG/PNG。"},
       {"id":"hole-1200","title":"1200×600 孔心排版","short":"孔心排版","tag":"孔位图","desc":"快速设置板宽、板高、孔数、孔径和边距，导出 SVG。"},
-      {"id":"brick-layout","title":"水泥板砖纹排版","short":"砖纹排版","tag":"砖纹排版","desc":"1220×2440固定整板，自定义砖宽、砖高与缝隙，生成带尺寸的水泥质感图。"}
+      {"id":"brick-layout","title":"水泥板砖纹排版","short":"砖纹排版","tag":"砖纹排版","desc":"1220×2440固定整板，自定义砖宽、砖高与缝隙，生成带尺寸的水泥质感图。"},
+      {"id":"invoice-application","title":"开票申请","short":"开票申请","tag":"开票申请","desc":"原文粘贴客户资料，选择个体户或公司模板，计算单价并复制开票申请。"}
     ];
     const toolOrderKey = 'jiege-tool-order-v1';
     let storedOrder = [];
@@ -330,12 +331,16 @@
     }
     function orderedTools(savedOrder) {
         const ids = Array.isArray(savedOrder) ? [...new Set(savedOrder)] : [];
-        const ordered = ids.map((id) => defaultTools.find((tool) => tool.id === id)).filter(Boolean)
+        let ordered = ids.map((id) => defaultTools.find((tool) => tool.id === id)).filter(Boolean)
             .concat(defaultTools.filter((tool) => !ids.includes(tool.id)));
         // Upgrade existing saved orders once, preserving the relative order of all other tools.
         if (!ids.includes('brick-layout')) {
-            return ordered.filter((tool) => !['hole-1200', 'brick-layout'].includes(tool.id))
+            ordered = ordered.filter((tool) => !['hole-1200', 'brick-layout'].includes(tool.id))
                 .concat(defaultTools.filter((tool) => ['hole-1200', 'brick-layout'].includes(tool.id)));
+        }
+        if (!ids.includes('invoice-application')) {
+            ordered = ordered.filter((tool) => tool.id !== 'invoice-application')
+                .concat(defaultTools.filter((tool) => tool.id === 'invoice-application'));
         }
         return ordered;
     }
@@ -384,8 +389,8 @@
       });
     }
 
-    const toolPaths = {"order-template":"tools/order-template.html","quote-generator":"tools/quote-generator.html","quick-price":"tools/quick-price.html","report-template":"tools/report-template.html","hole-1200":"tools/hole-1200.html","freight-gold":"tools/freight-gold.html","ningbo-weight":"tools/ningbo-weight.html","full-board-cut":"tools/full-board-cut.html","wall-panel":"tools/wall-panel.html","brick-layout":"tools/brick-layout.html"};
-    const toolPageVersion = '20261009-1';
+    const toolPaths = {"order-template":"tools/order-template.html","quote-generator":"tools/quote-generator.html","quick-price":"tools/quick-price.html","report-template":"tools/report-template.html","hole-1200":"tools/hole-1200.html","freight-gold":"tools/freight-gold.html","ningbo-weight":"tools/ningbo-weight.html","full-board-cut":"tools/full-board-cut.html","wall-panel":"tools/wall-panel.html","brick-layout":"tools/brick-layout.html","invoice-application":"tools/invoice-application.html"};
+    const toolPageVersion = '20261010-1';
     const nav = document.getElementById('toolNav');
     const frameWrap = document.getElementById('frameWrap');
     const loading = document.getElementById('loading');
