@@ -560,7 +560,7 @@
     <section class="panel search-panel"><label for="query">产品关键词</label><div class="search-wrap"><input id="query" autocomplete="off" placeholder="例如 雪岩 / 拉丝 / 仿金属 / 星月石"><button id="clearSearchBtn" class="search-clear" type="button">清空</button><div id="suggestions" class="suggestions"></div></div><div class="quick-tags" id="quickTags"></div></section>
     <section id="results" class="results"><div class="panel empty">输入关键词后显示价格。比如输入“仿”会出现“仿金属”，点击后显示硬质、软质各规格的底价与最低售价。</div></section>
   </main>
-  <script src="product-data.js?v=20260905-1"></script>
+  <script src="product-data.js?v=20261013-1"></script>
   <script>
     const productData = window.JieGeProductData;
     const specs = productData.liujinSpecs;
@@ -770,12 +770,12 @@
       }];
     }
     function sandstoneEntries() { return [{ type:'sandstone', title:'砂岩板', aliases:['砂岩','砂岩板'], warehouse:'浙江仓', category:'砂岩板', note:'', rows:sandstoneSpecs.map((item) => ({ label:specLabel(item.label), price:item.defaultSqmPrice })) }]; }
-    function ningboEntries() { const map = new Map(); ningboProductCatalog.forEach((item) => { if (!map.has(item.name)) map.set(item.name, { type:'ningbo', title:item.name, aliases:[item.name, '宁波' + item.name, '柔岩板' + item.name], warehouse:'宁波仓', category:'柔岩板', unit:'单价 / 元每平', note:'打印+10元/平。', rows:[] }); const entry = map.get(item.name); item.specs.forEach((spec) => entry.rows.push({ label:'规格 ' + specLabel(spec), price:item.price })); }); return Array.from(map.values()); }
+    function ningboEntries() { const map = new Map(); ningboProductCatalog.forEach((item) => { if (!map.has(item.name)) map.set(item.name, { type:'ningbo', title:item.name, aliases:[item.name, '宁波' + item.name, '柔岩板' + item.name], warehouse:'宁波仓', category:'柔岩板', unit:'单价 / 元每平', note:item.note || '打印+10元/平。', rows:[] }); const entry = map.get(item.name); item.specs.forEach((spec) => entry.rows.push({ label:'规格 ' + specLabel(spec), price:item.price })); }); return Array.from(map.values()); }
     function ningboTableEntries() {
       const rows = [];
       ningboProductCatalog.forEach((item) => {
         item.specs.forEach((spec) => {
-          rows.push({ label:item.name + ' · 规格 ' + specLabel(spec), subLabel:'宁波仓 · 柔岩板', price:item.price });
+          rows.push({ label:item.name + ' · 规格 ' + specLabel(spec), subLabel:item.note ? '宁波仓 · 柔岩板 · ' + item.note : '宁波仓 · 柔岩板', price:item.price });
         });
       });
       return [{
@@ -786,7 +786,7 @@
         category:'柔岩板',
         unit:'单价 / 元每平',
         layout:'single',
-        note:'价格来自宁波柔岩板表；打印+10元/平。搜索洞石、星月石等仍显示对应单品。',
+        note:'价格来自宁波柔岩板表；普通产品打印+10元/平，砖纹打印四色底价已含打印。搜索洞石、星月石等仍显示对应单品。',
         rows
       }];
     }

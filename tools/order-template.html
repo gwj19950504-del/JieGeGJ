@@ -3072,7 +3072,7 @@
   <datalist id="ningboProductList"></datalist>
 
   <script src="input-validation.js?v=20260919-1"></script>
-  <script src="product-data.js?v=20260905-1"></script>
+  <script src="product-data.js?v=20261013-1"></script>
   <script src="best-rates.js?v=20261008-1"></script>
   <script src="freight-gold-core.js?v=20261008-4"></script>
   <script src="ningbo-freight-core.js?v=20260905-1"></script>
@@ -5131,7 +5131,7 @@
             : "选择表格产品后自动带出规格和平方单价；也可直接在下方规格框里手填规格。");
       }
       syncNingboProductPrice(row);
-      if (isMeililai && row.catalogNote) {
+      if (row.catalogNote) {
         const selected = ningboProductForSelectedSpec(product, row);
         const messages = [selected?.condition ? `适用说明：${selected.condition}` : "", selected?.note || ""].filter(Boolean);
         row.catalogNote.textContent = messages.join("；");
