@@ -946,7 +946,7 @@
     }
 
 </style>
-  <link rel="stylesheet" href="apple-ui.css?v=20261008-1">
+  <link rel="stylesheet" href="apple-ui.css?v=20261017-1">
 </head>
 <body class="apple-ui" data-page="wall-panel">
   <div class="app">
@@ -1053,7 +1053,12 @@
         <button id="twoHoleHorizontal" class="active" type="button">左右二孔</button>
         <button id="twoHoleVertical" type="button">上下二孔</button>
       </div>
-      <div class="grid">
+      <label style="margin-top: 10px;">6孔排列</label>
+      <div class="segmented" role="group" aria-label="6孔排列">
+        <button id="sixHoleHorizontal" class="active" type="button">三列两排</button>
+        <button id="sixHoleVertical" type="button">两列三排</button>
+      </div>
+      <div class="grid hole-dimension-fields">
         <div class="field">
           <label>孔径/孔心标注 mm</label>
           <input id="holeD" type="number" min="1" step="1" value="25">
@@ -1085,7 +1090,7 @@
       </div>
 
       <p class="note">
-默认按每块板四角孔位示意；可切换左右二孔、上下二孔、4 孔、6 孔。点击图纸中的单块板，可单独调整此块孔数、2孔方向和距边。勾选“不开孔”后图纸不显示孔位。所有尺寸按毫米计算。
+默认按每块板四角孔位示意；可切换左右二孔、上下二孔、4 孔、6 孔。六孔支持三列两排或两列三排，与板材排版方向独立。点击单块板，可单独调整孔数、2孔方向、6孔排列和距边。勾选“不开孔”后图纸不显示孔位。所有尺寸按毫米计算。
       </p>
     </aside>
 
@@ -1171,6 +1176,14 @@
           <option value="vertical">上下二孔</option>
         </select>
       </div>
+      <div class="field" id="panelSixHoleDirectionField">
+        <label>6孔排列</label>
+        <select id="panelSixHoleDirection">
+          <option value="default">跟随默认</option>
+          <option value="horizontal">三列两排</option>
+          <option value="vertical">两列三排</option>
+        </select>
+      </div>
     </div>
     <div class="actions">
       <button id="panelHoleCancel" type="button">取消</button>
@@ -1205,6 +1218,8 @@
       holeMode6: document.getElementById("holeMode6"),
       twoHoleHorizontal: document.getElementById("twoHoleHorizontal"),
       twoHoleVertical: document.getElementById("twoHoleVertical"),
+      sixHoleHorizontal: document.getElementById('sixHoleHorizontal'),
+      sixHoleVertical: document.getElementById('sixHoleVertical'),
       holeD: document.getElementById("holeD"),
       holeInset: document.getElementById("holeInset"),
       panelHoleEditor: document.getElementById("panelHoleEditor"),
@@ -1213,6 +1228,8 @@
       panelHoleInset: document.getElementById("panelHoleInset"),
       panelTwoHoleDirectionField: document.getElementById("panelTwoHoleDirectionField"),
       panelTwoHoleDirection: document.getElementById("panelTwoHoleDirection"),
+      panelSixHoleDirectionField: document.getElementById('panelSixHoleDirectionField'),
+      panelSixHoleDirection: document.getElementById('panelSixHoleDirection'),
       panelHoleCancel: document.getElementById("panelHoleCancel"),
       panelHoleConfirm: document.getElementById("panelHoleConfirm"),
       cutX: document.getElementById("cutX"),
@@ -1236,6 +1253,7 @@
     let orientation = "horizontal";
     let defaultHoleMode = "4";
     let defaultTwoHoleDirection = "horizontal";
+    let defaultSixHoleDirection = 'horizontal';
     let selectedPanel = null;
     let activeWall = 0;
     let walls = [{ ...defaultWall }];
@@ -1279,6 +1297,7 @@
         button.classList.toggle("active", button.id === `holeMode${defaultHoleMode}`);
       });
       updateDefaultTwoHoleControls();
+      updateDefaultSixHoleControls();
       draw();
     }
 
@@ -1301,6 +1320,26 @@
       return override.mode && override.mode !== "default" ? override.mode : defaultHoleMode;
     }
 
+    function setDefaultSixHoleDirection(direction) {
+        defaultSixHoleDirection = direction === 'vertical' ? 'vertical' : 'horizontal';
+        updateDefaultSixHoleControls();
+        draw();
+    }
+
+    function updateDefaultSixHoleControls() {
+        const disabled = els.noHole.checked || defaultHoleMode !== '6';
+        els.sixHoleHorizontal.disabled = disabled;
+        els.sixHoleVertical.disabled = disabled;
+        els.sixHoleHorizontal.classList.toggle('active', defaultSixHoleDirection === 'horizontal');
+        els.sixHoleVertical.classList.toggle('active', defaultSixHoleDirection === 'vertical');
+    }
+
+    function panelEffectiveSixHoleDirection(override) {
+        return override.sixHoleDirection && override.sixHoleDirection !== 'default'
+            ? override.sixHoleDirection
+            : defaultSixHoleDirection;
+    }
+
     function panelEffectiveTwoHoleDirection(override) {
       return override.twoHoleDirection && override.twoHoleDirection !== "default"
         ? override.twoHoleDirection
@@ -1312,6 +1351,9 @@
       const isTwoHole = mode === "2";
       els.panelTwoHoleDirectionField.style.display = isTwoHole ? "" : "none";
       els.panelTwoHoleDirection.disabled = !isTwoHole;
+      const isSixHole = mode === '6';
+      els.panelSixHoleDirectionField.style.display = isSixHole ? '' : 'none';
+      els.panelSixHoleDirection.disabled = !isSixHole;
     }
 
     function closePanelEditor() {
@@ -1358,6 +1400,7 @@
       els.panelHoleMode.value = override.mode || "default";
       els.panelHoleInset.value = override.inset ?? "";
       els.panelTwoHoleDirection.value = override.twoHoleDirection || "default";
+      els.panelSixHoleDirection.value = override.sixHoleDirection || 'default';
       updatePanelTwoHoleDirectionState();
       if (anchorRect) positionPanelEditor(anchorRect);
     }
@@ -1373,13 +1416,15 @@
       const insetText = els.panelHoleInset.value.trim();
       const inset = insetText === "" ? null : Math.max(Number(insetText), 0);
       const twoHoleDirection = els.panelTwoHoleDirection.value;
-      if (mode === "default" && inset === null && twoHoleDirection === "default") {
+      const sixHoleDirection = els.panelSixHoleDirection.value;
+      if (mode === "default" && inset === null && twoHoleDirection === "default" && sixHoleDirection === 'default') {
         delete wall.holeOverrides[key];
       } else {
         wall.holeOverrides[key] = {
           mode,
           ...(inset === null ? {} : { inset }),
           ...(twoHoleDirection === "default" ? {} : { twoHoleDirection }),
+          ...(sixHoleDirection === 'default' ? {} : { sixHoleDirection }),
         };
       }
       closePanelEditor();
@@ -1739,7 +1784,14 @@
               [panel.w - inset, midY],
             ];
       } else if (mode === "6") {
-        points = [
+        points = panelEffectiveSixHoleDirection(override) === 'vertical' ? [
+          [inset, inset],
+          [panel.w - inset, inset],
+          [inset, midY],
+          [panel.w - inset, midY],
+          [inset, panel.h - inset],
+          [panel.w - inset, panel.h - inset],
+        ] : [
           [inset, inset],
           [midX, inset],
           [panel.w - inset, inset],
@@ -1758,9 +1810,9 @@
       return points.filter(safe);
     }
 
-    function holeModeLabel(mode, twoHoleDirection = defaultTwoHoleDirection) {
+    function holeModeLabel(mode, twoHoleDirection = defaultTwoHoleDirection, sixHoleDirection = defaultSixHoleDirection) {
       if (mode === "2") return twoHoleDirection === "vertical" ? "上下2孔" : "左右2孔";
-      if (mode === "6") return "6孔";
+      if (mode === "6") return sixHoleDirection === 'vertical' ? '6孔（两列三排）' : '6孔（三列两排）';
       if (mode === "none") return "不开孔";
       return "4孔";
     }
@@ -1906,6 +1958,7 @@
       });
       updateDefaultTwoHoleControls();
       const holeD = noHole ? 0 : Math.max(value("holeD"), 1);
+      updateDefaultSixHoleControls();
       const inset = noHole ? 0 : value("holeInset");
       const marginX = 96;
       const topMargin = 84;
@@ -2318,7 +2371,7 @@
 
     document.querySelectorAll("input, select").forEach((node) => {
       node.addEventListener("input", () => {
-        if (["panelHoleMode", "panelHoleInset", "panelTwoHoleDirection", "customBoardSize"].includes(node.id)) return;
+        if (["panelHoleMode", "panelHoleInset", "panelTwoHoleDirection", "panelSixHoleDirection", "customBoardSize"].includes(node.id)) return;
         if (["boardW", "boardH"].includes(node.id)) syncBoardSizeFromInputs();
         if (node.id === "jointGapPreset") syncJointGapControl();
         if (["wallName", "wallW", "wallH"].includes(node.id)) {
@@ -2363,6 +2416,8 @@
     els.holeMode6.addEventListener("click", () => setDefaultHoleMode("6"));
     els.twoHoleHorizontal.addEventListener("click", () => setDefaultTwoHoleDirection("horizontal"));
     els.twoHoleVertical.addEventListener("click", () => setDefaultTwoHoleDirection("vertical"));
+    els.sixHoleHorizontal.addEventListener('click', () => setDefaultSixHoleDirection('horizontal'));
+    els.sixHoleVertical.addEventListener('click', () => setDefaultSixHoleDirection('vertical'));
     els.panelHoleMode.addEventListener("change", updatePanelTwoHoleDirectionState);
     els.panelHoleCancel.addEventListener("click", () => {
       selectedPanel = null;

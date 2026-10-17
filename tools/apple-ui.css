@@ -502,6 +502,7 @@
   body.apple-ui[data-page="wall-panel"] aside :is(input, select, button) { border-radius: 9px !important; }
   body.apple-ui[data-page="wall-panel"] aside .check { margin: 10px 0; }
   body.apple-ui[data-page="wall-panel"] aside > .joint-gap-controls { grid-template-columns: minmax(0,1fr) !important; }
+  body.apple-ui[data-page="wall-panel"] aside > .hole-dimension-fields { align-items: end; }
   body.apple-ui[data-page="wall-panel"] #boardSizeHint { font-size: 12px !important; margin: 8px 0 12px; }
   body.apple-ui[data-page="wall-panel"] .segmented.three button { font-size: 13px !important; padding: 8px 5px !important; }
   body.apple-ui[data-page="wall-panel"] .panel-editor { max-width: calc(100vw - 24px); border-radius: 12px; background: #fff; border-color: #d9d9df; }
