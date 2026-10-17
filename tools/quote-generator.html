@@ -1566,7 +1566,7 @@
     }
 
 </style>
-  <link rel="stylesheet" href="apple-ui.css?v=20261017-1">
+  <link rel="stylesheet" href="apple-ui.css?v=20261017-3">
 </head>
 <body class="apple-ui" data-page="quote-generator">
   <main>
@@ -1665,13 +1665,15 @@
 
             <div id="sameWarehouseFees" class="mode-panel" style="margin-top: 14px;">
               <p class="section-title">同仓费用</p>
-              <div class="grid-2">
+              <div class="grid-2 freight-fee-inputs">
                 <div class="field">
                   <label for="multiBoxFee">木箱（元）</label>
                   <input id="multiBoxFee" type="number" min="0" step="1" value="300">
                 </div>
                 <div class="field">
-                  <label for="multiFreightFee">运费（元）</label>
+                  <div id="multiFreightLabel" class="freight-field-label">
+                    <label for="multiFreightFee">运费（元）</label>
+                  </div>
                   <input id="multiFreightFee" type="number" min="0" step="1" value="0">
                 </div>
               </div>
@@ -1681,16 +1683,24 @@
 
         <div id="singleFees" class="section fee-section">
           <p class="section-title">费用</p>
-          <div id="singleFeeInputs" class="grid-2">
+          <div id="singleFeeInputs" class="grid-2 freight-fee-inputs">
             <div class="field">
               <label for="boxFee">木箱（元）</label>
               <input id="boxFee" type="number" min="0" step="1" value="300">
             </div>
             <div class="field">
-              <label for="freightFee">运费（元）</label>
+              <div id="singleFreightLabel" class="freight-field-label">
+                <label for="freightFee">运费（元）</label>
+                <div id="lalamoveOption" class="lalamove-option">
+                  <input id="lalamove" type="checkbox">
+                  <label for="lalamove" title="勾选后本单木箱及运费按0计；实际运费到付。取消后可重新填写费用。">货拉拉<span>（不用木箱，运费到付）</span></label>
+                </div>
+              </div>
               <input id="freightFee" type="number" min="0" step="1" value="0">
             </div>
           </div>
+
+          <div id="differentWarehouseFreightOption" class="different-warehouse-freight-option"></div>
 
           <div class="grid-2 extra-fee-inputs">
             <div class="field">
@@ -1901,6 +1911,7 @@
       accessoryFee: document.querySelector("#accessoryFee"),
       manualTaxFee: document.querySelector("#manualTaxFee"),
       includeFreight: document.querySelector("#includeFreight"),
+      lalamove: document.querySelector('#lalamove'),
       includeTax: document.querySelector("#includeTax"),
       taxBox: document.querySelector("#taxBox"),
       customTax: document.querySelector("#customTax"),
@@ -2232,6 +2243,37 @@
       if (radio) radio.checked = true;
     }
 
+    function emptyQuoteProduct() {
+        return { product: '', spec: '', quantity: '', originalPrice: '', unitPrice: '',
+            pricingMode: 'area', boxFee: 0, freightFee: 0 };
+    }
+
+    function switchQuoteMode() {
+        const state = collectState();
+        if (els.multiMode.checked) {
+            if (!getProductCards().length) addProduct(emptyQuoteProduct());
+            setProductCardData(getProductCards()[0], state.single);
+            if (state.shipmentMode === 'same') {
+                els.multiBoxFee.value = state.single.boxFee;
+                els.multiFreightFee.value = state.single.freightFee;
+            }
+            if (getProductCards().length < 2) addProduct(emptyQuoteProduct());
+        } else {
+            const first = state.multi.products[0];
+            if (first) {
+                for (const key of ['product', 'spec', 'quantity', 'originalPrice', 'unitPrice']) {
+                    els[key].value = first[key];
+                }
+                setCheckedValue('pricingMode', first.pricingMode);
+                const fees = state.shipmentMode === 'same' ? state.multi : first;
+                els.boxFee.value = fees.boxFee;
+                els.freightFee.value = fees.freightFee;
+                syncQuickSpec();
+            }
+        }
+        render();
+    }
+
     function syncMultiNingboProduct(card) {
       const product = findNingboProduct(card.querySelector(".multi-product").value);
       if (!product) return;
@@ -2325,6 +2367,15 @@
     }
 
     function updateQuoteFreight() {
+        if (els.lalamove.checked) {
+            const message = '货拉拉到付，不用木箱，运费不计入本次报价。';
+            const notice = '实际运费由收货方支付；本单不使用物流包装询价及百世预估，取消货拉拉后恢复。';
+            setQuoteFreightEmpty(message, notice);
+            setQuoteBestResult({ quoteText: message, processText: notice });
+            els.copyQuoteFreightBtn.disabled = true;
+            els.copyQuoteBestBtn.disabled = true;
+            return;
+        }
         if (els.multiMode.checked && els.shipmentMode() === 'different') {
             const message = '不同仓库发货，请按仓库分别询价。';
             const notice = '各仓包装、重量和运费需分别核算，不能合并为一票。上方产品报价不受影响。';
@@ -2378,6 +2429,10 @@
       els.calcLine.classList.toggle("hidden", multi);
       els.multiCalcLine.classList.toggle("hidden", !multi);
       updateShipmentUi();
+      const optionHost = document.querySelector(!multi ? '#singleFreightLabel'
+          : els.shipmentMode() === 'same' ? '#multiFreightLabel' : '#differentWarehouseFreightOption');
+      const option = document.querySelector('#lalamoveOption');
+      if (option.parentElement !== optionHost) optionHost.appendChild(option);
     }
 
     function updateShipmentUi() {
@@ -2417,8 +2472,9 @@
       const lines = [`产品：${product || ""}`, `数量：${quantity || ""}张`, `规格：${formatSpecForQuote(spec)}`];
       const priceLine = priceInfoLine(item);
       if (priceLine) lines.push(priceLine);
-      lines.push(`————————————`, materialLine(item), `木箱费：${boxFee}元`);
-      if (includeFreight) lines.push(`运费：${freightFee}元`);
+      lines.push(`————————————`, materialLine(item), quoteBoxFeeLine(boxFee));
+      if (els.lalamove.checked) lines.push(quoteFreightFeeLine(freightFee));
+      else if (includeFreight) lines.push(`运费：${freightFee}元`);
       pushExtraFeeLines(lines, extraFees);
       lines.push(`总计：${total}元`, "", buildNote(extraFees.taxFee > 0 || includeTax, includeFreight));
       appendExtra(lines);
@@ -2449,14 +2505,15 @@
         if (priceLine) lines.push(priceLine);
         lines.push(materialLine(item, number));
         if (!sameWarehouse) {
-          lines.push(`木箱费${number}：${item.boxFee}元`, item.freightFee > 0 ? `运费${number}：${item.freightFee}元` : `运费${number}：到付`);
+          lines.push(quoteBoxFeeLine(item.boxFee, number), quoteFreightFeeLine(item.freightFee, number));
         }
         if (index < products.length - 1) lines.push("", "————————————");
         lines.push("");
       });
       if (sameWarehouse) {
-        lines.push(`木箱费：${boxTotal}元`);
-        if (freightTotal > 0) lines.push(`运费：${freightTotal}元`);
+        lines.push(quoteBoxFeeLine(boxTotal));
+        if (els.lalamove.checked) lines.push(quoteFreightFeeLine(freightTotal));
+        else if (freightTotal > 0) lines.push(`运费：${freightTotal}元`);
       }
       pushExtraFeeLines(lines, extraFees);
       lines.push(`总计：${total}元`, "", buildNote(extraFees.taxFee > 0 || includeTax, freightTotal > 0));
@@ -2469,6 +2526,30 @@
     function appendExtra(lines) {
       const extra = els.noteExtra.value.trim();
       if (extra) lines.push("", extra);
+    }
+
+    function quoteBoxFeeLine(amount, number = '') {
+        return els.lalamove.checked
+            ? `木箱费${number}：0元（货拉拉不用木箱）`
+            : `木箱费${number}：${amount}元`;
+    }
+
+    function quoteFreightFeeLine(amount, number = '') {
+        if (els.lalamove.checked) return `运费${number}：货拉拉到付`;
+        return amount > 0 ? `运费${number}：${amount}元` : `运费${number}：到付`;
+    }
+
+    function syncLalamoveFees() {
+        const selected = els.lalamove.checked;
+        const fields = [els.boxFee, els.freightFee, els.multiBoxFee, els.multiFreightFee,
+            ...document.querySelectorAll('.multi-box-fee, .multi-freight-fee')];
+        const activeFields = !els.multiMode.checked ? [els.boxFee, els.freightFee]
+            : els.shipmentMode() === 'same' ? [els.multiBoxFee, els.multiFreightFee]
+            : [...document.querySelectorAll('.multi-box-fee, .multi-freight-fee')];
+        fields.forEach(field => { field.disabled = selected; });
+        if (selected) activeFields.forEach(field => { field.value = 0; });
+        els.includeFreight.disabled = selected;
+        if (selected) els.includeFreight.checked = false;
     }
 
     let quoteManuallyEdited = false;
@@ -2491,6 +2572,7 @@
 
     function render() {
       updateModeUi();
+      syncLalamoveFees();
       const error = quoteValidationError();
       const validation = document.querySelector('#quoteValidation');
       validation.hidden = !error;
@@ -2530,6 +2612,7 @@
     function collectState() {
       return {
         multiMode: els.multiMode.checked,
+        lalamove: els.lalamove.checked,
         shipmentMode: els.shipmentMode(),
         includeTax: els.includeTax.checked,
         taxType: getCheckedValue("taxType"),
@@ -2548,6 +2631,7 @@
       if (!state) return;
       setQuoteManualMode(false);
       els.multiMode.checked = !!state.multiMode;
+      els.lalamove.checked = state.lalamove === true;
       els.includeTax.checked = !!state.includeTax;
       els.customTax.value = state.customTax ?? 10;
       els.noteExtra.value = state.noteExtra || "";
@@ -2619,6 +2703,7 @@
     function resetQuoteForm() {
       setQuoteManualMode(false);
       els.multiMode.checked = false;
+      els.lalamove.checked = false;
       els.includeFreight.checked = false;
       els.includeTax.checked = false;
       setCheckedValue("pricingMode", "area");
@@ -2670,6 +2755,7 @@
     });
 
     els.quote.addEventListener("input", () => { setQuoteManualMode(true); render(); });
+    els.multiMode.addEventListener('change', switchQuoteMode);
     document.querySelector("#resumeQuoteAuto").addEventListener("click", () => { setQuoteManualMode(false); render(); });
     document.addEventListener("input", (event) => { if (event.target === els.quote || els.quote.contains(event.target) || event.target === els.quoteFreightAddress) return; if (event.target === els.spec) syncQuickSpec(); render(); });
     document.addEventListener("change", (event) => { if (event.target === els.spec) syncQuickSpec(); render(); });
@@ -2758,8 +2844,8 @@
     }
 
     preventNumberInputWheelChange();
-    addProduct();
-    addProduct();
+    addProduct(emptyQuoteProduct());
+    addProduct(emptyQuoteProduct());
     syncQuickSpec();
     render();
   </script>
