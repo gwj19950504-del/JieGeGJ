@@ -363,6 +363,17 @@
   body.apple-ui[data-page="quote-generator"] .radio-pill { border-radius: 9px !important; box-shadow: none !important; min-height: 44px; }
   body.apple-ui[data-page="quote-generator"] .radio-pill:has(input:checked) { background: var(--apple-blue-soft) !important; color: #0055aa !important; border-color: #6b9dd5 !important; }
   body.apple-ui[data-page="quote-generator"] #quoteEditStatus { margin: 0 20px 16px; background: var(--apple-orange-soft); color: var(--apple-orange) !important; padding: 12px; border-radius: 8px; }
+  body.apple-ui[data-page="quote-generator"] .quote-import-panel { grid-column: 1 / -1; padding: 24px; min-width: 0; }
+  body.apple-ui[data-page="quote-generator"] #quoteImportText { height: auto !important; min-height: 180px; resize: vertical; }
+  body.apple-ui[data-page="quote-generator"] .quote-import-preview { white-space: pre-wrap; overflow-wrap: anywhere; padding: 16px; margin-top: 16px; background: #f5f5f7; border-radius: 10px; line-height: 1.7; }
+  body.apple-ui[data-page="quote-generator"] .quote-import-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  body.apple-ui[data-page="quote-generator"] .quote-import-confirm { display: flex; gap: 10px; align-items: center; margin-top: 12px; color: #9b5300; }
+  body.apple-ui[data-page="quote-generator"] .quote-import-confirm[hidden] { display: none !important; }
+  body.apple-ui[data-page="quote-generator"] .product-card .field { margin-bottom: 0; min-width: 0; }
+  body.apple-ui[data-page="quote-generator"] .product-card .product-price-fields { align-items: end; gap: 12px; }
+  body.apple-ui[data-page="quote-generator"] .product-card .pricing-mode { width: 100%; margin: 0; gap: 6px; }
+  body.apple-ui[data-page="quote-generator"] .product-card .pricing-mode :is(.radio-pill, .radio-pill span) { height: 44px; min-height: 44px; margin: 0; }
+  body.apple-ui[data-page="quote-generator"] .product-card .pricing-mode .radio-pill { padding: 0 !important; }
   body.apple-ui[data-page="report-template"] .layout { grid-template-columns: minmax(0,1.1fr) minmax(0,1fr); }
   body.apple-ui[data-page="report-template"] .preview-panel { top: 24px; }
   body.apple-ui[data-page="report-template"] :is(.preview-head, .preview-header) { padding: 20px; gap: 12px; flex-wrap: wrap; }
@@ -521,13 +532,10 @@
   body.apple-ui[data-page="wall-panel"] .cuts :is(th,td) { padding: 12px 14px; font-size: 13px; border-color: #e1e3e6 !important; }
 
   @media (min-width: 1000px) {
-    body.apple-ui[data-page="quote-generator"] .product-card { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+    body.apple-ui[data-page="quote-generator"] .product-card { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
     body.apple-ui[data-page="quote-generator"] .product-card > :is(.product-card-head,.grid-2) { grid-column: 1 / -1; }
-    body.apple-ui[data-page="quote-generator"] .product-card > .grid-2 { grid-template-columns: repeat(3,minmax(0,1fr)); }
+    body.apple-ui[data-page="quote-generator"] .product-card > .product-price-fields { grid-template-columns: minmax(180px,1.2fr) minmax(80px,.65fr) repeat(2,minmax(0,1fr)); }
     body.apple-ui[data-page="quote-generator"] .product-card > .different-fees { grid-template-columns: repeat(2,minmax(0,1fr)); }
-    body.apple-ui[data-page="quote-generator"] .product-card > .field:nth-child(4) { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; }
-    body.apple-ui[data-page="quote-generator"] .product-card > .field:nth-child(4) > label { margin: 0; flex: 0 0 auto; }
-    body.apple-ui[data-page="quote-generator"] .product-card .pricing-mode { width: 300px; max-width: 100%; }
     body.apple-ui[data-page="quote-generator"] .product-card-title { background: var(--apple-blue-soft); color: #245e97 !important; padding: 4px 10px; border-radius: 6px; }
     body.apple-ui[data-page="freight-gold"] > main > .grid { grid-template-columns: minmax(0,.95fr) minmax(0,1.05fr); gap: 24px; }
     body.apple-ui[data-page="freight-gold"] .freight-item { padding: 16px !important; }
@@ -612,6 +620,9 @@
     body.apple-ui .concrete-fee-row { grid-template-columns: minmax(0,1fr) minmax(90px,.6fr) !important; }
     body.apple-ui .concrete-promo-delete { width: 100% !important; grid-column: 1 / -1; }
     body.apple-ui[data-page="quote-generator"] .form { padding: 16px; gap: 20px; }
+    body.apple-ui[data-page="quote-generator"] .quote-import-panel { padding: 16px; }
+    body.apple-ui[data-page="quote-generator"] .product-card .product-price-fields { grid-template-columns: minmax(0,1fr); }
+    body.apple-ui[data-page="quote-generator"] .quote-import-actions button { flex: 1 1 140px; }
     body.apple-ui[data-page="report-template"] .grid.three { grid-template-columns: 1fr 1fr; }
     body.apple-ui[data-page="report-template"] .grid.three > :last-child { grid-column: 1 / -1; }
     body.apple-ui[data-page="report-template"] .preview-head { display: flex; flex-wrap: wrap; }
