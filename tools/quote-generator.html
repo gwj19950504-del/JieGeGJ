@@ -1866,22 +1866,17 @@
 
       <section class="panel quote-import-panel" id="quoteImportSection" aria-label="旧报价还原">
         <div class="preview-title">粘贴旧报价还原</div>
-        <p class="hint">把之前复制的完整文字报价粘贴到这里，自动识别单品／多品、规格、数量、单价及费用。核对后回填，再到上方修改数量或价格。</p>
+        <p class="hint">输入或粘贴完整文字报价后，自动识别并回填上方的产品、规格、数量、单价及费用，无需勾选或确认。之后可到上方修改数量或价格。</p>
         <div class="field">
           <label for="quoteImportText">旧报价原文</label>
           <textarea id="quoteImportText" rows="7" maxlength="60000" placeholder="产品：白锈鎏金板&#10;数量：12张&#10;规格：硬质-1220*2440*6mm&#10;……请粘贴完整报价，包含材料费公式及总计"></textarea>
         </div>
         <div class="button-row quote-import-actions">
-          <button id="parseQuoteImport" class="secondary" type="button">识别报价</button>
-          <button id="applyQuoteImport" type="button" disabled>确认回填到上方</button>
+          <button id="parseQuoteImport" class="secondary" type="button">重新识别回填</button>
           <button id="undoQuoteImport" class="secondary" type="button" disabled>撤销本次回填</button>
           <button id="clearQuoteImport" class="secondary" type="button">清空原文</button>
         </div>
-        <div id="quoteImportPreview" class="quote-import-preview" role="status" aria-live="polite">粘贴后先预览，不会立即覆盖当前报价。</div>
-        <label id="quoteImportConfirmRow" class="quote-import-confirm" hidden>
-          <input id="quoteImportConfirm" type="checkbox">
-          <span>我已核对上面的提示，按识别结果回填并重新计算</span>
-        </label>
+        <div id="quoteImportPreview" class="quote-import-preview" role="status" aria-live="polite">输入完整报价后自动回填；可撤销恢复回填前内容。</div>
         <p class="hint">仅在本机识别，不上传原文。未记载的地址会清空；百世付款／自提恢复默认，需重新选择。税金按原文金额还原，不反推税率。改数量后请重新核对税金、木箱费及运费。</p>
       </section>
     </div>
@@ -2774,19 +2769,16 @@
     let quoteImportResult = null;
     let quoteImportUndo = null;
     let quoteImportTimer = null;
+    let quoteImportAppliedText = null;
     const quoteImportText = document.querySelector('#quoteImportText');
     const quoteImportPreview = document.querySelector('#quoteImportPreview');
-    const quoteImportConfirm = document.querySelector('#quoteImportConfirm');
-    const quoteImportApply = document.querySelector('#applyQuoteImport');
 
     function clearQuoteImport() {
         clearTimeout(quoteImportTimer);
         quoteImportText.value = '';
         quoteImportResult = null;
-        quoteImportConfirm.checked = false;
-        document.querySelector('#quoteImportConfirmRow').hidden = true;
-        quoteImportApply.disabled = true;
-        quoteImportPreview.textContent = '粘贴后先预览，不会立即覆盖当前报价。';
+        quoteImportAppliedText = null;
+        quoteImportPreview.textContent = '输入完整报价后自动回填；可撤销恢复回填前内容。';
     }
 
     function clearQuoteImportUndo() {
@@ -2796,13 +2788,10 @@
 
     function parseQuoteImport() {
         clearTimeout(quoteImportTimer);
-        quoteImportConfirm.checked = false;
         quoteImportResult = window.QuoteImport.parse(quoteImportText.value, {
             standardNotes: [buildNote(false, false), buildNote(false, true), buildNote(true, false), buildNote(true, true)],
         });
         const result = quoteImportResult;
-        document.querySelector('#quoteImportConfirmRow').hidden = !result.ok || !result.warnings.length;
-        quoteImportApply.disabled = !result.ok || result.warnings.length > 0;
         if (!result.ok) {
             quoteImportPreview.textContent = `暂不能回填，当前报价未改变：\n${result.errors.join('\n')}`;
             return;
@@ -2828,38 +2817,32 @@
             : `备注：默认备注随金额更新${result.state.noteExtra ? '＋保留额外备注' : ''}`);
         if (result.state.noteExtra) lines.push('保留的备注内容：', result.state.noteExtra);
         if (result.warnings.length) lines.push('', '需要核对：', ...result.warnings);
-        lines.push('', '确认回填会替换当前表单和手工正文；可用“撤销本次回填”恢复。');
+        if (quoteImportText.value !== quoteImportAppliedText) {
+            quoteImportUndo = { state: collectState(), quote: els.quote.innerText, manual: quoteManuallyEdited };
+            applyState(result.state);
+            quoteImportAppliedText = quoteImportText.value;
+        }
+        document.querySelector('#undoQuoteImport').disabled = false;
+        lines.push('', '已自动回填上方并重新计算，可直接修改数量或价格；可用“撤销本次回填”恢复。',
+            '税金、木箱和运费不会随数量自动调整，请核对。');
         quoteImportPreview.textContent = lines.join('\n');
     }
 
-    quoteImportText.addEventListener('input', () => {
+    quoteImportText.addEventListener('input', (event) => {
         clearTimeout(quoteImportTimer);
         quoteImportResult = null;
-        quoteImportApply.disabled = true;
-        quoteImportConfirm.checked = false;
-        document.querySelector('#quoteImportConfirmRow').hidden = true;
         quoteImportPreview.textContent = '正在识别，当前报价未改变…';
+        if (!event.isComposing) quoteImportTimer = setTimeout(parseQuoteImport, 250);
+    });
+    quoteImportText.addEventListener('compositionend', () => {
+        clearTimeout(quoteImportTimer);
         quoteImportTimer = setTimeout(parseQuoteImport, 250);
     });
     document.querySelector('#parseQuoteImport').addEventListener('click', parseQuoteImport);
     document.querySelector('#clearQuoteImport').addEventListener('click', clearQuoteImport);
-    quoteImportConfirm.addEventListener('change', () => {
-        quoteImportApply.disabled = !quoteImportResult?.ok ||
-            (quoteImportResult.warnings.length > 0 && !quoteImportConfirm.checked);
-    });
-    quoteImportApply.addEventListener('click', () => {
-        if (!quoteImportResult?.ok || quoteImportApply.disabled) return;
-        quoteImportUndo = { state: collectState(), quote: els.quote.innerText, manual: quoteManuallyEdited };
-        applyState(quoteImportResult.state);
-        document.querySelector('#undoQuoteImport').disabled = false;
-        quoteImportApply.disabled = true;
-        quoteImportPreview.textContent += '\n\n已回填，可到上方修改数量或价格。税金、木箱和运费不会随数量自动调整，请核对。';
-        document.querySelector('.product-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        const first = els.multiMode.checked ? getProductCards()[0].querySelector('.multi-quantity') : els.quantity;
-        first.focus({ preventScroll: true });
-    });
     document.querySelector('#undoQuoteImport').addEventListener('click', () => {
         if (!quoteImportUndo) return;
+        clearTimeout(quoteImportTimer);
         const previous = quoteImportUndo;
         quoteImportUndo = null;
         applyState(previous.state);
@@ -2869,7 +2852,7 @@
             render();
         }
         document.querySelector('#undoQuoteImport').disabled = true;
-        quoteImportApply.disabled = true;
+        quoteImportAppliedText = null;
         quoteImportResult = null;
         quoteImportPreview.textContent = '已撤销回填，恢复回填前的表单及正文。需要再次回填请重新识别。';
     });
