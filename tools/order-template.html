@@ -2325,7 +2325,7 @@
     }
 
 </style>
-  <link rel="stylesheet" href="apple-ui.css?v=20261020-2">
+  <link rel="stylesheet" href="apple-ui.css?v=20261025-2">
 </head>
 <body class="apple-ui" data-page="order-template">
   <main>
@@ -2930,7 +2930,7 @@
                 <label class="field-label">自动税金</label>
                 <div class="checks">
                   <label class="checkline"><input id="normalTaxAuto" type="checkbox">普票税金 3%</label>
-                  <label class="checkline"><input id="specialTaxAuto" type="checkbox">专票税金 9%</label>
+                  <label class="checkline" title="税金＝含税合计 ÷ 1.1 × 10%，沿用四舍五入到元"><input id="specialTaxAuto" type="checkbox">专票税金 10%</label>
                 </div>
               </div>
             </div>
@@ -3339,7 +3339,7 @@
 
     function autoTaxRate() {
       if (els.normalTaxAuto.checked) return 0.03;
-      if (els.specialTaxAuto.checked) return 0.09;
+      if (els.specialTaxAuto.checked) return 0.1;
       return 0;
     }
 
@@ -3347,7 +3347,11 @@
       const rate = autoTaxRate();
       els.taxAmount.disabled = rate > 0;
       if (rate > 0) {
-        els.taxAmount.value = Math.round(numberValue(els.totalAmount) * rate);
+        const total = numberValue(els.totalAmount);
+        // 专票按不含税金额加10%；合计已含税，税金=合计÷1.1×10%=合计÷11。
+        // 普票仍沿用合计3%，两种自动税金均保留原整元四舍五入规则。
+        const tax = rate === 0.1 ? total / 11 : total * rate;
+        els.taxAmount.value = Math.round(tax);
       }
     }
 

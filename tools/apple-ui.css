@@ -464,6 +464,13 @@
   body.apple-ui .best-title > div:last-child { min-width: 0; }
   body.apple-ui .best-rule-badge { display: flex; align-items: center; min-height: 44px; padding: 8px 12px; border-radius: 9px; background: #edf1f6; color: #052742; font-size: 13px; }
   body.apple-ui .best-pickup-toggle { height: auto; min-height: 44px; white-space: normal; line-height: 1.4; }
+  /* These pages stack the header earlier: the horizontal 280px basis must not become vertical space. */
+  @media (min-width: 681px) and (max-width: 860px) {
+    body.apple-ui[data-page="freight-gold"] .best-title { flex: 0 1 auto; }
+  }
+  @media (min-width: 681px) and (max-width: 760px) {
+    body.apple-ui[data-page="order-template"] .best-title { flex: 0 1 auto; }
+  }
   @media (max-width: 680px) {
     body.apple-ui .best-head { flex-direction: column; align-items: flex-start; }
     body.apple-ui .best-title { flex: none; width: 100%; }
