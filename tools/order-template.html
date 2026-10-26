@@ -5779,7 +5779,7 @@
       const weightPart = (isCustom || hidesWeightPackage(warehouse)) ? "" : [built.weightLine, built.packageLine, previewDbLine].filter(Boolean).join("\n");
       const orderWeightPart = hideOrderShippingSummary
         ? ""
-        : ((isCustom || hidesWeightPackage(warehouse)) ? "" : [built.weightLine, built.packageLine, dbLine].filter(Boolean).join("\n"));
+        : ((isCustom || hidesWeightPackage(warehouse)) ? "" : [built.weightLine, freightPackageQuestionLine(built.packageLine), dbLine].filter(Boolean).join("\n"));
       const remark = selectedRemarks();
       const freightLine = freightText();
       const deliveryPart = (freightLine === "工厂自提" || freightLine === "运费：工厂自提")
