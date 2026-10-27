@@ -945,7 +945,7 @@
       font-size: 16px;
     }
 
-    .total-field input {
+    .total-field input:not([type="checkbox"]) {
       max-width: none;
       min-height: 52px;
       border-color: rgba(63, 111, 168, 0.48);
@@ -1576,7 +1576,7 @@
       font-weight: 900;
     }
 
-    .total-field input {
+    .total-field input:not([type="checkbox"]) {
       border-color: rgba(63, 111, 168, 0.58);
       background: rgba(255, 255, 255, 0.96);
       color: #1a1c1f;
@@ -2128,7 +2128,7 @@
       font-weight: 850 !important;
       font-size: 17px !important;
     }
-    .total-field input {
+    .total-field input:not([type="checkbox"]) {
       background: rgba(255, 255, 255, 0.94) !important;
       border: 2px solid rgba(51, 156, 255, 0.72) !important;
       color: #1a1c1f !important;
@@ -2325,7 +2325,7 @@
     }
 
 </style>
-  <link rel="stylesheet" href="apple-ui.css?v=20261025-2">
+  <link rel="stylesheet" href="apple-ui.css?v=20261027-2">
 </head>
 <body class="apple-ui" data-page="order-template">
   <main>
@@ -2813,7 +2813,7 @@
                   </div>
                 </div>
                 <button type="button" class="secondary" id="addConcretePromoBtn">新增推广费</button>
-                <p class="hint">推广费可添加多条，会写入明细并自动扣入 KD。</p>
+                <p class="hint">这里可填写额外推广费明细，与下方通用“推广费”分别累加并扣入 KD；同一笔费用只填写一次。</p>
               </div>
               <div class="wide">
                 <label class="field-label" for="songnuoDetail">混凝土完整明细兜底</label>
@@ -2910,9 +2910,15 @@
               <p class="hint wide">默认不勾选；勾选需要的辅料后填写数量，金额会写入开单明细并自动扣入 KD。</p>
             </div>
 
-            <div id="processingFeeWrap">
-              <label class="field-label" for="processingFee">加工费</label>
-              <input id="processingFee" type="number" min="0" step="0.01" inputmode="decimal" placeholder="未发生则填 0">
+            <div class="order-fee-pair" id="orderFeePair">
+              <div id="processingFeeWrap">
+                <label class="field-label" for="processingFee">加工费</label>
+                <input id="processingFee" type="number" min="0" step="0.01" inputmode="decimal" placeholder="未发生则填 0">
+              </div>
+              <div id="promotionFeeWrap">
+                <label class="field-label" for="promotionFee">推广费</label>
+                <input id="promotionFee" type="number" min="0" step="0.01" inputmode="decimal" placeholder="未发生则填 0">
+              </div>
             </div>
             <div id="crateFeeWrap">
               <div class="field-label-row">
@@ -2934,9 +2940,26 @@
                 </div>
               </div>
             </div>
-            <div class="total-field">
-              <label class="field-label" for="totalAmount">合计</label>
-              <input id="totalAmount" type="number" min="0" step="0.01" inputmode="decimal">
+            <div class="total-field" id="orderTotalSection">
+              <div class="total-field-header">
+                <label class="field-label" for="totalAmount">合计</label>
+                <div class="total-options">
+                  <label class="checkline"><input id="depositEnabled" type="checkbox" aria-controls="depositFields">定金</label>
+                  <label class="checkline"><input id="allocationEnabled" type="checkbox" aria-controls="allocationFields">分配</label>
+                </div>
+              </div>
+              <div class="total-entry-grid" id="totalEntryGrid" data-options="0">
+                <div>
+                  <input id="totalAmount" type="number" min="0" step="0.01" inputmode="decimal">
+                </div>
+                <div id="depositFields" class="total-option-field hidden">
+                  <input id="depositAmount" type="number" min="0" step="0.01" inputmode="decimal" aria-label="定金" aria-describedby="depositBalance" placeholder="输入定金金额" disabled>
+                  <div class="payment-detail-note" id="depositBalance" aria-live="polite"></div>
+                </div>
+                <div id="allocationFields" class="total-option-field hidden">
+                  <input id="allocationText" type="text" aria-label="分配内容" placeholder="如 刘曼曼2，赵啸天2" disabled>
+                </div>
+              </div>
             </div>
             <div class="payment-panel">
               <div>
@@ -3250,6 +3273,8 @@
       zhejiangProtect5kgQty: document.querySelector("#zhejiangProtect5kgQty"),
       processingFeeWrap: document.querySelector("#processingFeeWrap"),
       processingFee: document.querySelector("#processingFee"),
+      orderFeePair: document.querySelector("#orderFeePair"),
+      promotionFee: document.querySelector("#promotionFee"),
       crateFeeWrap: document.querySelector("#crateFeeWrap"),
       crateFee: document.querySelector("#crateFee"),
       crateFeeLabel: document.querySelector("#crateFeeLabel"),
@@ -3259,6 +3284,14 @@
       normalTaxAuto: document.querySelector("#normalTaxAuto"),
       specialTaxAuto: document.querySelector("#specialTaxAuto"),
       totalAmount: document.querySelector("#totalAmount"),
+      totalEntryGrid: document.querySelector("#totalEntryGrid"),
+      depositEnabled: document.querySelector("#depositEnabled"),
+      depositFields: document.querySelector("#depositFields"),
+      depositAmount: document.querySelector("#depositAmount"),
+      depositBalance: document.querySelector("#depositBalance"),
+      allocationEnabled: document.querySelector("#allocationEnabled"),
+      allocationFields: document.querySelector("#allocationFields"),
+      allocationText: document.querySelector("#allocationText"),
       paymentMethodGroup: document.querySelector("#paymentMethodGroup"),
       paymentChannelGroup: document.querySelector("#paymentChannelGroup"),
       payment: document.querySelector("#payment"),
@@ -4363,6 +4396,13 @@
     function freightPackageQuestionLine(packageLine) {
       if (packageLine === "2米托盘" || packageLine === "2米拖盘") return "2米托盘：2.46*1.25*0.25";
       if (packageLine === "3米托盘" || packageLine === "3米拖盘") return "3米托盘：3.15*1.35*0.16";
+      const smallPallet = /^小[托拖]盘(?: x ([1-9]\d*))?$/.exec(packageLine);
+      if (smallPallet) {
+        const count = smallPallet[1];
+        return count
+          ? `小托盘 x ${count}：1.2*0.6*0.25米/个`
+          : "小托盘：1.2*0.6*0.25米";
+      }
       return packageLine;
     }
 
@@ -5656,9 +5696,61 @@
       };
     }
 
+    function orderPaymentDetails() {
+      const details = { depositPart: '', allocationPart: '', balanceText: '', error: '' };
+      const allocation = els.allocationText.value.trim();
+      if (els.allocationEnabled.checked && allocation) details.allocationPart = `（${allocation}）`;
+      if (!els.depositEnabled.checked) return details;
+
+      const totalText = els.totalAmount.value.trim();
+      const depositText = els.depositAmount.value.trim();
+      const total = Number(totalText);
+      const deposit = Number(depositText);
+      if (!totalText) {
+        details.error = '启用定金后，请先填写合计。';
+      } else if (!depositText) {
+        details.error = '请填写定金金额；不使用定金时可取消勾选。';
+      } else if (!els.totalAmount.validity.valid || !els.depositAmount.validity.valid
+        || !Number.isFinite(total) || !Number.isFinite(deposit) || total < 0 || deposit < 0) {
+        details.error = '请填写有效的合计和定金金额（最多两位小数）。';
+      } else if (deposit > total) {
+        details.error = '定金不能大于合计，请核对定金或合计金额。';
+      }
+      if (details.error) return details;
+
+      const balance = (Math.round(total * 100) - Math.round(deposit * 100)) / 100;
+      const balanceStatus = balance > 0 ? '待支付' : '';
+      details.depositPart = `（定金${money(deposit)}，尾款${money(balance)}${balanceStatus}）`;
+      details.balanceText = `尾款：${money(balance)}${balanceStatus}`;
+      return details;
+    }
+
+    function syncOrderPaymentDetails() {
+      const hasDeposit = els.depositEnabled.checked;
+      const hasAllocation = els.allocationEnabled.checked;
+      els.depositFields.classList.toggle('hidden', !hasDeposit);
+      els.allocationFields.classList.toggle('hidden', !hasAllocation);
+      els.depositAmount.disabled = !hasDeposit;
+      els.allocationText.disabled = !hasAllocation;
+      els.totalEntryGrid.dataset.options = String(Number(hasDeposit) + Number(hasAllocation));
+      const details = orderPaymentDetails();
+      els.depositBalance.textContent = details.error || details.balanceText;
+      els.depositBalance.classList.toggle('payment-detail-error', Boolean(details.error));
+      return details;
+    }
+
+    function resetOrderPaymentDetails() {
+      els.depositEnabled.checked = false;
+      els.allocationEnabled.checked = false;
+      els.depositAmount.value = '';
+      els.allocationText.value = '';
+    }
+
     function orderValidationError() {
       const numberError = window.InputValidation.numberError(document);
       if (numberError) return numberError;
+      const paymentError = orderPaymentDetails().error;
+      if (paymentError) return paymentError;
       const category = currentCategory();
       if (category === 'other') {
         const manualMaterial = !isCatalogWarehouseActive()
@@ -5693,6 +5785,7 @@
     }
 
     function calculate() {
+      const paymentDetails = syncOrderPaymentDetails();
       syncRemarkPresetAvailability();
       const warehouse = currentWarehouse();
       const category = currentCategory();
@@ -5734,12 +5827,14 @@
       els.manualWeightWrap.classList.toggle("hidden", hidesWeightPackage(warehouse));
       els.manualPackageWrap.classList.toggle("hidden", hidesWeightPackage(warehouse));
       els.processingFeeWrap.classList.toggle("hidden", isCustom);
+      els.orderFeePair.classList.toggle("custom-mode", isCustom);
       els.crateFeeWrap.classList.toggle("hidden", isCustom);
       syncRepairAgentUi(warehouse);
 
       const built = isCustom ? buildCustom() : (isCement ? buildCement() : (isConcrete ? buildSongnuo() : ((isLiujin || isSandstone) ? buildLiujin() : buildOther())));
       syncMeililaiPackagingUi(built.packaging);
       const processingFee = numberValue(els.processingFee);
+      const promotionFee = numberValue(els.promotionFee);
       const manualMeililaiPackaging = isMeililaiWarehouseActive() && els.meililaiManualPackaging.checked;
       const crateFee = isMeililaiWarehouseActive()
         ? (manualMeililaiPackaging ? numberValue(els.crateFee) : Number(built.packaging?.amount || 0))
@@ -5760,7 +5855,7 @@
       const repairAgent = repairAgentFees(warehouse);
       const zhejiangAccessories = zhejiangAccessoryFees(warehouse);
       const extraAmount = (built.extraAmount || 0) + repairAgent.amount + zhejiangAccessories.amount;
-      const kd = total - dbDeduction - built.materialAmount - extraAmount - processingFee - crateFee - freightAmount - taxAmount - paymentDeduction;
+      const kd = total - dbDeduction - built.materialAmount - extraAmount - processingFee - promotionFee - crateFee - freightAmount - taxAmount - paymentDeduction;
       const rawName = els.receiverName.value.trim();
       const rawPhone = els.receiverPhone.value.trim();
       const rawAddress = els.receiverAddress.value.trim();
@@ -5774,6 +5869,7 @@
       const extraLines = [...(built.extraLines || []), ...repairAgent.lines, ...zhejiangAccessories.lines];
       const extraPart = extraLines.length ? `，${extraLines.join("，")}` : "";
       const processingPart = !isCustom && processingFee > 0 ? `，加工费：${money(processingFee)}` : "";
+      const promotionPart = promotionFee > 0 ? `，推广费：${money(promotionFee)}` : "";
       const kdPart = isCustom ? "" : `，KD：${money(kd)}`;
       const previewDbLine = warehouse === "浙江仓" && built.db > 0 ? `DB${money(built.db)}` : "";
       const weightPart = (isCustom || hidesWeightPackage(warehouse)) ? "" : [built.weightLine, built.packageLine, previewDbLine].filter(Boolean).join("\n");
@@ -5793,7 +5889,7 @@
       const receiverPart = receiverInfo ? `${xCode}-${receiverInfo}` : xCode;
 
       const lines = [
-        `${orderNo()}-${warehouse}：绿活-张苗苗${greenCount}：${receiverPart}，${deliveryPart}，货物明细：${built.detail}${cratePart}${processingPart}${extraPart}${taxPart}${paymentDeductionPart}${dbPart}${kdPart}，合计：${money(total)}，付款方式：${els.payment.value.trim() || "未填写"}，备注：${remark || "无"}`
+        `${orderNo()}-${warehouse}：绿活-张苗苗${greenCount}：${receiverPart}，${deliveryPart}，货物明细：${built.detail}${cratePart}${processingPart}${promotionPart}${extraPart}${taxPart}${paymentDeductionPart}${dbPart}${kdPart}，合计：${money(total)}，付款方式：${els.payment.value.trim() || "未填写"}${paymentDetails.depositPart}${paymentDetails.allocationPart}，备注：${remark || "无"}`
       ];
       const freightHeader = ningboFreightHeader(freightLine, logistics);
       if (freightHeader) lines.unshift(freightHeader);
@@ -5857,11 +5953,18 @@
         els.formNotice.textContent = "KD 会扣除材料费、木箱费、附加工艺、税金和扣点；跨越、货拉拉不代收 DB，DB 写进开单明细并扣 KD；其它物流的 DB 单独放在运费明细下方且不扣 KD；自提不写 DB。";
         els.formNotice.className = "notice";
       }
+      if (promotionFee > 0 && !els.formNotice.classList.contains("error")) {
+        els.formNotice.textContent += isCustom
+          ? ` 本单推广费 ${money(promotionFee)} 已写入明细。`
+          : ` 本单推广费 ${money(promotionFee)} 已扣入 KD。`;
+      }
       applyOrderValidation();
     }
 
     function fillDemo() {
       manualResultMode = false;
+      resetOrderPaymentDetails();
+      els.promotionFee.value = "";
       resetRepairAgentOptions();
       els.orderIndex.value = 4;
       document.querySelector("input[name='warehouse'][value='浙江仓']").checked = true;
@@ -5899,6 +6002,8 @@
 
     function fillNingboDemo() {
       manualResultMode = false;
+      resetOrderPaymentDetails();
+      els.promotionFee.value = "";
       resetRepairAgentOptions();
       els.orderIndex.value = 1;
       document.querySelector("input[name='warehouse'][value='宁波仓']").checked = true;
@@ -5942,6 +6047,8 @@
 
     function fillSongnuoDemo() {
       manualResultMode = false;
+      resetOrderPaymentDetails();
+      els.promotionFee.value = "";
       resetRepairAgentOptions();
       els.orderIndex.value = 4;
       document.querySelector("input[name='warehouse'][value='混凝土仓']").checked = true;
@@ -6010,6 +6117,7 @@
 
     function resetForNextOrder() {
       manualResultMode = false;
+      resetOrderPaymentDetails();
       resetRepairAgentOptions();
       resetZhejiangAccessories();
       resetMeililaiFees();
@@ -6096,6 +6204,7 @@
       });
       renderConcreteAdditionalProducts();
       els.processingFee.value = 0;
+      els.promotionFee.value = "";
       els.crateFee.value = "";
       els.normalTaxAuto.checked = false;
       els.specialTaxAuto.checked = false;

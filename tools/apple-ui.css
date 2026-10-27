@@ -237,6 +237,25 @@
     color: var(--apple-green) !important; font-size: 26px !important; font-weight: 700 !important;
     min-height: 56px !important; height: 56px !important; border-color: #b8d8c4 !important; box-shadow: none !important;
   }
+  body.apple-ui[data-page="order-template"] .total-field-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px;
+  }
+  body.apple-ui[data-page="order-template"] .total-field-header .field-label { margin: 0; }
+  body.apple-ui[data-page="order-template"] .total-options { display: flex; flex-wrap: wrap; gap: 8px; }
+  body.apple-ui[data-page="order-template"] .total-options .checkline { margin: 0; width: auto; flex: 0 0 auto; min-height: 32px; padding: 4px 8px !important; }
+  body.apple-ui[data-page="order-template"] .total-entry-grid { display: grid; grid-template-columns: minmax(0,1fr); gap: 16px; align-items: start; }
+  body.apple-ui[data-page="order-template"] .total-entry-grid > div { min-width: 0; }
+  body.apple-ui[data-page="order-template"] .total-entry-grid[data-options="1"] { grid-template-columns: minmax(0,2fr) minmax(0,1fr); }
+  body.apple-ui[data-page="order-template"] .total-entry-grid[data-options="2"] { grid-template-columns: minmax(0,2fr) repeat(2,minmax(0,1fr)); }
+  body.apple-ui[data-page="order-template"] .total-field input:is(#depositAmount, #allocationText) {
+    min-height: 56px !important; height: 56px !important; border-color: #b8d8c4 !important; box-shadow: none !important;
+    color: var(--apple-ink) !important; font-size: 16px !important; font-weight: 400 !important;
+  }
+  body.apple-ui[data-page="order-template"] .payment-detail-note { margin-top: 6px; font-size: 13px; line-height: 1.5; }
+  body.apple-ui[data-page="order-template"] .payment-detail-error { color: var(--apple-red); }
+  @media (max-width: 680px) {
+    body.apple-ui[data-page="order-template"] .total-entry-grid[data-options] { grid-template-columns: minmax(0,1fr); }
+  }
   body.apple-ui :is(.notice, .warn, .warning, .required-note:not(:empty), .catalog-product-note:not(:empty)) {
     background: var(--apple-orange-soft) !important; color: var(--apple-orange) !important;
     border: 1px solid #edd6b3 !important; border-radius: 9px !important;
@@ -278,6 +297,11 @@
   /* Order entry: warehouse / sequence / fees stay aligned and independent. */
   body.apple-ui[data-page="order-template"] .order-panel { border-top: 0 !important; padding-top: 0 !important; }
   body.apple-ui[data-page="order-template"] .form-grid { gap: 12px 16px; }
+  body.apple-ui[data-page="order-template"] .order-fee-pair {
+    display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; align-items: end;
+  }
+  body.apple-ui[data-page="order-template"] .order-fee-pair > div { min-width: 0; }
+  body.apple-ui[data-page="order-template"] .order-fee-pair.custom-mode { grid-template-columns: minmax(0,1fr); }
   body.apple-ui[data-page="order-template"] .product-card { gap: 12px 16px; align-items: start; }
   /* One spacing owner per order section: no bottom padding stacked with grid gaps. */
   body.apple-ui[data-page="order-template"] :is(.product-card, .payment-panel, .freight-panel, .concrete-extra-options, .concrete-match-tools, .ningbo-match-tools, .option-panel, .finish-panel) {
