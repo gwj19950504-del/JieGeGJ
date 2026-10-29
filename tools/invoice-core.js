@@ -15,6 +15,10 @@
     xinchengde: { name: '鑫成德', type: '普票' },
     yongpei: { name: '上海永沛', type: '普票' }
   };
+  const customerAffiliations = {
+    flagship: '绿活材料美学馆旗舰店',
+    company: '上海绿活新型建材有限公司'
+  };
   const clean = value => String(value ?? '').trim();
   function decimal(value, maxPlaces, label) {
     const raw = clean(value);
@@ -79,6 +83,18 @@
     // Customer text is user-owned: never parse, normalize, reorder or trim it.
     const customer = String(state.customerRaw ?? '');
     if (!customer.trim()) errors.push('请粘贴客户开票资料');
+    let orderContext = '';
+    // Optional order metadata is separate from the customer's untouched invoice details.
+    if (state.customerAffiliation) {
+      const affiliation = Object.prototype.hasOwnProperty.call(customerAffiliations, state.customerAffiliation)
+        ? customerAffiliations[state.customerAffiliation] : '';
+      const paymentTime = clean(state.paymentTime);
+      const orderNumber = clean(state.orderNumber);
+      if (!affiliation) errors.push('请选择有效的客户归属');
+      if (!paymentTime) errors.push('请填写付款时间');
+      if (!orderNumber) errors.push('请填写订单编号');
+      orderContext = `客户归属：${affiliation}\n付款时间：${paymentTime}\n订单编号：${orderNumber}`;
+    }
     let heading = '';
     let type = '';
     if (state.mode === 'individual') {
@@ -100,7 +116,7 @@
     } else errors.push('请选择开票类别');
     if (errors.length) return { ok: false, errors, warnings, text: '', line, type };
     const remark = clean(state.remark);
-    return { ok: true, errors, warnings, type, line, text: `${heading}\n\n${customer}\n\n${line.text}${remark ? '\n\n备注：' + remark : ''}` };
+    return { ok: true, errors, warnings, type, line, text: `${heading}\n\n${orderContext ? orderContext + '\n\n' : ''}${customer}\n\n${line.text}${remark ? '\n\n备注：' + remark : ''}` };
   }
-  return { individuals, companies, calculateLine, build, monthNow, validMonth, validSequence, readLedger, nextSequence, recordSequence, emptyLedger };
+  return { individuals, companies, customerAffiliations, calculateLine, build, monthNow, validMonth, validSequence, readLedger, nextSequence, recordSequence, emptyLedger };
 });

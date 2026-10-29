@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="invoice-build" content="20261010-1">
+  <meta name="invoice-build" content="20261029-1a">
   <link rel="icon" href="data:,">
   <title>开票申请 · 杰哥工具</title>
   <link rel="stylesheet" href="apple-ui.css?v=20261027-2">
-  <link rel="stylesheet" href="invoice.css?v=20261010-1">
+  <link rel="stylesheet" href="invoice.css?v=20261029-1a">
 </head>
 <body class="apple-ui" data-page="invoice-application">
   <main>
@@ -53,7 +53,22 @@
         </section>
 
         <section class="form-section">
-          <div class="section-heading"><span class="step">02</span><h2>客户开票资料</h2><button type="button" class="secondary small-button" id="demoBtn">填入示例</button></div>
+          <div class="section-heading customer-heading">
+            <span class="step">02</span><h2>客户开票资料</h2>
+            <fieldset class="issuer-options attribution-options" title="普票、专票均可选；一次选一家，取消勾选则不加入正文。">
+              <legend class="visually-hidden">客户归属（选填，一次选一家，可取消）</legend>
+              <div class="attribution-choices">
+                <label class="checkline inline-check"><input type="checkbox" name="customerAffiliation" id="affiliationFlagship" value="flagship" aria-controls="orderContextFields"><span>绿活材料美学馆旗舰店</span></label>
+                <label class="checkline inline-check"><input type="checkbox" name="customerAffiliation" id="affiliationCompany" value="company" aria-controls="orderContextFields"><span>上海绿活新型建材有限公司</span></label>
+              </div>
+            </fieldset>
+            <button type="button" class="secondary small-button" id="demoBtn">填入示例</button>
+          </div>
+          <div id="orderContextFields" class="form-grid two order-context-fields" hidden>
+            <label for="paymentTime">付款时间<input type="text" id="paymentTime" placeholder="例如：2026-10-13 16:51:48" autocomplete="off" disabled></label>
+            <label for="orderNumber">订单编号<input type="text" id="orderNumber" placeholder="原样填写订单编号" autocomplete="off" spellcheck="false" disabled></label>
+            <p class="hint wide">勾选归属后，请填写付款时间和订单编号；内容按原样加入申请，不自动取当前时间。</p>
+          </div>
           <label for="customerRaw" class="field-label">粘贴客户发来的文字</label>
           <textarea id="customerRaw" rows="8" placeholder="把客户发来的开票资料整段粘贴到这里，内容会原样放入申请文字。" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off" aria-describedby="customerRawHint"></textarea>
           <p class="hint customer-raw-hint" id="customerRawHint">不识别、不拆分、不改写；保留原文换行和空格。需要修改时，直接在上方编辑。</p>
@@ -86,7 +101,7 @@
       </aside>
     </div>
   </main>
-  <script src="invoice-core.js?v=20261010-1"></script>
-  <script src="invoice-app.js?v=20261010-1"></script>
+  <script src="invoice-core.js?v=20261029-1"></script>
+  <script src="invoice-app.js?v=20261029-1"></script>
 </body>
 </html>

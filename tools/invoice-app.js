@@ -18,6 +18,8 @@
       mode, individual: checked('individual'), company: checked('company'),
       month: byId('invoiceMonth').value, sequence: byId('sequence').value,
       payOnInvoice: byId('payOnInvoice').checked,
+      customerAffiliation: document.querySelector('input[name="customerAffiliation"]:checked')?.value || '',
+      paymentTime: byId('paymentTime').value, orderNumber: byId('orderNumber').value,
       customerRaw: byId('customerRaw').value,
       product: byId('product').value, quantity: byId('quantity').value, unit: byId('unit').value,
       total: byId('total').value, remark: byId('remark').value
@@ -48,6 +50,12 @@
   }
   function render() {
     const state = readState();
+    const hasOrderContext = Boolean(state.customerAffiliation);
+    byId('orderContextFields').hidden = !hasOrderContext;
+    for (const id of ['paymentTime', 'orderNumber']) {
+      byId(id).disabled = !hasOrderContext;
+      byId(id).required = hasOrderContext;
+    }
     const built = core.build(state);
     byId('sellerName').textContent = core.individuals[state.individual].name;
     byId('individualFields').hidden = mode !== 'individual';
@@ -62,7 +70,7 @@
     byId('result').value = built.text;
     const errors = [...built.errors];
     if (storageError && mode === 'individual') errors.push(storageError);
-    const hasData = Boolean(state.customerRaw || state.product || state.quantity || state.total);
+    const hasData = Boolean(state.customerRaw || state.product || state.quantity || state.total || state.customerAffiliation);
     byId('validation').textContent = errors.length ? (hasData ? errors.join('；') : '粘贴客户资料并填写开票明细后生成。') : '申请已生成，客户资料按原文保留，请核对后复制。';
     byId('validation').classList.toggle('invalid', hasData && errors.length > 0);
     byId('copyInvoiceBtn').disabled = copyBusy || errors.length > 0;
@@ -143,11 +151,17 @@
       render();
     }
   }
+  function resetOrderContext() {
+    document.querySelectorAll('input[name="customerAffiliation"]').forEach(input => { input.checked = false; });
+    byId('paymentTime').value = '';
+    byId('orderNumber').value = '';
+  }
   function nextApplication() {
     committed = null;
     discardManualPending();
     for (const id of ['customerRaw', 'product', 'quantity', 'total', 'remark']) byId(id).value = '';
     byId('payOnInvoice').checked = false;
+    resetOrderContext();
     if (!manualMonth) byId('invoiceMonth').value = core.monthNow();
     refreshNumber();
     status('');
@@ -171,6 +185,17 @@
     if (committed) { committed = null; refreshNumber(); }
     status(''); render();
   }));
+  document.querySelectorAll('input[name="customerAffiliation"]').forEach(input => {
+    const selectOnlyThis = () => {
+      if (!input.checked) return;
+      document.querySelectorAll('input[name="customerAffiliation"]').forEach(other => {
+        if (other !== input) other.checked = false;
+      });
+    };
+    // Run before the shared render listeners for both mouse and keyboard changes.
+    input.addEventListener('input', selectOnlyThis);
+    input.addEventListener('change', selectOnlyThis);
+  });
   document.querySelectorAll('.form-panel input, .form-panel select, .form-panel textarea').forEach(input => {
     input.addEventListener('input', () => { discardManualPending(); status(''); render(); });
     input.addEventListener('change', () => { discardManualPending(); status(''); render(); });
@@ -179,8 +204,10 @@
   byId('manualCopiedBtn').addEventListener('click', () => copyApplication(true));
   byId('nextBtn').addEventListener('click', nextApplication);
   byId('demoBtn').addEventListener('click', () => {
-    if ([byId('customerRaw').value, byId('product').value].some(Boolean)
-        && !confirm('示例会替换当前客户资料和商品明细，继续吗？')) return;
+    if ([byId('customerRaw').value, byId('product').value, byId('paymentTime').value, byId('orderNumber').value,
+      readState().customerAffiliation].some(Boolean)
+        && !confirm('示例会替换当前客户资料、订单信息和商品明细，继续吗？')) return;
+    resetOrderContext();
     // Demonstration data is fictitious; real customer bank details stay out of the shipped page.
     byId('customerRaw').value = '名称：示例客户有限公司\n纳税人识别号：91310000DEMO000001\n地址：上海市示例路100号\n电话：021-00000000\n开户银行：示例银行示例支行\n银行账号：0000000000000001';
     byId('product').value = mode === 'individual' ? '水泥板' : '鎏金水泥板';
