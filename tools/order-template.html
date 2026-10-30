@@ -3053,7 +3053,7 @@
                 <div class="best-brand" aria-label="百世快运">百世<strong>快运</strong><small>BEST FREIGHT</small></div>
                 <div>
                   <div>百世快运自动报价</div>
-                  <div class="best-subtitle">浙江仓鎏金板 · 实重与体积重取大值 · 2026-09-22费率</div>
+                  <div class="best-subtitle">浙江仓鎏金板 / 砂岩板 · 实重与体积重取大值 · 2026-09-22费率</div>
                 </div>
               </div>
               <div class="best-total" id="orderBestTotal">-</div>
@@ -3080,7 +3080,7 @@
               </div>
             </div>
             <div class="best-body">
-              <div class="best-box" id="orderBestQuote">请填写鎏金板产品、规格、数量和地址</div>
+              <div class="best-box" id="orderBestQuote">请填写鎏金板或砂岩板产品、规格、数量和地址</div>
               <div class="best-process" id="orderBestProcess">自动显示计算过程</div>
             </div>
             <div class="best-actions">
@@ -3097,7 +3097,7 @@
   <script src="input-validation.js?v=20260919-1"></script>
   <script src="product-data.js?v=20261013-1"></script>
   <script src="best-rates.js?v=20261008-1"></script>
-  <script src="freight-gold-core.js?v=20261008-4"></script>
+  <script src="freight-gold-core.js?v=20261030-1"></script>
   <script src="ningbo-freight-core.js?v=20260905-1"></script>
   <script>
     const productData = window.JieGeProductData;
@@ -4408,7 +4408,7 @@
 
     function setOrderBestResult(result = {}) {
       els.orderBestTotal.textContent = result.totalText || "-";
-      els.orderBestQuote.textContent = result.quoteText || "请填写鎏金板产品、规格、数量和地址";
+      els.orderBestQuote.textContent = result.quoteText || "请填写鎏金板或砂岩板产品、规格、数量和地址";
       els.orderBestProcess.textContent = result.processText || "自动显示计算过程";
       els.orderBestInsuranceFee.textContent = Number.isFinite(result.insuranceFee) ? `保费：${money(result.insuranceFee)}元` : "保费：待计算";
       els.orderBestDeliveryFee.textContent = Number.isFinite(result.deliveryFee)
@@ -4416,8 +4416,8 @@
         : "送货费：待计算";
     }
 
-    function updateOrderBest(built, address, warehouse, isLiujin) {
-      const show = warehouse === "浙江仓" && isLiujin;
+    function updateOrderBest(built, address, warehouse, isSupportedBoard) {
+      const show = warehouse === "浙江仓" && isSupportedBoard;
       els.orderBestSection.classList.toggle("hidden", !show);
       if (!show) return;
 
@@ -5916,7 +5916,7 @@
       els.freightQuestion.textContent = isNingboWarehouseActive() ? ningboFreightQuestion : zhejiangFreightQuestion;
       els.freightQuestionTitle.textContent = isNingboWarehouseActive() ? "宁波运费询价模板" : "运费快速提问";
       els.copyFreightQuestionBtn.textContent = isNingboWarehouseActive() ? "复制宁波运费询价" : "复制运费提问";
-      updateOrderBest(built, rawAddress, warehouse, isLiujin);
+      updateOrderBest(built, rawAddress, warehouse, isLiujin || isSandstone);
       if (!manualResultMode) {
         renderingResult = true;
         els.result.textContent = normalizeLegacyPiecePriceNotes(lines.join("\n"));

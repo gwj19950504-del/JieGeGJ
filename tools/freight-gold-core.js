@@ -29,7 +29,7 @@
   const pallets = {
     short: { label: "2米托盘", size: "2.46*1.25*0.25", weight: 46 },
     long: { label: "3米托盘", size: "3.15*1.35*0.16", weight: 65 },
-    small: { label: "小托盘", weight: 16 }
+    small: { label: "小托盘", size: "1.2*0.6*0.25", weight: 16 }
   };
 
   function specDimensions(value) {
@@ -168,7 +168,10 @@
 
   function packageQuestionLine(pkg) {
     if (!pkg) return "";
-    if (pkg.type === "pallet" && pkg.size) return `${pkg.label}：${pkg.size}`;
+    if (pkg.type === "pallet" && pkg.size) {
+      const unit = pkg.label === pallets.small.label ? (pkg.packageCount > 1 ? "米/个" : "米") : "";
+      return `${pkg.output || pkg.label}：${pkg.size}${unit}`;
+    }
     return pkg.output;
   }
 
@@ -180,6 +183,7 @@
       return {
         ...pallets.small,
         weight,
+        packageCount: palletCount,
         type: "pallet",
         output: palletCount > 1 ? `${pallets.small.label} x ${palletCount}` : pallets.small.label
       };
@@ -368,7 +372,11 @@
       || !Number.isFinite(rawVolume) || rawVolume <= 0) {
       return manualBestQuote(address, "包装长宽高不完整，无法核算百世体积重，请人工确认。", "百世按实重与体积重取较大值；缺少尺寸时不猜体积，也不直接套实际重量报价。");
     }
-    const volume = roundMoney(rawVolume);
+    const packageCount = pkg.packageCount === undefined ? 1 : pkg.packageCount;
+    if (!Number.isSafeInteger(packageCount) || packageCount <= 0) {
+      return manualBestQuote(address, "包装数量不完整，无法核算百世总体积，请人工确认。", "包装数量须为正整数，不按一件猜测或跳过多件包装。");
+    }
+    const volume = roundMoney(rawVolume * packageCount);
     const volumetricWeight = roundMoney(volume * 200);
     if (!Number.isFinite(volumetricWeight)) {
       return manualBestQuote(address, "包装尺寸超出有效计算范围，请人工确认。", "无法取得有效体积重，不继续生成运费。");
@@ -419,7 +427,7 @@
       : `我们付：${formatMoney(subtotal)}元（不加3%），向上取整=${formatMoney(totalFee)}元`;
     const feeSummary = `运费${formatMoney(freightFee)}元、易碎品保险${formatMoney(insuranceFee)}元、送货费${formatMoney(deliveryFee)}元、DB${formatMoney(db)}元`;
     const caveat = "预估仅供核对；偏远/特殊派送区域、上楼及未列费用另询。";
-    const volumeLine = `体积：${dimensionText}=${formatMoney(volume)}方（四舍五入保留2位）`;
+    const volumeLine = `体积：${dimensionText}${packageCount > 1 ? `*${packageCount}个` : ""}=${formatMoney(volume)}方（四舍五入保留2位）`;
     const volumetricLine = `体积重：${formatMoney(volume)}方*200KG/方=${formatWeight(volumetricWeight)}KG`;
     const chargeLine = `计费重量：实重${formatWeight(totalWeight)}KG与体积重${formatWeight(volumetricWeight)}KG取大值=${formatWeight(chargeWeight)}KG（${isVolumetric ? "抛货" : "按实重"}）`;
     const quoteText = [address, "", weightLine, packageLine, volumeLine, volumetricLine, chargeLine, dbLine, "", `费用小计：${formatMoney(subtotal)}元（${feeSummary}）`, paymentLine, `百世快运预估：${formatMoney(totalFee)}元`, `送货：${deliveryReason}。`, caveat].filter(line => line !== undefined).join("\n");
