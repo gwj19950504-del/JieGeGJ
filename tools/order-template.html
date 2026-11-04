@@ -3042,6 +3042,7 @@
             <div class="freight-question-head">
               <h3 class="freight-question-title" id="freightQuestionTitle">运费快速提问</h3>
             </div>
+            <p id="cementFreightHint" class="hint hidden">按上方地址和产品信息生成，不含金额。手工修改货物明细或开单正文后，请同步核对上方产品信息。</p>
             <div id="freightQuestion" class="freight-question-box"></div>
             <div class="actions freight-actions">
               <button type="button" id="copyFreightQuestionBtn" class="secondary">复制运费提问</button>
@@ -3307,6 +3308,7 @@
       result: document.querySelector("#result"),
       freightQuestionWrap: document.querySelector("#freightQuestionWrap"),
       freightQuestionTitle: document.querySelector("#freightQuestionTitle"),
+      cementFreightHint: document.querySelector("#cementFreightHint"),
       freightQuestion: document.querySelector("#freightQuestion"),
       copyFreightQuestionBtn: document.querySelector("#copyFreightQuestionBtn"),
       orderBestSection: document.querySelector("#orderBestSection"),
@@ -5293,6 +5295,27 @@
       ].filter((item) => item !== null && item !== undefined).join("\n");
     }
 
+    function cementFreightQuestion() {
+      const address = els.receiverAddress.value.trim();
+      const products = cementRows().filter((row) =>
+        [row.productName, row.specText, row.qty, row.unitPrice].some((field) => field.value.trim() !== ""));
+      let error = "";
+      if (!address) error = "请填写收货地址后再复制水泥板运费询价。";
+      else if (!products.length) error = "请填写水泥板产品、规格和数量后再复制运费询价。";
+      const lines = [];
+      for (const [index, row] of products.entries()) {
+        const name = row.productName.value.trim();
+        const spec = row.specText.value.trim();
+        const qty = Number(row.qty.value);
+        if (!name || !spec || !Number.isSafeInteger(qty) || qty <= 0) {
+          error ||= `请补全水泥板产品${index + 1}的名称、规格和正整数片数后再复制运费询价。`;
+        } else {
+          lines.push(`${name}${spec}*${qty}片`);
+        }
+      }
+      return { error, text: error || `${address}\n\n${lines.join("\n")}，运费多少？` };
+    }
+
     function buildCement() {
       const manualDetail = els.cementDetail.value.trim();
       const products = cementRows().map(readCementProduct).filter((item) => item.qty > 0 || item.hasInput);
@@ -5771,7 +5794,8 @@
     function applyOrderValidation() {
       const error = orderValidationError();
       els.copyBtn.disabled = Boolean(error);
-      els.copyFreightQuestionBtn.disabled = Boolean(error);
+      const cementFreightError = isCementWarehouse() ? cementFreightQuestion().error : "";
+      els.copyFreightQuestionBtn.disabled = Boolean(error || cementFreightError);
       els.copyOrderBestBtn.disabled = Boolean(error);
       if (!error) return;
       els.formNotice.textContent = error;
@@ -5911,11 +5935,13 @@
         ].filter(Boolean)
       ].join("\n");
       const ningboFreightQuestion = isNingboWarehouseActive() ? ningboFreightQuestionText() : "";
-      const showFreightQuestion = warehouse === "浙江仓" || isNingboWarehouseActive();
+      const cementFreight = isCementWarehouse() ? cementFreightQuestion() : null;
+      const showFreightQuestion = warehouse === "浙江仓" || isNingboWarehouseActive() || isCementWarehouse();
       els.freightQuestionWrap.classList.toggle("hidden", !showFreightQuestion);
-      els.freightQuestion.textContent = isNingboWarehouseActive() ? ningboFreightQuestion : zhejiangFreightQuestion;
-      els.freightQuestionTitle.textContent = isNingboWarehouseActive() ? "宁波运费询价模板" : "运费快速提问";
-      els.copyFreightQuestionBtn.textContent = isNingboWarehouseActive() ? "复制宁波运费询价" : "复制运费提问";
+      els.cementFreightHint.classList.toggle("hidden", !isCementWarehouse());
+      els.freightQuestion.textContent = cementFreight ? cementFreight.text : (isNingboWarehouseActive() ? ningboFreightQuestion : zhejiangFreightQuestion);
+      els.freightQuestionTitle.textContent = cementFreight ? "水泥板运费询价模板" : (isNingboWarehouseActive() ? "宁波运费询价模板" : "运费快速提问");
+      els.copyFreightQuestionBtn.textContent = cementFreight ? "复制水泥板运费询价" : (isNingboWarehouseActive() ? "复制宁波运费询价" : "复制运费提问");
       updateOrderBest(built, rawAddress, warehouse, isLiujin || isSandstone);
       if (!manualResultMode) {
         renderingResult = true;
@@ -6415,7 +6441,7 @@
     els.copyFreightQuestionBtn.addEventListener("click", async () => {
       calculate();
       if (els.copyFreightQuestionBtn.disabled) return;
-      const defaultText = isNingboWarehouseActive() ? "复制宁波运费询价" : "复制运费提问";
+      const defaultText = isCementWarehouse() ? "复制水泥板运费询价" : (isNingboWarehouseActive() ? "复制宁波运费询价" : "复制运费提问");
       try {
         await navigator.clipboard.writeText(els.freightQuestion.textContent);
         els.copyFreightQuestionBtn.textContent = "已复制";
