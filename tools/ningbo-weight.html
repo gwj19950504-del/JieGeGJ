@@ -2457,7 +2457,7 @@
       const showFinish = requiresFinishChoice(selectedProduct, selectedSize);
       const calculation = invalidQuantity ? null : window.NingboFreightCore.calculateShipment(shipmentItemsForCalculation());
       els.copySummary.disabled = !calculation;
-      els.copyFreight.disabled = !calculation;
+      els.copyFreight.disabled = !calculation || !els.address.value.trim();
       const totalWeight = calculation?.productWeight || 0;
       const shippingWeight = calculation?.shippingWeight || 0;
       const crate = calculation?.crate || null;

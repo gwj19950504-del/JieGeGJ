@@ -833,8 +833,25 @@
     }
 
     fields.forEach((id) => document.querySelector(`#${id}`).addEventListener('input', draw));
+    function layoutSvgBlob() {
+      const clone = svg.cloneNode(true);
+      clone.setAttribute('xmlns', ns);
+      clone.setAttribute('width', '1100');
+      clone.setAttribute('height', '700');
+      const style = document.createElementNS(ns, 'style');
+      style.textContent = `
+        .plate { fill: none; stroke: #1a1c1f; stroke-width: 1.5; }
+        .hole { fill: none; stroke: #1a1c1f; stroke-width: 1.2; }
+        .dim { fill: none; stroke: #1a1c1f; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+        .dimText { fill: #1a1c1f; font-size: 24px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-weight: 500; stroke: #f7f7f8; stroke-width: 5px; paint-order: stroke fill; dominant-baseline: middle; }
+        .smallText { fill: #1a1c1f; font-size: 22px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-weight: 500; stroke: #f7f7f8; stroke-width: 5px; paint-order: stroke fill; dominant-baseline: middle; }
+      `;
+      clone.insertBefore(style, clone.firstChild);
+      return new Blob(['<?xml version="1.0" encoding="UTF-8"?>', clone.outerHTML], { type: 'image/svg+xml' });
+    }
+
     document.querySelector('#downloadSvg').addEventListener('click', () => {
-      const blob = new Blob([svg.outerHTML], { type: 'image/svg+xml' });
+      const blob = layoutSvgBlob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
