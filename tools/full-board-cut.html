@@ -58,6 +58,10 @@
     .metric .num { font-size: 26px; font-weight: 900; margin-top: 4px; }
     .metric .name { color: #667; font-size: 13px; }
     .warn { color: #9a5b00; background: #fff7e6; border: 1px solid #ffe0a3; padding: 12px; border-radius: 12px; line-height: 1.7; margin-bottom: 16px; }
+    .image-copy-panel { margin: 0 0 16px; padding: 14px; border: 1px solid #e6e8eb; border-radius: 14px; background: #fff; }
+    #copyFullBoardImage { margin-top: 0; }
+    #copyFullBoardImage:disabled { cursor: not-allowed; opacity: .55; }
+    #copyFullBoardStatus { margin-top: 8px; color: #555; font-size: 13px; line-height: 1.55; }
     .boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
     .boardBox { background: #fff; border: 1px solid #e5e8eb; border-radius: 16px; padding: 14px; page-break-inside: avoid; }
     .boardTitle { display:flex; justify-content:space-between; gap: 8px; font-weight: 800; margin-bottom: 10px; }
@@ -590,6 +594,11 @@
       </div>
 
       <div class="card">
+        <div class="image-copy-panel printHide">
+          <button id="copyFullBoardImage" type="button" disabled>复制整图</button>
+          <div id="copyFullBoardStatus" aria-live="polite">请先完成有效排版计算。</div>
+          <div class="small">图片包含全部整板、每板利用率、尺寸和汇总。安全上限：32 张整板、2000 块小板、500 种规格，PNG 最多 10000px/边且不超过 1600 万像素；超限会提示，不会截断内容。</div>
+        </div>
         <div id="summary"></div>
         <div id="boards" class="boards"></div>
       </div>
@@ -824,5 +833,7 @@ function preventNumberInputWheelChange() {
 preventNumberInputWheelChange();
 run();
 </script>
+<script src="mm-watermark.js?v=20261107-3"></script>
+<script src="full-board-cut-copy.js?v=20261107-3"></script>
 </body>
 </html>

@@ -3091,6 +3091,28 @@
         </div>
       </section>
     </div>
+    <section class="panel" id="orderImportSection" aria-label="旧开单还原" style="margin-top:20px">
+      <div class="panel-inner">
+      <h2 class="section-title">粘贴旧开单，自动还原明细</h2>
+      <p class="hint">粘贴完整已开单正文，停顿后自动回填；可直接修改数量、单价、合计。保留旧单价格与费用，不套用当前目录价。旧单号仅供核对，新单沿用当前日期和编号。</p>
+      <label class="field-label" for="orderImportText">旧开单原文</label>
+      <textarea id="orderImportText" rows="7" maxlength="60000" placeholder="请粘贴完整开单信息，包含仓库、收货信息、货物明细、合计和付款方式"></textarea>
+      <div id="orderImportCategoryWrap" hidden style="margin-top:12px">
+        <label class="field-label" for="orderImportZhejiangCategory">浙江原单品类（旧正文未记录，需选定后还原）</label>
+        <select id="orderImportZhejiangCategory"><option value="">请选择原单品类</option><option value="liujin">鎏金板</option><option value="sandstone">砂岩板</option><option value="other">其它品类</option></select>
+      </div>
+      <div class="actions" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px">
+        <button id="retryOrderImport" class="secondary" type="button" style="width:auto;flex:1 1 150px">重新识别</button>
+        <button id="undoOrderImport" class="secondary" type="button" style="width:auto;flex:1 1 150px" disabled>撤销本次回填</button>
+        <button id="clearOrderImport" class="secondary" type="button" style="width:auto;flex:1 1 150px">清空原文</button>
+      </div>
+      <div id="orderImportConfirm" hidden style="margin-top:12px">
+        <label class="checkline"><input id="acceptOrderImportDifference" type="checkbox">已核对金额差异，按识别的单价与费用回填</label>
+        <button id="confirmOrderImport" class="secondary" type="button">确认差异并回填</button>
+      </div>
+      <div id="orderImportPreview" role="status" aria-live="polite" style="white-space:pre-wrap;overflow-wrap:anywhere;margin-top:12px">输入完整开单后自动还原；可撤销恢复回填前的表单和正文。原文仅在本页处理，不上传、不保存。</div>
+      </div>
+    </section>
   </main>
 
   <datalist id="ningboProductList"></datalist>
@@ -5988,6 +6010,7 @@
     }
 
     function fillDemo() {
+      window.OrderImportApp?.clear();
       manualResultMode = false;
       resetOrderPaymentDetails();
       els.promotionFee.value = "";
@@ -6027,6 +6050,7 @@
     }
 
     function fillNingboDemo() {
+      window.OrderImportApp?.clear();
       manualResultMode = false;
       resetOrderPaymentDetails();
       els.promotionFee.value = "";
@@ -6072,6 +6096,7 @@
     }
 
     function fillSongnuoDemo() {
+      window.OrderImportApp?.clear();
       manualResultMode = false;
       resetOrderPaymentDetails();
       els.promotionFee.value = "";
@@ -6142,6 +6167,7 @@
     }
 
     function resetForNextOrder() {
+      window.OrderImportApp?.clear();
       manualResultMode = false;
       resetOrderPaymentDetails();
       resetRepairAgentOptions();
@@ -6390,6 +6416,7 @@
       setRepairAgentExpanded(els.repairAgentToggleButton.getAttribute("aria-expanded") !== "true");
     });
     document.querySelectorAll("input, textarea, select").forEach((input) => {
+      if (input.closest('#orderImportSection')) return;
       input.addEventListener("input", () => {
         if (input === els.receiverRaw) {
           els.receiverName.value = "";
@@ -6488,5 +6515,7 @@
     els.fillNingboBtn.addEventListener("click", fillNingboDemo);
     els.fillSongnuoBtn.addEventListener("click", fillSongnuoDemo);
   </script>
+  <script src="order-import.js?v=20261107-3"></script>
+  <script src="order-import-app.js?v=20261107-3"></script>
 </body>
 </html>
