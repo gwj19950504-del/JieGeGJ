@@ -1029,6 +1029,11 @@
       const exactMeililai = scored.filter((item) => item.entry.type === 'meililai' && [item.entry.title, ...item.entry.aliases].map(normalize).includes(q));
       if (exactMeililai.length) return exactMeililai.sort((a,b) => a.entry.title.localeCompare(b.entry.title, 'zh-Hans-CN')).map((item) => item.entry);
       const exactNingbo = scored.filter((item) => item.entry.type === 'ningbo' && [item.entry.title, ...item.entry.aliases].map(normalize).includes(q));
+      const relatedMeililai = q.length >= 2 ? scored.filter((item) => item.entry.type === 'meililai' && [item.entry.title, ...item.entry.aliases].map(normalize).some((text) => text.includes(q))) : [];
+      if (exactNingbo.length && relatedMeililai.length) {
+        const typeOrder = { ningbo:10, meililai:20 };
+        return [...exactNingbo, ...relatedMeililai].sort((a,b) => (typeOrder[a.entry.type] || 100) - (typeOrder[b.entry.type] || 100) || b.score - a.score || a.entry.title.localeCompare(b.entry.title, 'zh-Hans-CN')).map((item) => item.entry);
+      }
       if (exactNingbo.length) return exactNingbo.sort((a,b) => a.entry.title.localeCompare(b.entry.title, 'zh-Hans-CN')).map((item) => item.entry);
       const exactLiujin = scored.filter((item) => item.entry.type === 'liujin' && [item.entry.title, ...item.entry.aliases].map(normalize).includes(q));
       if (exactLiujin.length) return exactLiujin.sort((a,b) => (a.entry.sortOrder || 100) - (b.entry.sortOrder || 100) || a.entry.title.localeCompare(b.entry.title, 'zh-Hans-CN')).map((item) => item.entry);
