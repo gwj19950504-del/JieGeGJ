@@ -1007,40 +1007,31 @@
     }
     const priceEntries = [...liujinTableEntries(), ...liujinEntries(), ...sandstoneEntries(), ...ningboTableEntries(), ...ningboEntries(), ...concreteTableEntries(), ...concreteEntries(), ...cementBoardEntries(), ...meiyanEntries(), ...translucentBoardEntries(), ...translucentBenchEntries(), ...rammedEarthEntries(), ...meteoriteBoardEntries(), ...meililaiTableEntries(), ...meililaiEntries()];
     function scoreEntry(entry, query) { const q = normalize(query); if (!q) return 0; const hay = [entry.title, entry.warehouse, entry.category, ...entry.aliases].map(normalize); let score = 0; hay.forEach((text) => { if (!text) return; if (text === q) score = Math.max(score,100); else if (text.startsWith(q)) score = Math.max(score,80); else if (text.includes(q)) score = Math.max(score,60 - Math.min(text.indexOf(q),20)); else if (q.includes(text) && text.length >= 2) score = Math.max(score,45 + Math.min(text.length,20)); }); return score; }
-    function matchingEntries(query) {
-      const scored = priceEntries.map((entry) => ({ entry, score:scoreEntry(entry, query) })).filter((item) => item.score > 0);
+    function searchScope(query) {
       const q = normalize(query);
-      const exactTable = scored.filter((item) => ['meililai-table', 'liujin-table', 'concrete-table', 'ningbo-table'].includes(item.entry.type) && [item.entry.title, ...item.entry.aliases].map(normalize).includes(q));
-      if (exactTable.length && (q.includes('价格表') || ['鎏金板', 'nb柔岩板', '混凝土', 'mll', 'mll柔岩板', '美利来', '美丽来'].includes(q))) return exactTable.map((item) => item.entry);
-      if (q === normalize('洞石')) {
-        const exactNingboDongshi = scored.filter((item) => item.entry.type === 'ningbo' && normalize(item.entry.title) === q);
-        const meililaiDongshi = scored.filter((item) => item.entry.type === 'meililai' && [item.entry.title, ...item.entry.aliases].map(normalize).some((text) => text.includes(q)));
-        const combined = [...exactNingboDongshi, ...meililaiDongshi];
-        if (combined.length) return combined.sort((a,b) => {
-          const typeOrder = { ningbo:10, meililai:20 };
-          return (typeOrder[a.entry.type] || 100) - (typeOrder[b.entry.type] || 100) || b.score - a.score || a.entry.title.localeCompare(b.entry.title, 'zh-Hans-CN');
-        }).map((item) => item.entry);
-      }
-      const sameNameNingboAndMeililai = scored.filter((item) => ['ningbo', 'meililai'].includes(item.entry.type) && [item.entry.title, ...item.entry.aliases].map(normalize).includes(q));
-      if (sameNameNingboAndMeililai.some((item) => item.entry.type === 'ningbo') && sameNameNingboAndMeililai.some((item) => item.entry.type === 'meililai')) {
-        const typeOrder = { ningbo:10, meililai:20 };
-        return sameNameNingboAndMeililai.sort((a,b) => (typeOrder[a.entry.type] || 100) - (typeOrder[b.entry.type] || 100) || a.entry.title.localeCompare(b.entry.title, 'zh-Hans-CN')).map((item) => item.entry);
-      }
-      const exactMeililai = scored.filter((item) => item.entry.type === 'meililai' && [item.entry.title, ...item.entry.aliases].map(normalize).includes(q));
-      if (exactMeililai.length) return exactMeililai.sort((a,b) => a.entry.title.localeCompare(b.entry.title, 'zh-Hans-CN')).map((item) => item.entry);
-      const exactNingbo = scored.filter((item) => item.entry.type === 'ningbo' && [item.entry.title, ...item.entry.aliases].map(normalize).includes(q));
-      const relatedMeililai = q.length >= 2 ? scored.filter((item) => item.entry.type === 'meililai' && [item.entry.title, ...item.entry.aliases].map(normalize).some((text) => text.includes(q))) : [];
-      if (exactNingbo.length && relatedMeililai.length) {
-        const typeOrder = { ningbo:10, meililai:20 };
-        return [...exactNingbo, ...relatedMeililai].sort((a,b) => (typeOrder[a.entry.type] || 100) - (typeOrder[b.entry.type] || 100) || b.score - a.score || a.entry.title.localeCompare(b.entry.title, 'zh-Hans-CN')).map((item) => item.entry);
-      }
-      if (exactNingbo.length) return exactNingbo.sort((a,b) => a.entry.title.localeCompare(b.entry.title, 'zh-Hans-CN')).map((item) => item.entry);
-      const exactLiujin = scored.filter((item) => item.entry.type === 'liujin' && [item.entry.title, ...item.entry.aliases].map(normalize).includes(q));
-      if (exactLiujin.length) return exactLiujin.sort((a,b) => (a.entry.sortOrder || 100) - (b.entry.sortOrder || 100) || a.entry.title.localeCompare(b.entry.title, 'zh-Hans-CN')).map((item) => item.entry);
-      const maxScore = scored.reduce((max, item) => Math.max(max, item.score), 0);
-      const filtered = maxScore >= 80 ? scored.filter((item) => item.score >= 60) : scored;
-      const focused = q.includes('夯土') && !q.includes('3d') && filtered.some((item) => item.entry.type === 'rammed-earth') ? filtered.filter((item) => item.entry.type === 'rammed-earth') : filtered;
-      return focused.sort((a,b) => b.score - a.score || (a.entry.sortOrder || 100) - (b.entry.sortOrder || 100) || a.entry.title.localeCompare(b.entry.title, 'zh-Hans-CN')).map((item) => item.entry);
+      // Source names are filters, not product-specific search exceptions.
+      const sources = [
+        ['宁波仓', '宁波', 'nb', '宁波仓'], ['美利来仓', '美利来', '美丽来', 'mll', '美利来'],
+        ['浙江仓', '浙江', '浙江仓'], ['松诺厂', '松诺', '松诺'], ['168厂', '168', '168'],
+        ['上海仓', '上海', '上海'], ['武汉仓', '武汉', '武汉'], ['淮海仓', '淮海', '淮海'],
+        ['昌盛仓', '昌盛', '昌盛'], ['福建', '福建'], ['贝厂', '贝厂'], ['美岩', '美岩']
+      ];
+      const prefixes = sources.flatMap(group => group.slice(0, -1).map(prefix => ({ prefix:normalize(prefix), source:group[group.length - 1] }))).sort((a,b) => b.prefix.length - a.prefix.length);
+      const scope = prefixes.find(item => q.startsWith(item.prefix));
+      return scope ? { term:q.slice(scope.prefix.length), source:scope.source } : { term:q, source:'' };
+    }
+    function matchingEntries(query) {
+      const q = normalize(query);
+      if (!q) return [];
+      const exactTable = priceEntries.filter(entry => ['meililai-table', 'liujin-table', 'concrete-table', 'ningbo-table'].includes(entry.type) && [entry.title, ...entry.aliases].map(normalize).includes(q));
+      if (exactTable.length && (q.includes('价格表') || ['鎏金板', 'nb柔岩板', '混凝土', 'mll', 'mll柔岩板', '美利来', '美丽来'].includes(q))) return exactTable;
+      const { term, source } = searchScope(query);
+      return priceEntries.filter(entry => {
+        if (source && !normalize(entry.warehouse + entry.title).includes(normalize(source))) return false;
+        return !term || [entry.title, entry.warehouse, entry.category, ...entry.aliases].some(text => normalize(text).includes(term));
+      }).map(entry => ({ entry, score:scoreEntry(entry, term || q) }))
+        .sort((a,b) => b.score - a.score || (a.entry.sortOrder || 100) - (b.entry.sortOrder || 100) || a.entry.title.localeCompare(b.entry.title, 'zh-Hans-CN') || a.entry.warehouse.localeCompare(b.entry.warehouse, 'zh-Hans-CN'))
+        .map(item => item.entry);
     }
     function renderSuggestions(query) { const matches = matchingEntries(query).slice(0,12); els.suggestions.classList.toggle('show', Boolean(query.trim()) && matches.length > 0); els.suggestions.innerHTML = matches.map((entry,index) => '<button class="suggestion" type="button" data-index="' + index + '"><strong>' + esc(entry.title) + '</strong><span>' + esc(entry.warehouse) + ' · ' + esc(entry.category) + (entry.aliases.length ? ' · ' + esc(entry.aliases.join(' / ')) : '') + '</span></button>').join(''); els.suggestions.querySelectorAll('.suggestion').forEach((button) => { button.addEventListener('click', () => { const entry = matches[Number(button.dataset.index)]; els.query.value = entry.aliases[0] || entry.title; els.suggestions.classList.remove('show'); renderResults([entry]); }); }); }
     function renderRowPrices(row) {
@@ -1049,7 +1040,16 @@
       return '<span class="price-values"><b><small>底价</small>' + esc(money(row.price)) + '</b>' + minimumPrice + '</span>';
     }
     function renderResults(entries) { if (!entries.length) { els.results.innerHTML = '<div class="panel empty">没有匹配到价格。换一个关键词试试，例如“陨石板”“夯土板”“透光板”“坐凳”。</div>'; return; } els.results.innerHTML = entries.map((entry) => '<article class="card"><div class="card-head"><div class="card-title"><strong>' + esc(entry.title) + '</strong><span class="meta">' + esc(entry.warehouse) + ' · ' + esc(entry.category) + (entry.aliases.length ? ' · 关键词：' + esc(entry.aliases.join('、')) : '') + '</span></div><span class="badge">' + esc(entry.unit || '底价 / 元每平') + '</span></div><div class="price-grid' + (entry.layout === 'single' ? ' single' : '') + '">' + entry.rows.map((row) => '<div class="price-row"><span><strong class="row-main">' + esc(row.label) + '</strong>' + (row.subLabel ? '<small class="row-sub">' + (row.tag ? '<mark class="row-tag ' + esc(row.tagClass || '') + '">' + esc(row.tag) + '</mark>' : '') + esc(row.subLabel) + '</small>' : '') + (row.priceItems ? '<span class="sub-price-list">' + row.priceItems.map((item) => '<span class="sub-price">' + esc(item.label) + '<strong>底价</strong><b>' + esc(money(item.price)) + '</b></span>').join('') + '</span>' : '') + '</span>' + renderRowPrices(row) + '</div>').join('') + '</div>' + (entry.note ? '<p class="note">' + esc(entry.note) + '</p>' : '') + '</article>').join(''); }
-    function searchNow() { const q = els.query.value.trim(); renderSuggestions(q); if (!q) { els.results.innerHTML = '<div class="panel empty">输入关键词后显示价格。鎏金板同时显示底价与最低售价，其他产品保持原有价格展示。</div>'; return; } renderResults(matchingEntries(q).slice(0,20)); }
+    function renderSearchPage(entries, limit = 20) {
+      const visible = Math.min(limit, entries.length);
+      renderResults(entries.slice(0, visible));
+      els.results.insertAdjacentHTML('afterbegin', '<p class="search-count" role="status">共 ' + entries.length + ' 项，已显示 ' + visible + ' 项</p>');
+      if (visible < entries.length) {
+        els.results.insertAdjacentHTML('beforeend', '<button id="loadMoreResults" class="tag-btn" type="button" style="min-height:44px">加载更多（剩余 ' + (entries.length - visible) + ' 项）</button>');
+        document.querySelector('#loadMoreResults').addEventListener('click', () => renderSearchPage(entries, visible + 20));
+      }
+    }
+    function searchNow() { const q = els.query.value.trim(); renderSuggestions(q); if (!q) { els.results.innerHTML = '<div class="panel empty">输入关键词后显示价格。鎏金板同时显示底价与最低售价，其他产品保持原有价格展示。</div>'; return; } renderSearchPage(matchingEntries(q)); }
     els.query.addEventListener('input', searchNow); els.query.addEventListener('focus', () => renderSuggestions(els.query.value)); els.clearSearchBtn.addEventListener('click', () => { els.query.value = ''; els.suggestions.classList.remove('show'); searchNow(); els.query.focus(); }); document.addEventListener('click', (event) => { if (!event.target.closest('.search-wrap')) els.suggestions.classList.remove('show'); });
     function loadQuickWords() {
       try {
