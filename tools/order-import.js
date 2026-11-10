@@ -13,7 +13,7 @@
       xCode: '',
       receiver: { name: '', phone: '', address: '' },
       logistics: '',
-      freightPay: '到付',
+      freightPay: '',
       freightAmount: '',
       products: [],
       fees: {
@@ -25,13 +25,15 @@
         db: 0
       },
       sourceKd: null,
-      total: 0,
+      total: null,
       payment: '',
       remark: '',
       deposit: null,
       allocation: '',
       extraLines: [],
-      shippingSummary: ''
+      shippingSummary: '',
+      mentions: [],
+      processingNote: ''
     };
   }
 
@@ -68,7 +70,7 @@
   function readAmountLabel(segment, labelPattern) {
     const match = segment.match(labelPattern);
     if (!match) return null;
-    return { raw: match[1] };
+    return { raw: match[match.length - 1], match };
   }
 
   function findSpec(nameAndSpec) {
@@ -79,20 +81,22 @@
       `((?:硬质[-－]?|软质[-－]?)?\\d+(?:\\.\\d+)?` +
       `(?:\\s*[＊*×xX]\\s*\\d+(?:\\.\\d+)?){1,2}` +
       `(?:\\s*[＊*×xX]\\s*\\d+(?:\\.\\d+)?[~～]\\d+(?:\\.\\d+)?)?` +
-      `\\s*(?:mm|毫米)?(?:[（(][^（）()]*[）)])?)$`,
+      `\\s*(?:mm|毫米)?(?:[（(][^（）()]*[）)])?` +
+      `|((?:硬质[-－]?|软质[-－]?)?\\d+(?:\\.\\d+)?\\s*(?:mm|毫米)(?:[（(][^（）()]*[）)])?))$`,
       'i'
     );
     const match = nameAndSpec.match(pattern);
     if (!match) {
-      const hasLooseDimension = /(?:硬质[-－]?|软质[-－]?)?\d+(?:\.\d+)?(?:\s*[＊*×xX]\s*\d+(?:\.\d+)?){1,2}(?:\s*[＊*×xX]\s*\d+(?:\.\d+)?[~～]\d+(?:\.\d+)?)?\s*(?:mm|毫米)?(?=.+$)/i.test(nameAndSpec);
+      const hasLooseDimension = /(?:硬质[-－]?|软质[-－]?)?\d+(?:\.\d+)?(?:(?:\s*[＊*×xX]\s*\d+(?:\.\d+)?){1,2}(?:\s*[＊*×xX]\s*\d+(?:\.\d+)?[~～]\d+(?:\.\d+)?)?\s*(?:mm|毫米)?|\s*(?:mm|毫米))(?=.+$)/i.test(nameAndSpec);
       const placeholder = nameAndSpec.match(/^(.*?)(请填写规格)$/);
       if (placeholder) return { name: placeholder[1].trim(), spec: placeholder[2], hasLooseDimension: false };
       return { name: nameAndSpec.trim(), spec: '', hasLooseDimension };
     }
     const start = match.index;
+    const spec = match[1] || match[2];
     return {
       name: nameAndSpec.slice(0, start).trim(),
-      spec: match[1].trim(),
+      spec: spec.trim(),
       hasLooseDimension: false
     };
   }
@@ -107,7 +111,7 @@
     return first * second / 1000000;
   }
 
-  function parseProduct(segment, errors, warnings, productIndex) {
+  function parseProduct(segment, errors, warnings, notices, productIndex) {
     const number = NUMBER;
     const productPattern = new RegExp(
       `^(?<nameSpec>.*?)\\s*[＊*×xX]\\s*(?<quantity>${number})\\s*` +
@@ -141,7 +145,7 @@
     if (!split.spec) {
       // buildCustom permits a product without a size. Preserve the whole prefix as its name;
       // the UI can decide whether this warning needs user confirmation for the selected mode.
-      addUnique(warnings, `产品${productIndex}未识别到毫米规格；产品名前缀已保留，请核对规格。`);
+      addUnique(notices, `产品${productIndex}未识别到毫米规格；规格留空，请核对。`);
     }
 
     let priceBasis = unit === 'area' ? 'area' : 'piece';
@@ -153,7 +157,7 @@
         basisPrice = Number(basisMatch[1]);
         priceBasis = /^(?:片|张)$/i.test(basisMatch[2]) ? 'piece' : 'area';
       } else if (/\d/.test(note)) {
-        addUnique(warnings, `产品${productIndex}括号中的价格说明无法判断计价单位；明细金额已保留，请核对单价单位。`);
+        addUnique(notices, `产品${productIndex}括号中的价格说明无法判断计价单位；明细金额已保留，请核对单价单位。`);
       }
     }
 
@@ -191,8 +195,8 @@
   function parseFreightDescriptor(rawValue) {
     let value = String(rawValue || '').trim().replace(/\s*送货\s*$/, '').trim();
     value = value.replace(/^运费\s*[：:]?\s*/, '').trim();
-    if (/^(?:工厂自提|自提)$/.test(value)) {
-      return { ok: true, logistics: value, freightPay: '到付', freightAmount: '' };
+    if (/^(?:仓库自提|工厂自提|自提)$/.test(value)) {
+      return { ok: true, logistics: value === '仓库自提' ? '自提' : value, freightPay: '到付', freightAmount: '' };
     }
 
     let route = '';
@@ -233,7 +237,7 @@
     return { ok: true, logistics: route || '默认', freightPay, freightAmount };
   }
 
-  function parsePayment(rawPayment, state, errors, warnings) {
+  function parsePayment(rawPayment, state, errors, warnings, notices) {
     let payment = rawPayment.trim();
     // Allocation is emitted after the deposit suffix, so peel it first.
     const allocationMatch = payment.match(/[（(]([^（）()]*[\u3400-\u9fff][^（）()]*)[）)]\s*$/);
@@ -252,8 +256,8 @@
       } else {
         state.deposit = { amount, balance };
         payment = payment.slice(0, depositMatch.index).trimEnd();
-        const expectedBalance = Math.round((state.total - amount) * 100) / 100;
-        if (expectedBalance < 0 || Math.abs(expectedBalance - balance) > 0.01) {
+        const expectedBalance = state.total === null ? null : Math.round((state.total - amount) * 100) / 100;
+        if (expectedBalance !== null && (expectedBalance < 0 || Math.abs(expectedBalance - balance) > 0.01)) {
           addUnique(warnings, `定金${amount}元与尾款${balance}元和原合计${state.total}元不一致，请人工核对。`);
         }
       }
@@ -261,8 +265,34 @@
       addUnique(errors, '定金/尾款后缀格式无法识别。');
     }
 
-    if (!payment) addUnique(errors, '付款方式为空。');
+    if (!payment) addUnique(notices, '付款方式为空，请补充后再提交。');
     state.payment = payment;
+  }
+
+  function parseDeliveryInfo(rawValue) {
+    const parts = String(rawValue || '').split(/[，,]/).map((part) => part.trim()).filter(Boolean);
+    if (!parts.length) return { ok: false, missing: true };
+    const pickup = parts.find((part) => /^(?:仓库自提|工厂自提|自提)$/.test(part));
+    let selected = null;
+    for (const part of parts) {
+      if (part === pickup) continue;
+      const parsed = parseFreightDescriptor(part);
+      if (!parsed.ok) return parsed;
+      if (selected && (selected.logistics !== parsed.logistics || selected.freightPay !== parsed.freightPay ||
+          selected.freightAmount !== parsed.freightAmount)) {
+        return { ok: false, message: '检测到多条互相冲突的运费信息。' };
+      }
+      selected = parsed;
+    }
+    if (pickup) {
+      return {
+        ok: true,
+        logistics: pickup === '仓库自提' ? '自提' : pickup,
+        freightPay: selected?.freightPay || '到付',
+        freightAmount: selected?.freightAmount || ''
+      };
+    }
+    return selected || { ok: false, message: '物流信息为空。' };
   }
 
   function knownShippingLine(line) {
@@ -274,7 +304,7 @@
     return /(?:费|DB|KD|税金|扣点|防水|耐磨|打孔|修补剂|保护剂|辅料|胶水|元|=|\d)/i.test(segment);
   }
 
-  function parseDetail(detail, state, errors, warnings) {
+  function parseDetail(detail, state, errors, warnings, notices) {
     const segments = detail
       .replace(/\r\n?/g, '\n')
       .replace(/\n+/g, '，')
@@ -294,7 +324,7 @@
     ];
 
     for (const segment of segments) {
-      const product = parseProduct(segment, errors, warnings, state.products.length + 1);
+      const product = parseProduct(segment, errors, warnings, notices, state.products.length + 1);
       if (product) {
         state.products.push(product);
         foundFeeOrProduct = true;
@@ -303,7 +333,9 @@
 
       let matchedFee = false;
       for (const definition of feeDefinitions) {
-        const labelPattern = new RegExp(`^(?:${definition.names})\\s*[：:]?\\s*(${NUMBER})\\s*元?$`, 'i');
+        const labelPattern = definition.key === 'processingFee'
+          ? new RegExp(`^加工费(?:[-－—]([^：:]+?))?\\s*[：:]\\s*(${NUMBER})\\s*元?$`, 'i')
+          : new RegExp(`^(?:${definition.names})\\s*[：:]?\\s*(${NUMBER})\\s*元?$`, 'i');
         const feeMatch = readAmountLabel(segment, labelPattern);
         if (!feeMatch) continue;
         matchedFee = true;
@@ -317,6 +349,9 @@
         if (amount === null) addUnique(errors, `${definition.display}金额无效。`);
         else if (definition.key === 'db') state.fees.db = amount;
         else state.fees[definition.key] = amount;
+        if (definition.key === 'processingFee' && feeMatch.match[1]) {
+          state.processingNote = feeMatch.match[1].trim();
+        }
         break;
       }
       if (matchedFee) continue;
@@ -348,7 +383,9 @@
         continue;
       }
 
-      if (/(?:片|张|平方|平|㎡|m²|m2).*=/i.test(segment)) {
+      const hasProductQuantityUnit = /(?:片|张|平方|平|㎡|m²|m2)/i.test(segment);
+      const hasBoardSpec = /(?:\d+(?:\.\d+)?\s*(?:mm|毫米)|\d+(?:\.\d+)?\s*[＊*×xX]\s*\d+(?:\.\d+)?)/i.test(segment);
+      if (segment.includes('=') && (hasProductQuantityUnit || hasBoardSpec)) {
         addUnique(errors, `产品明细公式无法识别或包含非法数量/金额：“${segment}”。`);
         continue;
       }
@@ -357,10 +394,11 @@
       // must explicitly decide whether to support them; they are never silently discarded.
       if (isFeeLikeResidual(segment)) {
         state.extraLines.push(segment);
-        addUnique(warnings, `发现暂未自动回填的附加费用或明细：“${segment}”；请先人工处理。`);
+        addUnique(notices, `发现暂未自动回填的附加费用或明细：“${segment}”；请人工核对。`);
         foundFeeOrProduct = true;
       } else {
-        addUnique(errors, `货物明细中有无法识别的残余文本：“${segment}”。`);
+        state.extraLines.push(segment);
+        addUnique(notices, `货物明细中有未映射文本：“${segment}”；原文已保留。`);
       }
     }
 
@@ -374,20 +412,24 @@
   function parse(input) {
     const errors = [];
     const warnings = [];
+    const notices = [];
     const state = createState();
+    const result = () => ({ ok: errors.length === 0, errors, warnings, notices, state });
     const source = String(input ?? '').replace(/\r\n?/g, '\n');
     if (!source.trim()) {
-      return { ok: false, errors: ['请先粘贴一份完整开单正文。'], warnings, state };
+      addUnique(errors, '请先粘贴一份完整开单正文。');
+      return result();
     }
     if (source.length > 60000) {
-      return { ok: false, errors: ['原文过长，请只粘贴一份开单正文（不超过60000字）。'], warnings, state };
+      addUnique(errors, '原文过长，请只粘贴一份开单正文（不超过60000字）。');
+      return result();
     }
 
     const orderPattern = /\d{6,14}-[^\n：:]{1,60}[：:]\s*绿活-张苗苗\d*\s*[：:]/g;
     const orderStarts = Array.from(source.matchAll(orderPattern));
     if (orderStarts.length === 0) {
       addUnique(errors, '未识别到“单号-仓库：绿活-张苗苗X：”开单标题。');
-      return { ok: false, errors, warnings, state };
+      return result();
     }
     if (orderStarts.length > 1) addUnique(errors, '检测到两张或多张订单，请每次只粘贴一张。');
 
@@ -395,139 +437,189 @@
     const header = firstStart[0].match(/^(\d{6,14})-([^\n：:]{1,60})[：:]\s*绿活-张苗苗(\d*)\s*[：:]$/);
     if (!header) {
       addUnique(errors, '开单标题结构无法识别。');
-      return { ok: false, errors, warnings, state };
+      return result();
     }
     state.sourceOrderNo = header[1];
     state.warehouse = header[2].trim();
     state.greenCount = header[3] || '0';
+    if (!state.warehouse) addUnique(errors, '标题中缺少仓库名称。');
 
     const beforeOrder = source.slice(0, firstStart.index).split('\n').map((line) => line.trim()).filter(Boolean);
     const freightHeaders = [];
     for (const line of beforeOrder) {
       const parsed = parseFreightDescriptor(line);
       if (parsed.ok) freightHeaders.push({ raw: line, parsed });
-      else addUnique(errors, `开单标题前有无法识别的内容：“${line}”。`);
+      else if (/^@\S/.test(line)) addUnique(state.mentions, line);
+      else {
+        state.extraLines.push(line);
+        addUnique(notices, '开单标题前有未映射内容：“' + line + '”；原文已保留。');
+      }
     }
     if (freightHeaders.length > 1) addUnique(errors, '物流摘要首行重复，请只保留一条。');
 
     const body = source.slice(firstStart.index + firstStart[0].length);
-    for (const [label, regex] of [
-      ['货物明细', /[,，]\s*货物明细\s*[：:]/g],
-      ['合计', /[,，]\s*合计\s*[：:]/g],
-      ['付款方式', /[,，]\s*付款方式\s*[：:]/g],
-      ['备注', /[,，]\s*备注\s*[：:]/g]
-    ]) {
-      const count = countMatches(body, regex);
-      if (count > 1) addUnique(errors, `${label}重复，请只粘贴一份完整开单正文。`);
+    const fieldDefinitions = [
+      ['detail', '货物明细'], ['total', '合计'], ['payment', '付款方式'], ['remark', '备注']
+    ];
+    const fields = {};
+    for (const [key, label] of fieldDefinitions) {
+      const regex = new RegExp('[,，]\\s*' + label + '\\s*[：:]', 'g');
+      fields[key] = Array.from(body.matchAll(regex), (match) => ({ index: match.index, marker: match[0] }));
+      if (fields[key].length > 1) addUnique(errors, label + '重复，请只粘贴一份开单正文。');
+    }
+    if (!fields.detail.length) addUnique(errors, '缺少货物明细字段。');
+    for (const [key, label] of fieldDefinitions.slice(1)) {
+      if (!fields[key].length) addUnique(notices, '缺少' + label + '字段，请补充。');
+    }
+    if (!fields.detail.length) return result();
+
+    const firstField = (key) => fields[key][0] || null;
+    const presentFields = fieldDefinitions.map(([key]) => ({ key, value: firstField(key) }))
+      .filter((item) => item.value)
+      .sort((a, b) => a.value.index - b.value.index);
+    const expectedOrder = presentFields.map((item) => item.key).sort((a, b) =>
+      fieldDefinitions.findIndex(([key]) => key === a) - fieldDefinitions.findIndex(([key]) => key === b));
+    if (presentFields.some((item, index) => item.key !== expectedOrder[index])) {
+      addUnique(errors, '订单字段顺序异常，请粘贴完整且未被重排的开单正文。');
     }
 
-    const detailMarker = body.match(/[,，]\s*货物明细\s*[：:]/);
-    const totalMarker = body.match(/[,，]\s*合计\s*[：:]/);
-    const paymentMarker = body.match(/[,，]\s*付款方式\s*[：:]/);
-    const remarkMarker = body.match(/[,，]\s*备注\s*[：:]/);
-    if (!detailMarker || !totalMarker || !paymentMarker || !remarkMarker) {
-      addUnique(errors, '缺少货物明细、合计、付款方式或备注关键字段。');
-      return { ok: false, errors, warnings, state };
-    }
-
+    const markerEnd = (key) => firstField(key).index + firstField(key).marker.length;
+    const nextFieldIndex = (key) => {
+      const index = firstField(key).index;
+      return presentFields.find((item) => item.value.index > index)?.value.index ?? body.length;
+    };
+    const detailMarker = firstField('detail');
     const beforeDetail = body.slice(0, detailMarker.index);
-    const receiverCommas = commaPositions(beforeDetail);
-    if (receiverCommas.length < 2) {
-      addUnique(errors, '收货信息缺少“姓名，电话，地址”字段。');
-    } else {
-      const tag = beforeDetail.slice(0, receiverCommas[0]).trim();
-      const receiverPhone = beforeDetail.slice(receiverCommas[0] + 1, receiverCommas[1]).trim();
-      const deliveryDelimiter = receiverCommas[receiverCommas.length - 1];
-      const address = beforeDetail.slice(receiverCommas[1] + 1, deliveryDelimiter).trim();
-      const delivery = beforeDetail.slice(deliveryDelimiter + 1).trim();
-      const tagMatch = tag.match(/^(.+?)-(.+)$/);
-      if (!tagMatch) addUnique(errors, '收货人前缺少仓库代码（如X-姓名）。');
-      else {
-        state.xCode = tagMatch[1].trim();
-        state.receiver.name = tagMatch[2].trim();
+
+    const splitSegments = (value) => value.split(/[，,]/).map((part) => part.trim());
+    const looksLikeDelivery = (part) =>
+      /^(?:运费\s*[：:]?\s*)?(?:仓库自提|工厂自提|自提)(?:\s*送货)?$/.test(part) ||
+      /^(?:运费\s*[：:]?\s*)?.*(?:到付|代付)(?:\s*送货)?$/.test(part);
+    let addressPrefix = '';
+    const applyReceiverTag = (value) => {
+      const tagMatch = value.trim().replace(/[，,]\s*$/, '').match(/^(.+?)-(.+)$/);
+      if (!tagMatch) return false;
+      state.xCode = tagMatch[1].trim();
+      const receiverText = tagMatch[2].trim();
+      const trailingAddress = receiverText.match(/^(\S+)\s+(.+)$/);
+      if (trailingAddress && /[省市区县镇乡路街道巷号]/.test(trailingAddress[2])) {
+        state.receiver.name = trailingAddress[1];
+        addressPrefix = trailingAddress[2].trim();
+      } else state.receiver.name = receiverText;
+      return Boolean(state.xCode && state.receiver.name);
+    };
+    const applyDelivery = (segments) => {
+      const items = segments.map((part) => part.trim()).filter(Boolean);
+      const deliveryIndex = items.findIndex(looksLikeDelivery);
+      if (deliveryIndex < 0) {
+        state.receiver.address = [addressPrefix, items.join('，')].filter(Boolean).join('，').trim();
+        return;
       }
-      state.receiver.phone = receiverPhone;
-      state.receiver.address = address;
-      if (!state.receiver.name) addUnique(errors, '收货人姓名为空。');
-      const phoneDigits = receiverPhone.replace(/\D/g, '');
-      if (!/^[+()\-\d\s]+$/.test(receiverPhone) || phoneDigits.length < 7 || phoneDigits.length > 15) {
-        addUnique(errors, '收货电话格式无法识别。');
-      }
-      if (!address) addUnique(errors, '收货地址为空。');
-      const freight = parseFreightDescriptor(delivery);
-      if (!freight.ok) addUnique(errors, `物流信息无法识别：${freight.message}`);
+      state.receiver.address = [addressPrefix, items.slice(0, deliveryIndex).join('，')].filter(Boolean).join('，').trim();
+      const freight = parseDeliveryInfo(items.slice(deliveryIndex).join('，'));
+      if (!freight.ok) addUnique(errors, '物流信息无法识别：' + (freight.message || '物流信息为空。'));
       else {
         state.logistics = freight.logistics;
         state.freightPay = freight.freightPay;
         state.freightAmount = freight.freightAmount;
       }
+    };
+
+    const phoneMatches = Array.from(beforeDetail.matchAll(/(?<!\d)(\+?\d[\d\s()\-]{5,}\d)(?!\d)/g));
+    const validPhone = phoneMatches.find((match) => {
+      const digits = match[1].replace(/\D/g, '');
+      return digits.length >= 7 && digits.length <= 15;
+    });
+    if (validPhone) {
+      applyReceiverTag(beforeDetail.slice(0, validPhone.index));
+      state.receiver.phone = validPhone[1].trim();
+      const suffix = beforeDetail.slice(validPhone.index + validPhone[0].length).replace(/^[，,]\s*/, '');
+      applyDelivery(splitSegments(suffix));
+    } else {
+      const parts = splitSegments(beforeDetail);
+      applyReceiverTag(parts[0] || '');
+      // If the name/phone text was removed from a pickup order, the route may now
+      // immediately follow the X-code (for example, "X-仓库自提"). Do not mistake
+      // that route for a receiver name; pass it through the normal delivery parser.
+      const taggedDelivery = state.receiver.name && looksLikeDelivery(state.receiver.name)
+        ? state.receiver.name
+        : '';
+      if (taggedDelivery) state.receiver.name = '';
+      applyDelivery([taggedDelivery, ...parts.slice(1)]);
+      addUnique(notices, '收货电话未识别，请补充。');
+    }
+    if (!state.receiver.name) addUnique(notices, '收货人未识别，请补充。');
+    const phoneDigits = state.receiver.phone.replace(/\D/g, '');
+    if (state.receiver.phone && (phoneDigits.length < 7 || phoneDigits.length > 15)) {
+      addUnique(notices, '收货电话格式异常，请核对。');
+      state.receiver.phone = '';
     }
 
-    const detailStart = detailMarker.index + detailMarker[0].length;
-    const totalStart = totalMarker.index;
-    const paymentStart = paymentMarker.index;
-    const remarkStart = remarkMarker.index;
-    if (!(detailStart <= totalStart && totalStart < paymentStart && paymentStart < remarkStart)) {
-      addUnique(errors, '订单字段顺序异常，请粘贴完整且未被重排的开单正文。');
+    const detailText = body.slice(markerEnd('detail'), nextFieldIndex('detail')).trim();
+    const detailMetadata = parseDetail(detailText, state, errors, warnings, notices);
+
+    if (firstField('total')) {
+      const totalValue = body.slice(markerEnd('total'), nextFieldIndex('total')).trim();
+      if (!totalValue) addUnique(notices, '合计金额为空，请补充。');
+      else {
+        const total = parseMoney(totalValue);
+        if (total === null) addUnique(errors, '合计金额无法识别；仅支持非负、最多两位小数的金额。');
+        else state.total = total;
+      }
     }
 
-    const detailText = body.slice(detailStart, totalStart).trim();
-    const detailMetadata = parseDetail(detailText, state, errors, warnings);
+    if (firstField('payment')) {
+      const rawPayment = body.slice(markerEnd('payment'), nextFieldIndex('payment'));
+      parsePayment(rawPayment, state, errors, warnings, notices);
+    }
 
-    const totalValue = body.slice(totalMarker.index + totalMarker[0].length, paymentStart).trim();
-    const total = parseMoney(totalValue);
-    if (total === null) addUnique(errors, '合计金额无法识别；仅支持非负、最多两位小数的金额。');
-    else state.total = total;
-
-    const rawPayment = body.slice(paymentMarker.index + paymentMarker[0].length, remarkStart);
-    parsePayment(rawPayment, state, errors, warnings);
-
-    let rawRemark = body.slice(remarkMarker.index + remarkMarker[0].length);
-    // Generated shipping weight / packaging / DB summaries follow the single-line order text.
-    // Preserve them in shippingSummary; any unrecognized trailing line blocks import.
-    const firstNewline = rawRemark.indexOf('\n');
-    if (firstNewline >= 0) {
-      const firstLine = rawRemark.slice(0, firstNewline);
-      const trailing = rawRemark.slice(firstNewline + 1).split('\n').map((line) => line.trim()).filter(Boolean);
-      const normalizedTrailing = trailing.filter((line) => !/^\s*$/.test(line));
-      if (normalizedTrailing.every(knownShippingLine)) {
-        state.remark = firstLine;
-        state.shippingSummary = normalizedTrailing.join('\n');
+    if (firstField('remark')) {
+      const rawRemark = body.slice(markerEnd('remark'));
+      const retainedLines = [];
+      for (const line of rawRemark.split('\n')) {
+        if (/^\s*@\S/.test(line)) addUnique(state.mentions, line.trim());
+        else retainedLines.push(line);
+      }
+      state.remark = retainedLines.shift() || '';
+      const trailing = retainedLines.map((line) => line.trim()).filter(Boolean);
+      if (trailing.length && trailing.every(knownShippingLine)) {
+        state.shippingSummary = trailing.join('\n');
         let summaryDbSeen = false;
-        for (const line of normalizedTrailing) {
+        for (const line of trailing) {
           const dbMatch = line.match(/^DB\s*[：:]?\s*(\d+(?:\.\d{1,2})?)$/i);
           if (dbMatch) {
-            if (summaryDbSeen || detailMetadata?.seenFees?.has('db')) addUnique(errors, 'DB在正文或物流摘要中重复。');
+            if (summaryDbSeen || detailMetadata.seenFees.has('db')) addUnique(errors, 'DB在正文或物流摘要中重复。');
             else state.fees.db = Number(dbMatch[1]);
             summaryDbSeen = true;
           }
         }
-      } else {
-        state.remark = rawRemark;
-        if (normalizedTrailing.length) {
-          addUnique(errors, `备注后的附加行无法确认为物流摘要：“${normalizedTrailing.find((line) => !knownShippingLine(line))}”。`);
-        }
+      } else if (trailing.length) {
+        state.extraLines.push(...trailing);
+        addUnique(notices, '备注后的附加文本已保留，请人工核对：“' + trailing.join('；') + '”。');
       }
-    } else {
-      state.remark = rawRemark;
+      if (!state.remark.trim()) addUnique(notices, '备注内容为空，请补充。');
     }
-    if (!state.remark) addUnique(errors, '备注内容为空。');
 
     if (freightHeaders.length === 1) {
       const headerFreight = freightHeaders[0].parsed;
       state.shippingSummary = [freightHeaders[0].raw, state.shippingSummary].filter(Boolean).join('\n');
-      if (state.logistics !== headerFreight.logistics || state.freightPay !== headerFreight.freightPay ||
+      if (!state.logistics) {
+        state.logistics = headerFreight.logistics;
+        state.freightPay = headerFreight.freightPay;
+        state.freightAmount = headerFreight.freightAmount;
+      } else if (state.logistics !== headerFreight.logistics || state.freightPay !== headerFreight.freightPay ||
           state.freightAmount !== headerFreight.freightAmount) {
         addUnique(errors, '首行物流摘要与正文物流字段不一致，请核对后再导入。');
       }
     }
 
-    if (state.products.length > 5) {
-      // Intentionally not an error: keep all recognized rows so the caller can show the exact
-      // count and block because the current editor supports at most five products.
+    if (!state.logistics) addUnique(notices, '物流方式未识别，请补充；不会默认选择物流。');
+    if (!state.receiver.address && state.logistics !== '自提' && state.logistics !== '工厂自提') {
+      addUnique(notices, '收货地址未填写，请补充；自提可留空。');
     }
+    if (!firstField('remark')) addUnique(notices, '备注内容为空，请补充。');
 
-    return { ok: errors.length === 0, errors, warnings, state };
+    return result();
   }
 
   const api = { parse };

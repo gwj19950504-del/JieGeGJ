@@ -58,7 +58,8 @@
   function normalizedSpec(value) { return String(value).replace(/[×xX＊]/g,'*').replace(/\s|mm|毫米|硬质-?|软质-?/gi,''); }
   function preflight(state) {
     if (!state.products.length || state.products.length > 5) throw new Error('现有开单表单支持1至5个产品，请只粘贴对应的一张完整订单。');
-    if (state.extraLines?.length) throw new Error('以下附加明细暂不能完整还原，请人工开单，当前表单未改变：\n' + state.extraLines.join('\n'));
+    const notices=[];
+    if(state.extraLines?.length)notices.push('以下原文未自动计入费用，请在上方补充核对：\n'+state.extraLines.join('\n'));
     let group = state.warehouse;
     let category = 'other';
     let specKeys = [];
@@ -90,13 +91,13 @@
     const availableLogistics=logisticsByWarehouse[logisticsKey] || [];
     // Both existing pickup options generate the same 工厂自提 wording.
     const logistics=state.logistics==='工厂自提' && !availableLogistics.includes('工厂自提') && availableLogistics.includes('自提') ? '自提' : state.logistics;
-    if (!availableLogistics.includes(logistics)) throw new Error(`当前仓库未提供物流“${state.logistics}”，请核对，未替换为其他物流。`);
+    if (logistics && !availableLogistics.includes(logistics)) notices.push(`物流“${state.logistics}”不在当前仓库选项中，未猜选，请手动核对。`);
     for (const item of state.products) {
       if (category==='songnuo' && item.unit!=='area') throw new Error('混凝土需要原单中的面积明细，不能由片数猜算。');
       if (category!=='songnuo' && category!=='custom' && item.unit!=='piece') throw new Error('该仓库需要片数明细，不能由面积猜算片数。');
-      if (category==='other' && item.priceBasis==='area' && !areaFromSpecText(item.spec)) throw new Error('无法识别规格面积，请核对后重试。');
+      if (category==='other' && item.priceBasis==='area' && !areaFromSpecText(item.spec)) notices.push('缺少完整规格，暂保留原明细的单片价；补齐规格后请核对计价方式。');
     }
-    return {group,category,specKeys,logistics};
+    return {group,category,specKeys,logistics:availableLogistics.includes(logistics)?logistics:'',notices};
   }
   function fill(state, plan) {
     const newIndex=els.orderIndex.value;
@@ -116,8 +117,8 @@
     setValue(els.receiverAddress,state.receiver.address);
     els.receiverRaw.value=[state.receiver.name,state.receiver.phone,state.receiver.address].filter(Boolean).join('，');
     renderLogistics();
-    choose('logistics',plan.logistics);
-    choose('freightPay',state.freightPay);
+    document.querySelectorAll('input[name="logistics"]').forEach(node=>node.checked=node.value===plan.logistics);
+    document.querySelectorAll('input[name="freightPay"]').forEach(node=>node.checked=node.value===state.freightPay);
     setValue(els.freightAmount,state.freightAmount);
     renderSpecOptions();
     if (plan.category==='other') {
@@ -132,7 +133,7 @@
         syncNingboSpecSelect(row);
         setValue(row.qty,item.quantity);
         manualPrice(row.sqmPrice,item.priceBasis==='area'?item.basisPrice:'');
-        setValue(row.unitPrice,item.priceBasis==='piece'?item.unitPrice:'');
+        setValue(row.unitPrice,item.priceBasis==='piece' || !areaFromSpecText(item.spec)?item.unitPrice:'');
       });
       setValue(els.otherDb,state.fees.db || '');
     } else if (plan.category==='liujin' || plan.category==='sandstone') {
@@ -181,15 +182,16 @@
     const method=methods.find(node=>state.payment===node.value || state.payment.startsWith(node.value+'-'));
     if(method) { method.checked=true; const channel=radio('paymentChannel',state.payment.slice(method.value.length+1));if(channel)channel.checked=true; }
     setValue(els.payment,state.payment);
-    if(state.deposit) {els.depositEnabled.checked=true;setValue(els.depositAmount,state.deposit.amount);}
+    if(state.deposit) {els.depositEnabled.checked=state.total!==null;setValue(els.depositAmount,state.deposit.amount);}
     if(state.allocation) {els.allocationEnabled.checked=true;setValue(els.allocationText,state.allocation);}
     syncRemarkPresetAvailability();
     document.querySelectorAll('.remarkPreset').forEach(node=>node.checked=false);
-    els.remarkCustom.value=state.remark==='无'?'':state.remark;
+    const remark=state.remark==='无'?'':state.remark;
+    els.remarkCustom.value=[remark,state.processingNote && !remark.includes(state.processingNote)?'加工说明：'+state.processingNote:''].filter(Boolean).join('\n');
     manualResultMode=false;
     calculate();
     const invalid=orderValidationError();
-    if(invalid)throw new Error(invalid);
+    return invalid;
   }
   function clear() {
     if(applying)return;
@@ -210,20 +212,22 @@
     const snapshot=capture();
     applying=true;
     try {
-      fill(result.state,plan);
+      const incomplete=fill(result.state,plan);
       const actualMaterial=Number(els.materialPreview.textContent);
       const expectedMaterial=result.state.products.reduce((sum,item)=>sum+item.lineAmount,0);
       const differences=[...result.warnings];
       if(Math.abs(actualMaterial-expectedMaterial)>0.05) differences.push(`材料费：原单${money(expectedMaterial)}，当前明细计算${money(actualMaterial)}。`);
-      if(result.state.sourceKd!==null && Math.abs(Number(els.kdPreview.textContent)-result.state.sourceKd)>0.05) differences.push(`KD：原单${money(result.state.sourceKd)}，按当前规则计算${els.kdPreview.textContent}。`);
-      if(differences.length && !allowDifference) {
+      const partial=result.state.total===null || result.state.extraLines?.length || incomplete;
+      if(!partial && result.state.sourceKd!==null && Math.abs(Number(els.kdPreview.textContent)-result.state.sourceKd)>0.05) differences.push(`KD：原单${money(result.state.sourceKd)}，按当前规则计算${els.kdPreview.textContent}。`);
+      if(differences.length && !partial && !allowDifference) {
         restore(snapshot);
         confirmBox.hidden=false;accepted.checked=false;
         preview.textContent='已识别，但发现需核对的差异，当前开单未改变：\n'+differences.join('\n');
         return;
       }
       undo=snapshot;appliedText=source;undoButton.disabled=false;
-      preview.textContent=`已还原 ${result.state.warehouse} · ${result.state.products.length} 个产品。\n旧单号 ${result.state.sourceOrderNo} 仅供核对；新单号沿用当前日期及上方编号。\n保留原合计 ${money(result.state.total)} 元、原单价与费用。现在可修改数量、价格或合计；税金按原金额手填，不倒推税率。`+(differences.length?'\n已确认差异：\n'+differences.join('\n'):'');
+      const notices=[...(result.notices||[]),...plan.notices,...(incomplete?[incomplete]:[])];
+      preview.textContent=`已还原 ${result.state.warehouse} · ${result.state.products.length} 个产品。\n旧单号 ${result.state.sourceOrderNo} 仅供核对；新单号沿用当前日期及上方编号。\n${result.state.total===null?'原文缺少合计，已留空，请补充后再开单。':`保留原合计 ${money(result.state.total)} 元。`}已保留明确识别的单价与费用；缺项不猜填，税金不倒推税率。`+(notices.length?'\n待核对/未回填信息：\n'+[...new Set(notices)].join('\n'):'')+(differences.length?'\n'+(partial?'待核对差异：':'已确认差异：')+'\n'+differences.join('\n'):'');
       text.focus({preventScroll:true});window.scrollTo(snapshot.scrollX,snapshot.scrollY);
     } catch(error) {
       restore(snapshot);

@@ -3094,7 +3094,7 @@
     <section class="panel" id="orderImportSection" aria-label="旧开单还原" style="margin-top:20px">
       <div class="panel-inner">
       <h2 class="section-title">粘贴旧开单，自动还原明细</h2>
-      <p class="hint">粘贴完整已开单正文，停顿后自动回填；可直接修改数量、单价、合计。保留旧单价格与费用，不套用当前目录价。旧单号仅供核对，新单沿用当前日期和编号。</p>
+      <p class="hint">粘贴开单正文，停顿后自动回填；末尾可带 @财务提醒。能识别的字段先还原，缺项留空并提示，自提不要求地址；可修改数量、单价、合计。保留旧单价格与费用，不套用当前目录价。旧单号仅供核对，新单沿用当前日期和编号。</p>
       <label class="field-label" for="orderImportText">旧开单原文</label>
       <textarea id="orderImportText" rows="7" maxlength="60000" placeholder="请粘贴完整开单信息，包含仓库、收货信息、货物明细、合计和付款方式"></textarea>
       <div id="orderImportCategoryWrap" hidden style="margin-top:12px">
@@ -3119,6 +3119,7 @@
 
   <script src="input-validation.js?v=20260919-1"></script>
   <script src="product-data.js?v=20261104-1"></script>
+  <script src="zhejiang-order-aliases.js?v=20261110-1"></script>
   <script src="best-rates.js?v=20261008-1"></script>
   <script src="freight-gold-core.js?v=20261030-1"></script>
   <script src="ningbo-freight-core.js?v=20260905-1"></script>
@@ -4002,7 +4003,12 @@
     function findLiujinSeriesPrice(productName, specValue) {
       if (currentWarehouseGroup() !== "浙江仓" || currentCategory() !== "liujin") return null;
       const key = normalizeLiujinPriceSpec(specValue);
-      return productData.findLiujinSeriesPrice(productName, key);
+      return productData.findLiujinSeriesPrice(window.ZhejiangOrderAliases.priceName(productName), key);
+    }
+
+    function zhejiangOrderAlias(value) {
+      if (currentWarehouseGroup() !== "浙江仓" || currentCategory() !== "liujin") return null;
+      return window.ZhejiangOrderAliases.resolve(value);
     }
 
     function defaultSqmPriceForSpec(spec, productName) {
@@ -4514,7 +4520,10 @@
         .filter((item) => isRemarkPresetAvailable(item.value))
         .map((item) => item.value);
       const custom = els.remarkCustom.value.trim();
-      return [custom, ...presets].filter(Boolean).join("");
+      const existing = [custom, ...presets].filter(Boolean).join("");
+      const names = currentWarehouseGroup() === "浙江仓" && currentCategory() === "liujin"
+        ? liujinRows().filter(row => Number(row.qty.value) > 0).map(row => row.productName.value) : [];
+      return window.ZhejiangOrderAliases.remarkPrefix(names, existing) + existing;
     }
 
     function setRemarkPreset(value, checked) {
@@ -4610,7 +4619,8 @@
     function readLiujinProduct(row) {
       const warehouse = currentWarehouse();
       const category = currentCategory();
-      const productName = row.productName.value.trim() || "未填写款式";
+      const typedName = row.productName.value.trim();
+      const productName = zhejiangOrderAlias(typedName)?.name || typedName || "未填写款式";
       const specList = activeBoardSpecs();
       const spec = specList.find((item) => item.value === row.specSelect.value) || specList[0];
       const rawSpecText = usesManualSpec(warehouse)
@@ -6515,7 +6525,7 @@
     els.fillNingboBtn.addEventListener("click", fillNingboDemo);
     els.fillSongnuoBtn.addEventListener("click", fillSongnuoDemo);
   </script>
-  <script src="order-import.js?v=20261107-3"></script>
-  <script src="order-import-app.js?v=20261107-3"></script>
+  <script src="order-import.js?v=20261110-1"></script>
+  <script src="order-import-app.js?v=20261110-1"></script>
 </body>
 </html>
