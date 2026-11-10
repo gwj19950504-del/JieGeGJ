@@ -883,6 +883,10 @@
       font-weight: 850;
     }
 
+    @media (max-width: 760px) {
+      #liujinFields .liujin-price-note { grid-column: 1 / -1; }
+    }
+
     .product-card.product-tone-1 {
       background: #fff;
       border-left-color: rgba(47, 143, 91, 0.42);
@@ -4011,6 +4015,58 @@
       return window.ZhejiangOrderAliases.resolve(value);
     }
 
+    function zhejiangInputName(input) {
+      const saved = window.ZhejiangOrderAliases.resolve(input.dataset.zhejiangAlias);
+      if (saved && input.value.trim() === saved.name) return saved.alias;
+      delete input.dataset.zhejiangAlias;
+      return input.value;
+    }
+
+    const aliasInputTimers = new Map();
+
+    function clearAliasInputs(clearMetadata = true) {
+      aliasInputTimers.forEach(timer => clearTimeout(timer));
+      aliasInputTimers.clear();
+      if (clearMetadata) liujinRows().forEach(row => delete row.productName.dataset.zhejiangAlias);
+    }
+
+    function bindLiujinName(specSelect, priceInput, input) {
+      let composing = false;
+      function cancel() {
+        clearTimeout(aliasInputTimers.get(input));
+        aliasInputTimers.delete(input);
+      }
+      function commit() {
+        cancel();
+        if (composing || !input.isConnected) return;
+        const matched = zhejiangOrderAlias(input.value);
+        if (!matched) return;
+        input.dataset.zhejiangAlias = matched.alias;
+        input.value = matched.name;
+        // Price was resolved on input; do not overwrite a later manual price.
+        calculate();
+      }
+      function onInput(event) {
+        cancel();
+        zhejiangInputName(input);
+        if (composing || event?.isComposing) return;
+        applyDefaultSqmPrice(specSelect, priceInput, input);
+        const matched = zhejiangOrderAlias(input.value);
+        // A short alias such as 铁锈F must not eat the suffix of 铁锈FBB.
+        if (matched && !window.ZhejiangOrderAliases.entries.some(entry => entry.alias !== matched.alias && entry.alias.startsWith(matched.alias))) {
+          aliasInputTimers.set(input, setTimeout(commit, 250));
+        }
+      }
+      input.addEventListener("compositionstart", () => { composing = true; cancel(); });
+      input.addEventListener("compositionend", () => { composing = false; onInput(); });
+      input.addEventListener("input", onInput);
+      input.addEventListener("change", () => {
+        if (!composing) applyDefaultSqmPrice(specSelect, priceInput, input);
+        commit();
+      });
+      input.addEventListener("blur", commit);
+    }
+
     function defaultSqmPriceForSpec(spec, productName) {
       const matchedPrice = findLiujinSeriesPrice(productName, spec.value);
       return matchedPrice ?? spec.defaultSqmPrice;
@@ -4019,7 +4075,7 @@
     function applyDefaultSqmPrice(specSelect, priceInput, productInput = null) {
       const spec = activeBoardSpecs().find((item) => item.value === specSelect.value);
       if (!spec) return;
-      priceInput.value = defaultSqmPriceForSpec(spec, productInput?.value || "");
+      priceInput.value = defaultSqmPriceForSpec(spec, productInput ? zhejiangInputName(productInput) : "");
       calculate();
     }
 
@@ -4030,6 +4086,7 @@
           value: control.value,
           checked: Boolean(control.checked),
           autoPrice: control.dataset.autoPrice || "",
+          zhejiangAlias: control.dataset.zhejiangAlias || "",
           manualOverride: control.dataset.manualOverride || ""
         });
       });
@@ -4043,6 +4100,7 @@
         control.value = saved.value;
         if (control.type === "checkbox" || control.type === "radio") control.checked = saved.checked;
         if (saved.autoPrice) control.dataset.autoPrice = saved.autoPrice;
+        if (saved.zhejiangAlias) control.dataset.zhejiangAlias = saved.zhejiangAlias;
         if (saved.manualOverride) control.dataset.manualOverride = saved.manualOverride;
       });
     }
@@ -4091,8 +4149,7 @@
         const priceInput = card.querySelector(".liujin-sqm-price");
         const productInput = card.querySelector(".liujin-product-name");
         specSelect.addEventListener("change", () => applyDefaultSqmPrice(specSelect, priceInput, productInput));
-        productInput?.addEventListener("input", () => applyDefaultSqmPrice(specSelect, priceInput, productInput));
-        productInput?.addEventListener("change", () => applyDefaultSqmPrice(specSelect, priceInput, productInput));
+        bindLiujinName(specSelect, priceInput, productInput);
         applyDefaultSqmPrice(specSelect, priceInput, productInput);
       });
       restoreControlState(els.additionalProducts, previousState);
@@ -4522,7 +4579,7 @@
       const custom = els.remarkCustom.value.trim();
       const existing = [custom, ...presets].filter(Boolean).join("");
       const names = currentWarehouseGroup() === "浙江仓" && currentCategory() === "liujin"
-        ? liujinRows().filter(row => Number(row.qty.value) > 0).map(row => row.productName.value) : [];
+        ? liujinRows().filter(row => Number(row.qty.value) > 0).map(row => zhejiangInputName(row.productName)) : [];
       return window.ZhejiangOrderAliases.remarkPrefix(names, existing) + existing;
     }
 
@@ -4619,7 +4676,7 @@
     function readLiujinProduct(row) {
       const warehouse = currentWarehouse();
       const category = currentCategory();
-      const typedName = row.productName.value.trim();
+      const typedName = zhejiangInputName(row.productName).trim();
       const productName = zhejiangOrderAlias(typedName)?.name || typedName || "未填写款式";
       const specList = activeBoardSpecs();
       const spec = specList.find((item) => item.value === row.specSelect.value) || specList[0];
@@ -6020,6 +6077,7 @@
     }
 
     function fillDemo() {
+      clearAliasInputs();
       window.OrderImportApp?.clear();
       manualResultMode = false;
       resetOrderPaymentDetails();
@@ -6060,6 +6118,7 @@
     }
 
     function fillNingboDemo() {
+      clearAliasInputs(false);
       window.OrderImportApp?.clear();
       manualResultMode = false;
       resetOrderPaymentDetails();
@@ -6106,6 +6165,7 @@
     }
 
     function fillSongnuoDemo() {
+      clearAliasInputs(false);
       window.OrderImportApp?.clear();
       manualResultMode = false;
       resetOrderPaymentDetails();
@@ -6177,6 +6237,7 @@
     }
 
     function resetForNextOrder() {
+      clearAliasInputs();
       window.OrderImportApp?.clear();
       manualResultMode = false;
       resetOrderPaymentDetails();
@@ -6373,8 +6434,7 @@
       calculate();
     });
     els.specSelect.addEventListener("change", () => applyDefaultSqmPrice(els.specSelect, els.sqmPrice, els.productName));
-    els.productName.addEventListener("input", () => applyDefaultSqmPrice(els.specSelect, els.sqmPrice, els.productName));
-    els.productName.addEventListener("change", () => applyDefaultSqmPrice(els.specSelect, els.sqmPrice, els.productName));
+    bindLiujinName(els.specSelect, els.sqmPrice, els.productName);
     els.songnuoProductName.addEventListener("input", () => {
       if (concreteSpecPreset() !== "custom") syncConcreteSpecText();
       syncConcretePrice();
