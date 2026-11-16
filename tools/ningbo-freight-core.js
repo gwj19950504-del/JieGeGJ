@@ -34,6 +34,11 @@
     return Math.ceil(value * 2) / 2;
   }
 
+  function rollProductFamily(name) {
+    const baseName = normalize(name).replace(/3d/g, "");
+    return ["洞石", "平板", "莱姆石", "火烧面"].includes(baseName) ? baseName : "";
+  }
+
   function singlePackage(item) {
     const family = item.family || productFamily(item.name);
     const isSmallSize = isSmallBoardSpec(item.spec);
@@ -92,6 +97,7 @@
       thickness,
       family: source.family || productFamily(source.name),
       finishType: source.finishType || "print",
+      is3D: source.is3D === true || /3d/i.test(String(source.name || "")),
       length: dims.length,
       width: dims.width,
       area,
@@ -101,7 +107,7 @@
     };
   }
 
-  function calculateShipment(sources) {
+  function calculateShipment(sources, options = {}) {
     const activeSources = (Array.isArray(sources) ? sources : [])
       .filter((item) => item && item.qty !== "" && item.qty != null && Number(item.qty) !== 0);
     if (activeSources.some((item) => {
@@ -113,10 +119,10 @@
     if (!items.length) return null;
 
     const productWeight = items.reduce((sum, item) => sum + item.productWeight, 0);
-    const crateLength = Math.max(...items.map((item) => item.length)) + 100;
-    const crateWidth = Math.max(...items.map((item) => item.width)) + 100;
+    let crateLength = Math.max(...items.map((item) => item.length)) + 100;
+    let crateWidth = Math.max(...items.map((item) => item.width)) + 100;
     const contentThickness = items.reduce((sum, item) => sum + item.thickness * item.qty, 0);
-    const crateHeight = Math.ceil(contentThickness + 200);
+    let crateHeight = Math.ceil(contentThickness + 200);
     // 同一产品拆成多行不能绕过包装数量门槛；仅合并参数完全一致的行。
     const packageGroups = new Map();
     items.forEach((item) => {
@@ -141,10 +147,30 @@
       };
     }
 
+    // 仅宁波重量显式启用；整票均符合3D卷桶条件时才替换原包装。
+    const totalQty = items.reduce((sum, item) => sum + item.qty, 0);
+    const rollPacking = options.allowRollPacking === true && totalQty >= 1 && totalQty <= 6
+      && items.every((item) => item.is3D && rollProductFamily(item.name));
+    if (rollPacking) {
+      const rollCount = Math.ceil(totalQty / 3);
+      crateLength = 1300;
+      crateWidth = rollCount === 1 ? 300 : 600;
+      crateHeight = 400;
+      crate = {
+        type: "卷桶木箱",
+        weight: 20,
+        rollCount,
+        rule: `3D洞石/平板/莱姆石/火烧面合计${totalQty}片，每卷最多3片，${rollCount}卷合装1个木箱`
+      };
+    }
+
     const packageWeight = crate.weight;
     const shippingWeight = productWeight + packageWeight;
     const weightTerms = items.map((item) => `${item.qty}*${item.sheetWeight}`);
     const packageLabel = crate.type.includes("夹板") ? "夹板" : "木箱";
+    const crateSizeText = rollPacking
+      ? `${crateLength}*${crateWidth}*${crateHeight}`
+      : `${crateWidth}*${crateLength}*${crateHeight}`;
 
     return {
       items,
@@ -156,8 +182,10 @@
       crateWidth,
       crateHeight,
       contentThickness,
+      rollPacking,
+      crateSizeText,
       expression: `${weightTerms.join("+")}+${packageWeight}=${shippingWeight}KG`,
-      crateLines: [`${packageLabel}：${crateWidth}*${crateLength}*${crateHeight}mm`]
+      crateLines: [`${packageLabel}：${crateSizeText}mm`, ...(rollPacking ? [`卷桶包装：${crate.rollCount}卷，合装1个木箱，每卷最多3片`] : [])]
     };
   }
 
@@ -166,6 +194,7 @@
     parseSize,
     isSmallBoardSpec,
     productFamily,
-    requiresFinishChoice
+    requiresFinishChoice,
+    rollProductFamily
   };
 })();

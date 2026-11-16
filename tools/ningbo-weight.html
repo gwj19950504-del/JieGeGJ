@@ -187,6 +187,23 @@
       grid-template-columns: repeat(2, 1fr);
     }
 
+    .roll-confirm label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+      cursor: pointer;
+    }
+
+    body.apple-ui[data-page="ningbo-weight"] .roll-confirm input {
+      width: 20px !important;
+      min-width: 20px;
+      height: 20px;
+      min-height: 20px !important;
+      margin: 0;
+      accent-color: #007aff;
+    }
+
     .chips {
       display: flex;
       flex-wrap: wrap;
@@ -1106,6 +1123,12 @@
         </div>
       </div>
 
+      <div id="rollPanel" class="option-panel roll-confirm hidden">
+        <label><input id="confirm3D" type="checkbox">确认当前产品为3D（可卷桶）</label>
+        <div id="rollHint" class="hint"></div>
+        <div class="hint">仅洞石、平板、莱姆石、火烧面：整票均为3D且合计1–6片时，每卷最多3片；1–3片为1卷，4–6片为2卷，同装1个20KG木箱。其他情况沿用原包装。</div>
+      </div>
+
       <div class="grid">
         <div>
           <label for="qty">数量（张）</label>
@@ -1174,7 +1197,7 @@
         <div class="metric">
           <span>木箱重量</span>
           <strong id="crateWeight">-</strong>
-          <small>大夹板按用量核算 / 夹板 10KG / 小木箱 30KG / 大木箱 65KG</small>
+          <small>卷桶木箱 20KG / 大夹板按用量核算 / 夹板 10KG / 小木箱 30KG / 大木箱 65KG</small>
         </div>
         <div class="metric">
           <span>含包装总重量</span>
@@ -1190,7 +1213,7 @@
           <div class="result-note">单张取整重量 * 数量</div>
         </div>
         <div class="crate">
-          <div class="label">木箱尺寸（宽 * 长 * 高，单位 mm）</div>
+          <div id="crateSizeLabel" class="label">木箱尺寸（宽 * 长 * 高，单位 mm）</div>
           <div id="crateSize" class="crate-size">-</div>
           <div id="crateFormula" class="label"></div>
         </div>
@@ -1208,7 +1231,7 @@
   </main>
 
   <script src="product-data.js?v=20261104-1"></script>
-  <script src="ningbo-freight-core.js?v=20260905-1"></script>
+  <script src="ningbo-freight-core.js?v=20261116-1"></script>
   <script>
     const products = [
       {
@@ -2170,11 +2193,15 @@
       sizeMetric: document.querySelector("#sizeMetric"),
       finishPanel: document.querySelector("#finishPanel"),
       finishTypes: document.querySelectorAll('input[name="finishType"]'),
+      rollPanel: document.querySelector("#rollPanel"),
+      confirm3D: document.querySelector("#confirm3D"),
+      rollHint: document.querySelector("#rollHint"),
       crateType: document.querySelector("#crateType"),
       crateRule: document.querySelector("#crateRule"),
       crateWeight: document.querySelector("#crateWeight"),
       shippingWeight: document.querySelector("#shippingWeight"),
       crateSize: document.querySelector("#crateSize"),
+      crateSizeLabel: document.querySelector("#crateSizeLabel"),
       crateFormula: document.querySelector("#crateFormula"),
       detailFormula: document.querySelector("#detailFormula"),
       copySummary: document.querySelector("#copySummary"),
@@ -2326,7 +2353,8 @@
         thickness,
         kgPerSqm,
         family: productFamily(selectedProduct.name),
-        finishType: selectedFinishType()
+        finishType: selectedFinishType(),
+        is3D: els.confirm3D.checked
       };
     }
 
@@ -2342,13 +2370,13 @@
         return;
       }
       els.shipmentItems.innerHTML = shipmentItems.map((item, index) => {
-        const single = window.NingboFreightCore.calculateShipment([item]);
+        const single = window.NingboFreightCore.calculateShipment([item], { allowRollPacking: true });
         const sheetWeight = single?.items[0]?.sheetWeight || 0;
         return `
           <div class="shipment-item">
             <div class="shipment-item-main">
               <strong>明细 ${index + 1} · ${item.name}</strong>
-              <span>${item.spec} · ${item.qty}张 · 单张${sheetWeight}KG · 厚度累计${formatPlainNumber(item.thickness * item.qty)}mm</span>
+              <span>${item.spec} · ${item.qty}张 · 单张${sheetWeight}KG · 厚度累计${formatPlainNumber(item.thickness * item.qty)}mm${item.is3D || /3d/i.test(item.name) ? " · 3D" : ""}</span>
             </div>
             <button type="button" class="shipment-delete secondary" data-shipment-id="${item.id}">删除</button>
           </div>
@@ -2374,6 +2402,7 @@
       shipmentSequence += 1;
       shipmentItems.push({ ...item, id: `shipment-${shipmentSequence}` });
       els.qty.value = "";
+      els.confirm3D.checked = false;
       renderShipmentItems();
       calculate();
       els.search.value = "";
@@ -2437,6 +2466,7 @@
 
     function selectProduct(product) {
       selectedProduct = product;
+      els.confirm3D.checked = false;
       selectedSize = product.sizes[0];
       productListCollapsed = true;
       applySelectedSizeDefaults();
@@ -2446,6 +2476,12 @@
     }
 
     function calculate() {
+      const rollEligible = Boolean(window.NingboFreightCore.rollProductFamily(selectedProduct.name));
+      const named3D = /3d/i.test(selectedProduct.name);
+      els.rollPanel.classList.toggle("hidden", !rollEligible);
+      els.confirm3D.disabled = !rollEligible || named3D;
+      if (!rollEligible || named3D) els.confirm3D.checked = rollEligible && named3D;
+      els.rollHint.textContent = named3D ? "名称已含3D，自动确认；无需重复勾选。" : "名称不含3D，请核实后勾选；未勾选时仍按原包装计算。";
       const qty = Number(els.qty.value);
       const invalidQuantity = els.qty.validity.badInput || (els.qty.value !== '' && (!Number.isSafeInteger(qty) || qty <= 0));
       const kgPerSqm = Number(els.kgPerSqm.value) || 0;
@@ -2455,7 +2491,7 @@
       const rawWeight = area * kgPerSqm;
       const sheetWeight = Math.ceil(rawWeight);
       const showFinish = requiresFinishChoice(selectedProduct, selectedSize);
-      const calculation = invalidQuantity ? null : window.NingboFreightCore.calculateShipment(shipmentItemsForCalculation());
+      const calculation = invalidQuantity ? null : window.NingboFreightCore.calculateShipment(shipmentItemsForCalculation(), { allowRollPacking: true });
       els.copySummary.disabled = !calculation;
       els.copyFreight.disabled = !calculation || !els.address.value.trim();
       const totalWeight = calculation?.productWeight || 0;
@@ -2480,9 +2516,11 @@
       els.crateRule.textContent = crate ? crate.rule : "填写数量后自动判断";
       els.crateWeight.textContent = crate ? `${crate.weight} KG` : "-";
       els.shippingWeight.textContent = calculation ? `${shippingWeight.toLocaleString("zh-CN")} KG` : "-";
-      els.crateSize.textContent = calculation ? `${calculation.crateWidth}*${calculation.crateLength}*${calculation.crateHeight}` : "-";
+      els.crateSize.textContent = calculation ? calculation.crateSizeText : "-";
+      els.crateSizeLabel.textContent = calculation?.rollPacking ? "卷桶木箱尺寸（长 * 宽 * 高，单位 mm）" : "木箱尺寸（宽 * 长 * 高，单位 mm）";
       els.crateFormula.textContent = calculation
-        ? `长取最大 ${calculation.crateLength - 100}+100，宽取最大 ${calculation.crateWidth - 100}+100，高 ${formatPlainNumber(calculation.contentThickness)}+200`
+        ? calculation.rollPacking ? `${crate.rollCount}卷合装1个木箱，每卷最多3片；木箱20KG`
+          : `长取最大 ${calculation.crateLength - 100}+100，宽取最大 ${calculation.crateWidth - 100}+100，高 ${formatPlainNumber(calculation.contentThickness)}+200`
         : "填写数量后自动计算";
       els.detailFormula.innerHTML = calculation ? `
         ${calculation.items.map((item, index) => `
@@ -2492,7 +2530,7 @@
         <div>产品总重量：<code>${calculation.items.map((item) => `${item.qty}*${item.sheetWeight}`).join("+")}=${totalWeight}KG</code></div>
         <div>合装规则：<code>${crate.rule}</code>，包装重量：<code>${crate.weight}KG</code></div>
         <div>询价总重量：<code>${calculation.expression}</code></div>
-        <div>木箱：最长和最宽各加 100mm，高度累计 = <code>${formatPlainNumber(calculation.contentThickness)}+200=${calculation.crateHeight}mm</code></div>
+        <div>木箱：${calculation.rollPacking ? `卷桶固定尺寸（长*宽*高）<code>${calculation.crateSizeText}mm</code>` : `最长和最宽各加 100mm，高度累计 = <code>${formatPlainNumber(calculation.contentThickness)}+200=${calculation.crateHeight}mm</code>`}</div>
       ` : "请选择产品、规格并填写数量。";
       els.freightOutput.textContent = invalidQuantity ? '数量必须是大于 0 的整数，请修正后再加入或复制。' : missingManualParameters
         ? "当前产品缺少权威重量或厚度资料，请人工填写 kg/㎡ 和厚度后再生成运费询价。"
@@ -2502,14 +2540,15 @@
     async function copySummary() {
       calculate();
       if (els.copySummary.disabled) return;
-      const calculation = window.NingboFreightCore.calculateShipment(shipmentItemsForCalculation());
+      const calculation = window.NingboFreightCore.calculateShipment(shipmentItemsForCalculation(), { allowRollPacking: true });
       const text = calculation ? [
         ...calculation.items.map((item, index) => `明细${index + 1}：${item.name} ${item.spec} ${item.qty}张，单张${item.sheetWeight}KG`),
         `产品总重量：${calculation.productWeight}KG`,
         `木箱类型：${calculation.crate.type}`,
         `木箱重量：${calculation.packageWeight}KG`,
         `含包装总重量：${calculation.shippingWeight}KG`,
-        `木箱尺寸：${calculation.crateWidth}*${calculation.crateLength}*${calculation.crateHeight}mm`
+        `木箱尺寸：${calculation.crateSizeText}mm`,
+        ...(calculation.rollPacking ? [`卷桶包装：${calculation.crate.rollCount}卷，合装1个木箱，每卷最多3片`] : [])
       ].join("\n") : "请先填写产品数量";
       await copyText(text, els.copySummary, "复制计算结果");
     }
@@ -2552,6 +2591,7 @@
     els.crateThickness.addEventListener("input", calculate);
     els.kgPerSqm.addEventListener("input", calculate);
     els.finishTypes.forEach(input => input.addEventListener("change", calculate));
+    els.confirm3D.addEventListener("change", calculate);
     els.address.addEventListener("input", calculate);
     els.addShipmentItem.addEventListener("click", addCurrentShipmentItem);
     els.copySummary.addEventListener("click", copySummary);
@@ -2566,6 +2606,7 @@
     });
     els.resetBtn.addEventListener("click", () => {
       els.qty.value = "";
+      els.confirm3D.checked = false;
       shipmentItems = [];
       renderShipmentItems();
       calculate();
