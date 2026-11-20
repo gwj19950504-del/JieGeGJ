@@ -2108,18 +2108,17 @@
       border-color: #195fc8 !important;
       box-shadow: 0 0 0 4px rgba(31, 111, 235, 0.16), 0 10px 22px rgba(31, 111, 235, 0.22) !important;
     }
-    .order-reset-shortcut {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 16px;
+    .order-import-heading {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 12px 20px;
+      margin-bottom: 12px;
     }
-    .order-reset-shortcut button {
-      width: auto;
-      min-width: 144px;
-      min-height: 44px;
-    }
+    .order-import-heading .section-title { margin: 0; }
+    .order-import-heading button { width: 100%; }
     @media (max-width: 680px) {
-      .order-reset-shortcut button { width: 100%; }
+      .order-import-heading { grid-template-columns: minmax(0, 1fr); }
     }
     @media (max-width: 850px) {
       .green-count-options .option span {
@@ -3108,12 +3107,12 @@
         </div>
       </section>
     </div>
-    <div class="order-reset-shortcut">
-      <button type="button" class="secondary" id="resetNextShortcutBtn">重置下一个</button>
-    </div>
     <section class="panel" id="orderImportSection" aria-label="旧开单还原" style="margin-top:20px">
       <div class="panel-inner">
-      <h2 class="section-title">粘贴旧开单，自动还原明细</h2>
+      <div class="order-import-heading">
+        <h2 class="section-title">粘贴旧开单，自动还原明细</h2>
+        <button type="button" id="resetNextShortcutBtn">重置下一个</button>
+      </div>
       <p class="hint">粘贴开单正文，停顿后自动回填；末尾可带 @财务提醒。能识别的字段先还原，缺项留空并提示，自提不要求地址；可修改数量、单价、合计。保留旧单价格与费用，不套用当前目录价。旧单号仅供核对，新单沿用当前日期和编号。</p>
       <label class="field-label" for="orderImportText">旧开单原文</label>
       <textarea id="orderImportText" rows="7" maxlength="60000" placeholder="请粘贴完整开单信息，包含仓库、收货信息、货物明细、合计和付款方式"></textarea>
