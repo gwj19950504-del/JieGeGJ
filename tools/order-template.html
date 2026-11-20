@@ -1258,13 +1258,27 @@
       overflow-wrap: anywhere;
     }
 
-    .best-actions { padding: 0 16px 16px; }
+    .order-best-head-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 14px;
+      max-width: 100%;
+      min-width: 0;
+      margin-inline-start: auto;
+    }
 
-    .best-actions button {
-      min-width: 190px;
-      border-color: #111827;
-      background: #111827;
-      color: #fff;
+    #orderBestSection #copyOrderBestBtn {
+      background: #052742 !important;
+      border-bottom: 3px solid #db061d !important;
+      color: #fff !important;
+    }
+
+    .order-best-head-actions .best-total { flex: 0 0 auto; }
+
+    @media (max-width: 760px) {
+      .order-best-head-actions { width: 100%; }
+      #orderBestSection #copyOrderBestBtn { flex: 1 1 auto; min-width: 0; padding-inline: 10px !important; }
     }
 
     .actions {
@@ -3073,7 +3087,10 @@
                   <div class="best-subtitle">浙江仓鎏金板 / 砂岩板 · 实重与体积重取大值 · 2026-09-22费率</div>
                 </div>
               </div>
-              <div class="best-total" id="orderBestTotal">-</div>
+              <div class="order-best-head-actions">
+                <button type="button" id="copyOrderBestBtn">复制百世快运报价</button>
+                <div class="best-total" id="orderBestTotal">-</div>
+              </div>
             </div>
             <div class="best-options">
               <div class="best-option-cell">
@@ -3099,9 +3116,6 @@
             <div class="best-body">
               <div class="best-box" id="orderBestQuote">请填写鎏金板或砂岩板产品、规格、数量和地址</div>
               <div class="best-process" id="orderBestProcess">自动显示计算过程</div>
-            </div>
-            <div class="best-actions">
-              <button type="button" id="copyOrderBestBtn">复制百世快运报价</button>
             </div>
           </div>
         </div>
