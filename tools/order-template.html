@@ -2108,6 +2108,19 @@
       border-color: #195fc8 !important;
       box-shadow: 0 0 0 4px rgba(31, 111, 235, 0.16), 0 10px 22px rgba(31, 111, 235, 0.22) !important;
     }
+    .order-reset-shortcut {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+    .order-reset-shortcut button {
+      width: auto;
+      min-width: 144px;
+      min-height: 44px;
+    }
+    @media (max-width: 680px) {
+      .order-reset-shortcut button { width: 100%; }
+    }
     @media (max-width: 850px) {
       .green-count-options .option span {
         width: 34px !important;
@@ -3095,6 +3108,9 @@
         </div>
       </section>
     </div>
+    <div class="order-reset-shortcut">
+      <button type="button" class="secondary" id="resetNextShortcutBtn">重置下一个</button>
+    </div>
     <section class="panel" id="orderImportSection" aria-label="旧开单还原" style="margin-top:20px">
       <div class="panel-inner">
       <h2 class="section-title">粘贴旧开单，自动还原明细</h2>
@@ -3350,6 +3366,7 @@
       copyBtn: document.querySelector("#copyBtn"),
       resumeAutoBtn: document.querySelector("#resumeAutoBtn"),
       resetNextBtn: document.querySelector("#resetNextBtn"),
+      resetNextShortcutBtn: document.querySelector("#resetNextShortcutBtn"),
       fillDemoBtn: document.querySelector("#fillDemoBtn"),
       fillNingboBtn: document.querySelector("#fillNingboBtn"),
       fillSongnuoBtn: document.querySelector("#fillSongnuoBtn")
@@ -6581,6 +6598,7 @@
     els.result.addEventListener("blur", cleanLegacyOrderResult);
 
     els.resetNextBtn.addEventListener("click", resetForNextOrder);
+    els.resetNextShortcutBtn.addEventListener("click", resetForNextOrder);
     els.fillDemoBtn.addEventListener("click", fillDemo);
     els.fillNingboBtn.addEventListener("click", fillNingboDemo);
     els.fillSongnuoBtn.addEventListener("click", fillSongnuoDemo);
