@@ -34,6 +34,8 @@ body.apple-ui button.small-button { min-height: 34px !important; padding: 5px 10
 .form-grid label { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 5px; }
 .form-grid label input, .form-grid label select { grid-column: 1 / -1; }
 .label-note { font-size: 12px; font-weight: 400; color: #777780; }
+.numbering { align-items: end; }
+.numbering .label-note { white-space: nowrap; }
 .field-label { display: block; margin-bottom: 7px; }
 .hint { margin-bottom: 0; }
 .inline-check { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
@@ -87,8 +89,11 @@ body.apple-ui #result { min-height: 340px !important; padding: 17px !important; 
   .form-grid.order-context-fields { grid-template-columns: minmax(0, 1fr); }
   .mode-tabs small { display: block; margin-left: 0; font-size: 11px; }
   .mode-tabs button { font-size: 14px !important; }
-  .numbering { grid-template-columns: minmax(0,1fr) 110px !important; }
+  .numbering { grid-template-columns: minmax(0,1fr) 120px !important; }
   .product-grid { grid-template-columns: minmax(0,1fr) 78px; }
   .product-grid > label:last-child { grid-column: 1 / -1; }
   .copy-actions { grid-template-columns: 1fr; }
+}
+@media (max-width: 360px) {
+  body.apple-ui .numbering #invoiceMonth { padding-inline: 6px !important; }
 }

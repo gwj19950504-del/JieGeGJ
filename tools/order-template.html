@@ -5724,7 +5724,7 @@
       customFeeRows().forEach(bindCustomFeeRow);
     }
 
-    function addCustomFeeRow(name = "", amount = "") {
+    function addCustomFeeRow(name = "", amount = "", recalculate = true) {
       els.customFeeRows.insertAdjacentHTML("beforeend", `
         <div class="custom-fee-row">
           <div>
@@ -5739,7 +5739,23 @@
         </div>
       `);
       bindCustomFeeRows();
-      calculate();
+      if (recalculate) calculate();
+    }
+
+    function resetCustomOrder() {
+      for (const key of ["customWarehouseName", "customProductName", "customSpecText", "customQty",
+        "customUnitPrice", "customPriceNote", "customDetail"]) {
+        els[key].value = "";
+      }
+      document.querySelector("input[name='customPriceMode'][value='piece']").checked = true;
+      const [first, ...additional] = customFeeRows();
+      additional.forEach(({ row }) => row.remove());
+      if (first) {
+        first.name.value = "";
+        first.amount.value = "";
+      } else {
+        addCustomFeeRow("", "", false);
+      }
     }
 
     function customFees() {
@@ -6371,6 +6387,7 @@
       renderLogistics();
       renderAdditionalProducts();
       applyDefaultSqmPrice(els.specSelect, els.sqmPrice, els.productName);
+      resetCustomOrder();
       calculate();
       els.receiverRaw.focus();
     }
