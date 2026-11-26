@@ -120,6 +120,7 @@
     document.querySelectorAll('input[name="logistics"]').forEach(node=>node.checked=node.value===plan.logistics);
     document.querySelectorAll('input[name="freightPay"]').forEach(node=>node.checked=node.value===state.freightPay);
     setValue(els.freightAmount,state.freightAmount);
+    els.freightAmount.dataset.bestFreightFill='manual';
     renderSpecOptions();
     if (plan.category==='other') {
       setOtherProductCount(state.products.length);
@@ -173,6 +174,7 @@
     setValue(els.taxAmount,state.fees.taxAmount || '');
     setValue(els.processingFee,state.fees.processingFee || '');
     setValue(els.promotionFee,state.fees.promotionFee || '');
+    els.promotionFee.dataset.leifanFee='import';
     els.meililaiManualPackaging.checked=plan.group==='美利来';
     setValue(els.crateFee,state.fees.crateFee || '');
     setValue(els.totalAmount,state.total);

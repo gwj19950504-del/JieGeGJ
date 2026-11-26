@@ -609,6 +609,47 @@
       min-width: 0;
     }
 
+    .leifan-category-heading {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    body.apple-ui[data-page="order-template"] .leifan-category-heading .field-label { margin: 0; }
+
+    body.apple-ui[data-page="order-template"] #leifanPresetBtn {
+      display: inline-grid;
+      place-items: center;
+      flex: none;
+      width: 44px;
+      min-height: 32px !important;
+      padding: 0 !important;
+      margin-block: -6px;
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+    }
+
+    body.apple-ui[data-page="order-template"] #leifanPresetBtn img {
+      display: block;
+      border-radius: 5px;
+    }
+
+    body.apple-ui[data-page="order-template"] #leifanPresetBtn:focus-visible {
+      outline: 2px solid #b6420c;
+      outline-offset: 2px;
+    }
+
+    body.apple-ui[data-page="order-template"] #leifanPresetBtn.hidden { display: none !important; }
+
+    @media (max-width: 680px) {
+      body.apple-ui[data-page="order-template"] #leifanPresetBtn {
+        min-height: 44px !important;
+        margin-block: 0;
+      }
+    }
+
     .freight-panel .freight-logistics .option-row {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2470,9 +2511,13 @@
               <div>
                 <label class="field-label" for="freightAmount">运费金额</label>
                 <input id="freightAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="不填则不写金额">
+                <div class="hint hidden" id="bestFreightFillHint">百世到付自动填写；可手改，清空恢复自动。</div>
               </div>
               <div id="categoryBlock">
-                <label class="field-label">品类</label>
+                <div class="leifan-category-heading">
+                  <label class="field-label">品类</label>
+                  <button type="button" id="leifanPresetBtn" aria-label="套用擂饭开单模板" title="套用擂饭开单模板" class="hidden"><img src="assets/leifan-brand.jpg" width="32" height="32" alt=""></button>
+                </div>
                 <div class="option-row category-options" id="categoryOptions">
                   <label class="option compact"><input type="radio" name="category" value="liujin" checked><span>鎏金板</span></label>
                   <label class="option compact"><input type="radio" name="category" value="sandstone"><span>砂岩板</span></label>
@@ -3161,6 +3206,8 @@
     const specs = productData.liujinSpecs;
     const liujinSeriesPriceGroups = productData.liujinSeriesPriceGroups;
     const defaultRemarkPresets = new Set(["【货好拍照】", "修补剂随货发，谢谢！"]);
+    const LEIFAN_STYLE = "砂岩-（定制色-擂饭）";
+    const LEIFAN_REMARK = "【按定制色-擂饭生产】【货好拍照】【单独包护角】【外包装贴标签】修补剂随货发，谢谢！";
     const sandstoneSpecs = productData.sandstoneSpecs;
     const ningboProductCatalog = productData.ningboProductCatalog;
     const meililaiProductCatalog = productData.meililaiProductCatalog;
@@ -3207,6 +3254,8 @@
       receiverAddress: document.querySelector("#receiverAddress"),
       logisticsGroup: document.querySelector("#logisticsGroup"),
       freightAmount: document.querySelector("#freightAmount"),
+      bestFreightFillHint: document.querySelector("#bestFreightFillHint"),
+      leifanPresetBtn: document.querySelector("#leifanPresetBtn"),
       liujinFields: document.querySelector("#liujinFields"),
       otherFields: document.querySelector("#otherFields"),
       customWarehousePanel: document.querySelector("#customWarehousePanel"),
@@ -4445,7 +4494,13 @@
           <span>${item === "默认" ? "默认 ★" : item}</span>
         </label>
       `).join("");
-      document.querySelectorAll("input[name='logistics']").forEach((input) => input.addEventListener("change", calculate));
+      document.querySelectorAll("input[name='logistics']").forEach((input) => input.addEventListener("change", () => {
+        if (input.checked && input.value === "百世" && canAutoFillBestFreight()) {
+          delete els.freightAmount.dataset.bestFreightFill;
+          els.freightAmount.value = "";
+        }
+        calculate();
+      }));
     }
 
     function parseReceiver() {
@@ -4554,6 +4609,29 @@
         paymentMode
       });
       setOrderBestResult(result);
+      return result;
+    }
+
+    function canAutoFillBestFreight() {
+      return currentWarehouseGroup() === "浙江仓" && ["liujin", "sandstone"].includes(currentCategory())
+        && currentLogistics() === "百世" && currentFreightPay() === "到付";
+    }
+
+    function syncBestFreightAmount(quote, quantitiesValid) {
+      const field = els.freightAmount;
+      const active = canAutoFillBestFreight();
+      els.bestFreightFillHint?.classList.toggle("hidden", !active);
+      if (!active) {
+        if (field.dataset.bestFreightFill === "auto") {
+          field.value = "";
+          delete field.dataset.bestFreightFill;
+        }
+        return;
+      }
+      if (field.dataset.bestFreightFill === "manual"
+        || (field.dataset.bestFreightFill !== "auto" && (field.value !== "" || field.validity.badInput))) return;
+      field.dataset.bestFreightFill = "auto";
+      field.value = quantitiesValid && quote?.quoted && Number.isFinite(quote.totalFee) ? String(quote.totalFee) : "";
     }
 
     function freightText() {
@@ -4607,7 +4685,9 @@
         .filter((item) => isRemarkPresetAvailable(item.value))
         .map((item) => item.value);
       const custom = els.remarkCustom.value.trim();
-      const existing = [custom, ...presets].filter(Boolean).join("");
+      const presetTail = custom.startsWith('【按定制色-擂饭生产】')
+        ? presets.filter(item => !custom.includes(item)) : presets;
+      const existing = [custom, ...presetTail].filter(Boolean).join("");
       const names = currentWarehouseGroup() === "浙江仓" && currentCategory() === "liujin"
         ? liujinRows().filter(row => Number(row.qty.value) > 0).map(row => zhejiangInputName(row.productName)) : [];
       return window.ZhejiangOrderAliases.remarkPrefix(names, existing) + existing;
@@ -4721,7 +4801,7 @@
       const materialAmount = unitPrice * qty;
       const detail = `${productName}${specText}*${piecePriceDetail(qty, unitPrice, materialAmount)}（${money(sqmPrice)}/平）`;
 
-      return { detail, materialAmount, qty, spec, area: areaPerPiece * qty };
+      return { detail, materialAmount, qty, spec, area: areaPerPiece * qty, productName };
     }
 
     function coatingLines(area) {
@@ -4869,7 +4949,29 @@
         db
       } : null;
 
-      return { detail, materialAmount, extraAmount: coating.amount, extraLines: coating.lines, db, weightLine, packageLine, freightShipment, packageOk: usesManualSpec(warehouse) || totalQty === 0 || Boolean(pkg), packageError: shipment && !shipment.ok ? shipment.message : "", qty: totalQty };
+      const leifanArea = category === "sandstone"
+        ? products.reduce((sum, item) => isLeifanStyle(item.productName) ? sum + item.area : sum, 0) : 0;
+      return { detail, materialAmount, leifanArea, extraAmount: coating.amount, extraLines: coating.lines, db, weightLine, packageLine, freightShipment, packageOk: usesManualSpec(warehouse) || totalQty === 0 || Boolean(pkg), packageError: shipment && !shipment.ok ? shipment.message : "", qty: totalQty };
+    }
+
+    function isLeifanStyle(name) {
+      return /^(?:砂岩(?:板)?[-－—]?)?(?:定制色[-－—]?)?擂饭$/.test(String(name || "").replace(/[\s（）()]/g, ""));
+    }
+
+    function syncLeifanPromotion(built, isSandstone, quantitiesValid) {
+      const field = els.promotionFee;
+      if (field.dataset.leifanFee === "import") return;
+      const matched = currentWarehouseGroup() === "浙江仓" && isSandstone
+        && liujinRows().some(row => isLeifanStyle(row.productName.value));
+      if (matched) {
+        field.dataset.leifanFee = "auto";
+        field.readOnly = true;
+        field.value = quantitiesValid && built.leifanArea > 0 ? String(Math.round(built.leifanArea * 30 + 1e-9)) : "";
+      } else if (field.dataset.leifanFee === "auto") {
+        field.value = "";
+        field.readOnly = false;
+        delete field.dataset.leifanFee;
+      }
     }
 
     function buildOther() {
@@ -5953,6 +6055,7 @@
       const isSandstone = category === "sandstone";
       const isConcrete = category === "songnuo";
       const isCustom = category === "custom";
+      els.leifanPresetBtn?.classList.toggle("hidden", currentWarehouseGroup() !== "浙江仓");
       const fixedCategoryText = isCement
         ? "水泥板"
         : (isConcrete ? "混凝土" : ((currentWarehouseGroup() === "宁波仓" || isMeililaiWarehouseActive()) ? "柔岩板" : ""));
@@ -5991,6 +6094,12 @@
       syncRepairAgentUi(warehouse);
 
       const built = isCustom ? buildCustom() : (isCement ? buildCement() : (isConcrete ? buildSongnuo() : ((isLiujin || isSandstone) ? buildLiujin() : buildOther())));
+      const rawAddress = els.receiverAddress.value.trim();
+      const supportedBoard = isLiujin || isSandstone;
+      const quantitiesValid = !supportedBoard || liujinRows().every(row => row.qty.validity.valid);
+      const bestQuote = updateOrderBest(built, rawAddress, warehouse, supportedBoard);
+      syncBestFreightAmount(bestQuote, quantitiesValid);
+      syncLeifanPromotion(built, isSandstone, quantitiesValid);
       syncMeililaiPackagingUi(built.packaging);
       const processingFee = numberValue(els.processingFee);
       const promotionFee = numberValue(els.promotionFee);
@@ -6017,7 +6126,6 @@
       const kd = total - dbDeduction - built.materialAmount - extraAmount - processingFee - promotionFee - crateFee - freightAmount - taxAmount - paymentDeduction;
       const rawName = els.receiverName.value.trim();
       const rawPhone = els.receiverPhone.value.trim();
-      const rawAddress = els.receiverAddress.value.trim();
       const greenCount = currentGreenCount();
       const xCode = currentXCode();
 
@@ -6077,7 +6185,6 @@
       els.freightQuestion.textContent = cementFreight ? cementFreight.text : (isNingboWarehouseActive() ? ningboFreightQuestion : zhejiangFreightQuestion);
       els.freightQuestionTitle.textContent = cementFreight ? "水泥板运费询价模板" : (isNingboWarehouseActive() ? "宁波运费询价模板" : "运费快速提问");
       els.copyFreightQuestionBtn.textContent = cementFreight ? "复制水泥板运费询价" : (isNingboWarehouseActive() ? "复制宁波运费询价" : "复制运费提问");
-      updateOrderBest(built, rawAddress, warehouse, isLiujin || isSandstone);
       if (!manualResultMode) {
         renderingResult = true;
         els.result.textContent = normalizeLegacyPiecePriceNotes(lines.join("\n"));
@@ -6122,7 +6229,48 @@
       applyOrderValidation();
     }
 
+    function clearOrderAutoAmounts() {
+      if (els.freightAmount.dataset.bestFreightFill === 'auto') els.freightAmount.value = '';
+      delete els.freightAmount.dataset.bestFreightFill;
+      delete els.promotionFee.dataset.leifanFee;
+      els.promotionFee.readOnly = false;
+    }
+
+    function fillLeifanPreset() {
+      if (currentWarehouseGroup() !== "浙江仓") return;
+      if (liujinRows().slice(1).some(row => row.productName.value.trim() || row.qty.value)
+        && !window.confirm('套用擂饭模板会只保留第 1 个产品，继续？')) return;
+      clearAliasInputs();
+      window.OrderImportApp?.clear();
+      clearOrderAutoAmounts();
+      manualResultMode = false;
+      document.querySelector("input[name='category'][value='sandstone']").checked = true;
+      document.querySelector("input[name='freightPay'][value='到付']").checked = true;
+      document.querySelector("input[name='logistics'][value='百世']").checked = true;
+      els.orderBestDestinationPickup.checked = false;
+      els.freightAmount.value = "";
+      els.promotionFee.value = "";
+      setGreenCount(4);
+      setXCode("LS");
+      setProductCount(1);
+      els.additionalProducts.replaceChildren();
+      els.productName.value = LEIFAN_STYLE;
+      renderSpecOptions();
+      els.specSelect.value = "sand-600";
+      els.crateFee.value = "35";
+      els.allocationEnabled.checked = true;
+      els.allocationText.value = "代维双2，姚利婷2";
+      els.waterproofCoating.checked = false;
+      els.wearCoating.checked = false;
+      els.remarkCustom.value = LEIFAN_REMARK;
+      syncRemarkPresetAvailability();
+      document.querySelectorAll(".remarkPreset").forEach(item => { item.checked = false; });
+      setPaymentChoice("微信", "xhs-zmm");
+      applyDefaultSqmPrice(els.specSelect, els.sqmPrice, els.productName);
+    }
+
     function fillDemo() {
+      clearOrderAutoAmounts();
       clearAliasInputs();
       window.OrderImportApp?.clear();
       manualResultMode = false;
@@ -6164,6 +6312,7 @@
     }
 
     function fillNingboDemo() {
+      clearOrderAutoAmounts();
       clearAliasInputs(false);
       window.OrderImportApp?.clear();
       manualResultMode = false;
@@ -6211,6 +6360,7 @@
     }
 
     function fillSongnuoDemo() {
+      clearOrderAutoAmounts();
       clearAliasInputs(false);
       window.OrderImportApp?.clear();
       manualResultMode = false;
@@ -6283,6 +6433,7 @@
     }
 
     function resetForNextOrder() {
+      clearOrderAutoAmounts();
       clearAliasInputs();
       window.OrderImportApp?.clear();
       manualResultMode = false;
@@ -6535,6 +6686,10 @@
     document.querySelectorAll("input, textarea, select").forEach((input) => {
       if (input.closest('#orderImportSection')) return;
       input.addEventListener("input", () => {
+        if (input === els.freightAmount) {
+          if (input.value !== '' || input.validity.badInput) input.dataset.bestFreightFill = 'manual';
+          else delete input.dataset.bestFreightFill;
+        }
         if (input === els.receiverRaw) {
           els.receiverName.value = "";
           els.receiverPhone.value = "";
@@ -6545,6 +6700,8 @@
       });
       input.addEventListener("change", calculate);
     });
+
+    els.leifanPresetBtn.addEventListener("click", fillLeifanPreset);
 
     function preventNumberInputWheelChange() {
       document.addEventListener("wheel", (event) => {
@@ -6634,6 +6791,6 @@
     els.fillSongnuoBtn.addEventListener("click", fillSongnuoDemo);
   </script>
   <script src="order-import.js?v=20261110-1"></script>
-  <script src="order-import-app.js?v=20261110-1"></script>
+  <script src="order-import-app.js?v=20261126-1"></script>
 </body>
 </html>
