@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light"><title>表格报价 · 杰哥工具</title>
+<link rel="icon" href="data:,"><link rel="stylesheet" href="apple-ui.css?v=20261027-2">
+<link rel="stylesheet" href="table-quote/editor-live.css?v=20261127-1">
+<!-- The isolated PNG renderer copies this same customer sheet style. -->
+<style>
+.quote-original-lettering{max-width:100%;max-height:3.3em;object-fit:contain;vertical-align:middle}
+.quote-sheet,
+.quote-sheet * {
+  box-sizing: border-box;
+}
+
+.quote-sheet {
+  width: 100%;
+  color: #111;
+  background: #fff;
+  font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.38;
+}
+
+.quote-sheet__table {
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+  table-layout: fixed;
+  border: 1px solid #111;
+}
+
+.quote-sheet__table + .quote-sheet__table {
+  margin-top: 0;
+}
+
+.quote-sheet__table th,
+.quote-sheet__table td {
+  min-width: 0;
+  border: 1px solid #222;
+  padding: 7px 5px;
+  text-align: center;
+  vertical-align: middle;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.quote-sheet__table th {
+  font-weight: 500;
+}
+
+.quote-sheet__title {
+  height: 48px;
+  font-size: 23px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em;
+}
+
+.quote-sheet__meta {
+  height: 44px;
+  font-size: 15px;
+}
+
+.quote-sheet__address {
+  min-height: 58px;
+  white-space: normal;
+}
+
+.quote-sheet__delivery,
+.quote-sheet__manager,
+.quote-sheet__red {
+  color: #c90000 !important;
+}
+
+.quote-sheet__column-head th {
+  height: 42px;
+  font-size: 13px;
+}
+
+.quote-sheet__column-head .quote-sheet__price-head {
+  padding-inline: 1px;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.quote-sheet__product-row td {
+  min-height: 118px;
+  height: 118px;
+}
+
+.quote-sheet__product-name {
+  font-weight: 500 !important;
+}
+
+.quote-sheet__model-cell {
+  padding: 4px !important;
+}
+
+.quote-sheet__image {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: 104px;
+  margin: 0 auto;
+  object-fit: contain;
+}
+
+.quote-sheet__unit {
+  display: inline-block;
+  margin-left: 2px;
+  font-size: 0.82em;
+  white-space: nowrap;
+}
+
+.quote-sheet__money {
+  background: #f5f5f5;
+}
+
+.quote-sheet__fee-row td {
+  height: 34px;
+}
+
+.quote-sheet__fee-name {
+  font-weight: 500 !important;
+}
+
+.quote-sheet__subtotal th,
+.quote-sheet__subtotal td {
+  height: 44px;
+}
+
+.quote-sheet__subtotal th {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700 !important;
+}
+
+.quote-sheet__subtotal .quote-sheet__money {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.quote-sheet__remark {
+  text-align: left !important;
+}
+
+.quote-sheet__total-row th,
+.quote-sheet__total-row td {
+  height: 45px;
+  font-weight: 700 !important;
+}
+
+.quote-sheet__total-row th {
+  text-align: center;
+}
+
+.quote-sheet__total {
+  color: #c90000;
+  font-size: 18px;
+  background: #f5f5f5;
+}
+
+.quote-sheet__notes {
+  margin-top: 0;
+}
+
+.quote-sheet__note-side {
+  color: #c90000 !important;
+  font-weight: 700 !important;
+}
+
+.quote-sheet__note-heading {
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.quote-sheet__look-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: #c90000;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.quote-sheet__note-text {
+  padding: 8px 9px !important;
+  text-align: left !important;
+  line-height: 1.5;
+}
+
+.quote-sheet__signatures th,
+.quote-sheet__signatures td {
+  height: 38px;
+  white-space: normal;
+}
+
+
+@page {
+  size: A4 landscape;
+  margin: 8mm;
+}
+
+@media print {
+  .quote-sheet {
+    width: 100%;
+    color: #000;
+    font-size: 8pt;
+    line-height: 1.25;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .quote-sheet__table {
+    break-inside: auto;
+    page-break-inside: auto;
+    font-size: 7.5pt;
+  }
+
+  .quote-sheet__products thead {
+    display: table-header-group;
+  }
+
+  .quote-sheet__products--warehouse-groups thead {
+    display: table-row-group;
+  }
+
+  .quote-sheet__table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .quote-sheet__table th,
+  .quote-sheet__table td {
+    padding: 3px 4px;
+  }
+
+  .quote-sheet__title {
+    height: 8mm;
+    font-size: 14pt !important;
+  }
+
+  .quote-sheet__meta {
+    height: auto;
+    min-height: 7mm;
+    font-size: 8pt;
+  }
+
+  .quote-sheet__column-head th {
+    height: 7mm;
+    font-size: 7.5pt;
+  }
+
+  .quote-sheet__product-row td {
+    height: auto;
+    min-height: 18mm;
+  }
+
+  .quote-sheet__image {
+    max-height: 17mm;
+  }
+
+  .quote-sheet__fee-row td {
+    height: auto;
+    min-height: 7mm;
+  }
+
+  .quote-sheet__subtotal th,
+  .quote-sheet__subtotal td {
+    height: auto;
+    min-height: 9mm;
+  }
+
+  .quote-sheet__note-text {
+    padding: 4px 6px !important;
+    line-height: 1.3;
+  }
+
+  .quote-sheet__notes,
+  .quote-sheet__signatures {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .quote-sheet__signatures th,
+  .quote-sheet__signatures td {
+    height: 8mm;
+  }
+}
+</style>
+</head><body data-page="table-quote">
+<main class="wrap">
+<div class="headline chrome"><div><h1>表格报价</h1><p>复制报价图片发给客户；要改数量，把那张图拖回来。</p></div>
+<div class="tools"><button id="restoreOpen" class="restore-trigger">还原报价图片</button><button id="restoreUndo" hidden>撤销还原</button><label class="sr" for="example">报价样例</label><select id="example"><option value="">查看样例…</option><option value="warehouses">不同仓库报价</option><option value="area">按平方报价</option><option value="piece">按片报价</option></select><button id="clear" class="quiet">新建空白单</button></div></div>
+<div id="workbench">
+<div id="editor" class="chrome">
+<section class="card"><div class="section-head"><h2><small>01</small> 报价抬头</h2></div>
+<div class="g4"><label class="span2">客户信息 <small>选填</small><input data-top="customer" placeholder="客户名称、联系人"></label>
+<label>订货日期<input type="date" data-top="date" required></label><label>发货单位<input data-top="shipper"></label>
+<label class="span2">收货地址 <small>选填</small><textarea data-top="address" rows="2" placeholder="可粘贴多行收货信息"></textarea></label>
+<label>业务经理<input data-top="manager"></label><label>运费明细<input data-top="delivery"></label></div></section>
+<section class="card"><div class="section-head"><h2><small>02</small> 产品明细</h2><label class="check"><input id="multi" type="checkbox">多产品报价</label></div>
+<div id="warehouseBar" class="subbar" hidden><label for="shipment">发货方式</label><select id="shipment"><option value="same">同一个仓库发货</option><option value="different">不同仓库发货</option></select><small id="warehouseHint"></small></div>
+<div id="products"></div><button id="addProduct" class="add" hidden>＋ 添加产品</button></section>
+<section class="card"><div class="section-head"><h2><small>03</small> 费用与税金</h2><label class="check"><input type="checkbox" data-top="lalamove">货拉拉到付（不用木箱）</label></div>
+<div class="g4"><label class="shared">木箱费（元）<input type="number" min="0" step="any" data-top="box"></label><label class="shared">运费（元）<input type="number" min="0" step="any" data-top="freight" placeholder="不填或为 0 表示到付"></label>
+<label>加工费（元）<input type="number" min="0" step="any" data-top="processing"></label><label>辅料费（元）<input type="number" min="0" step="any" data-top="auxiliary"></label>
+<label>手填税金（元）<input type="number" min="0" step="any" data-top="tax" placeholder="正数优先于自动计税"></label>
+<div class="taxfield"><label class="check"><input type="checkbox" data-top="autoTax">按税率自动计税</label><div id="rateBox" hidden><label class="sr" for="rateChoice">税率</label><select id="rateChoice"><option value="10">10%</option><option value="3">3%</option><option value="custom">自定义</option></select><label id="customRateWrap" hidden>税率（%）<input type="number" min="0" max="100" step="any" data-top="rate"></label></div></div>
+<label class="span2">整单备注 <small>选填，不替换固定注意事项</small><textarea data-top="extraNote" rows="2"></textarea></label></div></section>
+<div class="totalbar"><div><small>报价合计</small><strong id="totalValue">—</strong></div><div class="totalsub" id="totalDetail"></div></div>
+</div>
+<section id="preview" aria-label="实时预览"><div class="preview-tools chrome"><strong>实时预览</strong><div class="tools"><button id="collapsePreview" aria-expanded="true" aria-controls="stage">收起</button><button id="zoom" aria-expanded="false">放大</button><button id="png" class="primary">复制报价图片</button></div></div>
+<div class="paperstage" id="stage"><div id="scaled"><div id="paper"></div><img id="liveImage" alt="" aria-hidden="true" hidden></div></div>
+<div class="preview-foot chrome"><span id="sheetInfo"></span><button id="print">打印 / 存 PDF</button></div></section></div>
+<p class="privacy chrome">复制的图片包含本单的客户信息、地址、产品、分仓和费用，可拖回修改。图片只在本机处理，不上传，也不保存历史或原始产品照片。</p>
+<div class="chrome" id="message" role="status" aria-live="polite"></div>
+<input type="file" id="cellFile" accept="image/*" hidden>
+</main>
+<datalist id="categories"><option>鎏金板</option><option>陨石板</option><option>砂岩板</option><option>柔岩板</option><option>水泥板</option></datalist>
+<dialog class="chrome" id="saveDialog" aria-labelledby="saveTitle"><div class="preview-tools"><div><strong id="saveTitle">浏览器未允许直接复制</strong><p>电脑右键下图选「复制图像」，手机长按选「复制」，再到聊天框粘贴。无需下载。</p></div><button id="closeSave">关闭</button></div><img id="saveImage" alt="可手动复制的完整报价单"></dialog>
+<dialog class="chrome" id="restoreDialog" aria-labelledby="restoreTitle">
+<div class="restore-head"><div><h2 id="restoreTitle">还原报价图片</h2><p>读出旧单的产品和价格，改数量后重新报价。</p></div><button id="restoreClose" type="button">关闭</button></div>
+<div class="restore-body">
+<div id="restoreDrop" tabindex="0"><strong>拖入本工具生成的报价图片</strong><span>也可直接粘贴，或从手机相册选择。新版原图可精确还原；旧图、截图和压缩图按表格识别。</span><button type="button" id="restoreBrowse">选择报价图片</button><input hidden type="file" id="restoreFile" accept="image/png,image/jpeg,image/webp"></div>
+<details id="restoreOriginal" hidden><summary>查看原图核对</summary><img id="restorePicture" alt="导入的原报价单"></details>
+<details id="restoreCellsBox" hidden><summary>逐格核对或改错字</summary><p>点选单元格直接改，金额会重新核对。可左右滑动查看完整一行。</p><div id="restoreCells"></div></details>
+<p id="restoreStatus" role="status" aria-live="polite">在确认还原前，不会改动正在填写的报价。</p>
+<div id="restoreReview" hidden><h3>还原核对</h3><p id="restoreCount"></p><ul id="restoreLines"></ul><p id="restoreCosts"></p><strong id="restoreTotals"></strong><ul id="restoreWarnings"></ul>
+<label id="restoreAckWrap" hidden><input id="restoreAck" type="checkbox"> 我已核对提示和原单，接受上面显示的金额</label></div></div>
+<div class="restore-actions"><small>仅在本机识别，不上传报价单。</small><button type="button" id="restoreApply" class="primary" disabled>还原并修改数量</button></div></dialog>
+<script src="table-quote/core.js?v=20261127-1"></script>
+<script src="table-quote/sheet.js?v=20261127-1"></script>
+<script src="table-quote/html2canvas.min.js?v=20261127-1"></script>
+<script src="table-quote/quote-sheet-png.js?v=20261127-1"></script>
+<script src="table-quote/picture.js?v=20261127-1"></script>
+<script src="table-quote/grid.js?v=20261127-1"></script>
+<script src="table-quote/read-cells.js?v=20261127-1"></script>
+<script src="table-quote/table-parser.js?v=20261127-1"></script>
+<script src="table-quote/import-ui.js?v=20261127-1"></script>
+<script src="table-quote/app.js?v=20261127-1"></script>
+</body></html>

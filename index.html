@@ -296,7 +296,7 @@
 <body class="apple-shell">
   <div class="app">
     <aside class="sidebar">
-      <div class="brand" title="v2026.11.26.1"><div class="brand-symbol" aria-hidden="true">杰</div><h1>杰哥工具</h1><small class="brand-version">5.1 · 苹果风版</small><span class="build-version">v2026.11.26.1</span></div>
+      <div class="brand" title="v2026.11.27.1"><div class="brand-symbol" aria-hidden="true">杰</div><h1>杰哥工具</h1><small class="brand-version">5.1 · 苹果风版</small><span class="build-version">v2026.11.27.1</span></div>
       <nav class="nav" id="toolNav" aria-label="工具列表"></nav>
       <div class="sidebar-footer">日常开单工作台<br><span>开单 · 查价 · 排版</span></div>
     </aside>
@@ -320,7 +320,8 @@
       {"id":"wall-panel","title":"水泥板/混凝土上墙排版","short":"上墙排版","tag":"墙面排版","desc":"多墙面排版、孔位示意、裁切统计，并支持导出 SVG/PNG。"},
       {"id":"hole-1200","title":"1200×600 孔心排版","short":"孔心排版","tag":"孔位图","desc":"快速设置板宽、板高、孔数、孔径和边距，导出 SVG。"},
       {"id":"brick-layout","title":"水泥板砖纹排版","short":"砖纹排版","tag":"砖纹排版","desc":"1220×2440固定整板，自定义砖宽、砖高与缝隙，生成带尺寸的水泥质感图。"},
-      {"id":"invoice-application","title":"开票申请","short":"开票申请","tag":"开票申请","desc":"原文粘贴客户资料，选择个体户或公司模板，计算单价并复制开票申请。"}
+      {"id":"invoice-application","title":"开票申请","short":"开票申请","tag":"开票申请","desc":"原文粘贴客户资料，选择个体户或公司模板，计算单价并复制开票申请。"},
+      {"id":"table-quote","title":"表格报价","short":"表格报价","tag":"报价图片","desc":"实时预览、复制报价图片，支持旧图还原和多仓报价。"}
     ];
     const toolOrderKey = 'jiege-tool-order-v1';
     let storedOrder = [];
@@ -341,6 +342,10 @@
         if (!ids.includes('invoice-application')) {
             ordered = ordered.filter((tool) => tool.id !== 'invoice-application')
                 .concat(defaultTools.filter((tool) => tool.id === 'invoice-application'));
+        }
+        if (!ids.includes('table-quote')) {
+            ordered = ordered.filter((tool) => tool.id !== 'table-quote')
+                .concat(defaultTools.filter((tool) => tool.id === 'table-quote'));
         }
         return ordered;
     }
@@ -389,8 +394,8 @@
       });
     }
 
-    const toolPaths = {"order-template":"tools/order-template.html","quote-generator":"tools/quote-generator.html","quick-price":"tools/quick-price.html","report-template":"tools/report-template.html","hole-1200":"tools/hole-1200.html","freight-gold":"tools/freight-gold.html","ningbo-weight":"tools/ningbo-weight.html","full-board-cut":"tools/full-board-cut.html","wall-panel":"tools/wall-panel.html","brick-layout":"tools/brick-layout.html","invoice-application":"tools/invoice-application.html"};
-    const toolPageVersion = '20261126-1';
+    const toolPaths = {"order-template":"tools/order-template.html","quote-generator":"tools/quote-generator.html","quick-price":"tools/quick-price.html","report-template":"tools/report-template.html","hole-1200":"tools/hole-1200.html","freight-gold":"tools/freight-gold.html","ningbo-weight":"tools/ningbo-weight.html","full-board-cut":"tools/full-board-cut.html","wall-panel":"tools/wall-panel.html","brick-layout":"tools/brick-layout.html","invoice-application":"tools/invoice-application.html","table-quote":"tools/table-quote.html"};
+    const toolPageVersion = '20261127-1';
     const nav = document.getElementById('toolNav');
     const frameWrap = document.getElementById('frameWrap');
     const loading = document.getElementById('loading');
