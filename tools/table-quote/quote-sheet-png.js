@@ -212,7 +212,7 @@
     });
   }
 
-  async function quoteSheetPng(element, record) {
+  async function renderQuoteSheetPng(element, archiveRecord) {
     if (!element || element.nodeType !== 1 || typeof element.cloneNode !== "function") {
       throw new TypeError("quoteSheetPng 需要一个完整报价容器 HTMLElement。");
     }
@@ -258,12 +258,17 @@
       if (!canvas || canvas.width < 1 || canvas.height < 1) {
         throw new Error("html2canvas 返回了空画布。");
       }
-      global.QuotePicture.stamp(canvas, clonedElement, record);
+      if (archiveRecord) global.QuotePicture.stamp(canvas, clonedElement, archiveRecord);
       return await canvasToPng(canvas);
     } finally {
       frame.remove();
     }
   }
 
-  global.quoteSheetPng = quoteSheetPng;
+  // The public API accepts only the visible sheet, even if a caller passes extra arguments.
+  global.quoteSheetPng = element => renderQuoteSheetPng(element);
+  global.quoteSheetInternalPng = function quoteSheetInternalPng(element, record) {
+    if (!record) throw new Error('内部图缺少还原记录。');
+    return renderQuoteSheetPng(element, record);
+  };
 })(window);

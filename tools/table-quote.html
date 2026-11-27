@@ -289,8 +289,8 @@
 </style>
 </head><body data-page="table-quote">
 <main class="wrap">
-<div class="headline chrome"><div><h1>表格报价</h1><p>复制报价图片发给客户；要改数量，把那张图拖回来。</p></div>
-<div class="tools"><button id="restoreOpen" class="restore-trigger">还原报价图片</button><button id="restoreUndo" hidden>撤销还原</button><label class="sr" for="example">报价样例</label><select id="example"><option value="">查看样例…</option><option value="warehouses">不同仓库报价</option><option value="area">按平方报价</option><option value="piece">按片报价</option></select><button id="clear" class="quiet">新建空白单</button></div></div>
+<div class="headline chrome"><div><h1>表格报价</h1><p>发客户用「复制客户报价图」。要留底改数量，另存一张内部图。</p></div>
+<div class="tools"><button id="internalPng" type="button" title="复制含仓名等还原信息的内部图，请勿发给客户">内部留存／可还原</button><button id="restoreOpen" class="restore-trigger">还原报价图片</button><button id="restoreUndo" hidden>撤销还原</button><label class="sr" for="example">报价样例</label><select id="example"><option value="">查看样例…</option><option value="warehouses">不同仓库报价</option><option value="area">按平方报价</option><option value="piece">按片报价</option></select><button id="clear" class="quiet">新建空白单</button></div></div>
 <div id="workbench">
 <div id="editor" class="chrome">
 <section class="card"><div class="section-head"><h2><small>01</small> 报价抬头</h2></div>
@@ -309,19 +309,19 @@
 <label class="span2">整单备注 <small>选填，不替换固定注意事项</small><textarea data-top="extraNote" rows="2"></textarea></label></div></section>
 <div class="totalbar"><div><small>报价合计</small><strong id="totalValue">—</strong></div><div class="totalsub" id="totalDetail"></div></div>
 </div>
-<section id="preview" aria-label="实时预览"><div class="preview-tools chrome"><strong>实时预览</strong><div class="tools"><button id="collapsePreview" aria-expanded="true" aria-controls="stage">收起</button><button id="zoom" aria-expanded="false">放大</button><button id="png" class="primary">复制报价图片</button></div></div>
+<section id="preview" aria-label="实时预览"><div class="preview-tools chrome"><strong>实时预览</strong><div class="tools"><button id="collapsePreview" aria-expanded="true" aria-controls="stage">收起</button><button id="zoom" aria-expanded="false">放大</button><button id="png" class="primary">复制客户报价图</button></div></div>
 <div class="paperstage" id="stage"><div id="scaled"><div id="paper"></div><img id="liveImage" alt="" aria-hidden="true" hidden></div></div>
 <div class="preview-foot chrome"><span id="sheetInfo"></span><button id="print">打印 / 存 PDF</button></div></section></div>
-<p class="privacy chrome">复制的图片包含本单的客户信息、地址、产品、分仓和费用，可拖回修改。图片只在本机处理，不上传，也不保存历史或原始产品照片。</p>
+<p class="privacy chrome">客户图只包含表格上看得见的内容。内部留存图另含仓名等可编辑数据，请勿发给客户。图片只在本机处理，不上传。</p>
 <div class="chrome" id="message" role="status" aria-live="polite"></div>
 <input type="file" id="cellFile" accept="image/*" hidden>
 </main>
 <datalist id="categories"><option>鎏金板</option><option>陨石板</option><option>砂岩板</option><option>柔岩板</option><option>水泥板</option></datalist>
-<dialog class="chrome" id="saveDialog" aria-labelledby="saveTitle"><div class="preview-tools"><div><strong id="saveTitle">浏览器未允许直接复制</strong><p>电脑右键下图选「复制图像」，手机长按选「复制」，再到聊天框粘贴。无需下载。</p></div><button id="closeSave">关闭</button></div><img id="saveImage" alt="可手动复制的完整报价单"></dialog>
+<dialog class="chrome" id="saveDialog" aria-labelledby="saveTitle"><div class="preview-tools"><div><strong id="saveTitle">浏览器未允许直接复制</strong><p>剪贴板尚未更新。请先复制下图，再去粘贴：电脑右键选「复制图像」，手机长按选「复制」。</p></div><button id="closeSave">关闭</button></div><img id="saveImage" alt="可手动复制的完整报价单"></dialog>
 <dialog class="chrome" id="restoreDialog" aria-labelledby="restoreTitle">
 <div class="restore-head"><div><h2 id="restoreTitle">还原报价图片</h2><p>读出旧单的产品和价格，改数量后重新报价。</p></div><button id="restoreClose" type="button">关闭</button></div>
 <div class="restore-body">
-<div id="restoreDrop" tabindex="0"><strong>拖入本工具生成的报价图片</strong><span>也可直接粘贴，或从手机相册选择。新版原图可精确还原；旧图、截图和压缩图按表格识别。</span><button type="button" id="restoreBrowse">选择报价图片</button><input hidden type="file" id="restoreFile" accept="image/png,image/jpeg,image/webp"></div>
+<div id="restoreDrop" tabindex="0"><strong>拖入本工具生成的报价图片</strong><span>也可直接粘贴或从手机相册选择。内部留存原图、带还原记录的旧原图可精确还原；客户图、截图和压缩图只识别可见表格。</span><button type="button" id="restoreBrowse">选择报价图片</button><input hidden type="file" id="restoreFile" accept="image/png,image/jpeg,image/webp"></div>
 <details id="restoreOriginal" hidden><summary>查看原图核对</summary><img id="restorePicture" alt="导入的原报价单"></details>
 <details id="restoreCellsBox" hidden><summary>逐格核对或改错字</summary><p>点选单元格直接改，金额会重新核对。可左右滑动查看完整一行。</p><div id="restoreCells"></div></details>
 <p id="restoreStatus" role="status" aria-live="polite">在确认还原前，不会改动正在填写的报价。</p>
@@ -331,11 +331,11 @@
 <script src="table-quote/core.js?v=20261127-1"></script>
 <script src="table-quote/sheet.js?v=20261127-1"></script>
 <script src="table-quote/html2canvas.min.js?v=20261127-1"></script>
-<script src="table-quote/quote-sheet-png.js?v=20261127-1"></script>
-<script src="table-quote/picture.js?v=20261127-1"></script>
+<script src="table-quote/quote-sheet-png.js?v=20261127-2"></script>
+<script src="table-quote/picture.js?v=20261127-2"></script>
 <script src="table-quote/grid.js?v=20261127-1"></script>
 <script src="table-quote/read-cells.js?v=20261127-1"></script>
 <script src="table-quote/table-parser.js?v=20261127-1"></script>
 <script src="table-quote/import-ui.js?v=20261127-1"></script>
-<script src="table-quote/app.js?v=20261127-1"></script>
+<script src="table-quote/app.js?v=20261127-2"></script>
 </body></html>

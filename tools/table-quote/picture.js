@@ -1,5 +1,5 @@
-// A visible quote can travel as a regular image. Clipboard apps commonly strip PNG
-// ancillary chunks; keep a checked, lossless pixel record of the active quote instead.
+// Internal archives only: clipboard apps commonly strip PNG ancillary chunks.
+// Keep the checked pixel format readable for older exports; never stamp a customer image.
 // Never include inactive products, original photographs, or unused fees/rates.
 (() => {
     'use strict';
@@ -56,7 +56,9 @@
             for(const label of row.querySelectorAll('[data-lettering]'))record.lettering[index][label.dataset.lettering]=coords(label);
         }
         const bytes=new TextEncoder().encode(JSON.stringify(record));
-        if(bytes.length>maxBytes || (bytes.length+headerBytes)*8 > canvas.width*canvas.height) return;
+        if(bytes.length>maxBytes || (bytes.length+headerBytes)*8 > canvas.width*canvas.height ||
+            canvas.width*canvas.height>24000000 || Math.max(canvas.width,canvas.height)>16000 || !cleanRecord(record))
+            throw Error('本单超过精确还原范围，请拆分后再留存内部图。');
         const context=canvas.getContext('2d'), pixels=context.getImageData(0,0,canvas.width,canvas.height);
         const data=new Uint8Array(headerBytes+bytes.length), view=new DataView(data.buffer);
         data.set(magic);view.setUint32(8,bytes.length);view.setUint32(12,checksum(bytes));

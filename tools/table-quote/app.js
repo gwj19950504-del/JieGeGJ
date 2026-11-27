@@ -113,8 +113,7 @@
     function imageForCurrentQuote(){
         if(rasterJob && rasterJob.version===revision) return rasterJob.promise;
         const sheet=$('paper').firstElementChild, version=revision;
-        const record=issue()?null:window.QuotePicture.snapshot(payload(),calc());
-        const promise=window.quoteSheetPng(sheet,record).then(blob=>{
+        const promise=window.quoteSheetPng(sheet).then(blob=>{
             if(!blob || blob.type!=='image/png' || !blob.size) throw Error('没有生成完整报价图片');
             if(version===revision){
                 const previous=liveUrl; liveUrl=URL.createObjectURL(blob);
@@ -264,26 +263,40 @@
     });
     new ResizeObserver(fit).observe($('paper'));
     $('print').onclick=()=>{if(validForExport())window.print();};
-    $('png').onclick=async()=>{
+    async function copyQuoteImage(internal) {
         if(!validForExport())return;
-        const btn=$('png');btn.disabled=true;btn.textContent='复制中…';
+        const customerButton = $('png'), internalButton = $('internalPng');
+        if (customerButton.disabled || internalButton.disabled) return;
+        const button = internal ? internalButton : customerButton;
+        const label = button.textContent;
+        customerButton.disabled = internalButton.disabled = true;
+        button.textContent = '复制中…';
         try{
-            clearTimeout(rasterTimer);
-            const image=imageForCurrentQuote();
+            const image = internal
+                ? window.quoteSheetInternalPng($('paper').firstElementChild, window.QuotePicture.snapshot(payload(), calc()))
+                : imageForCurrentQuote();
             try{
                 if(!window.ClipboardItem || !navigator.clipboard?.write)throw Error('没有图像剪贴板');
                 // Register the write in this click gesture, including on Safari.
                 await navigator.clipboard.write([new ClipboardItem({'image/png':image})]);
-                notify('报价图片已复制，可直接到微信或其他聊天框粘贴。');
+                notify(internal ? '已复制内部留存图。包含还原信息，请勿发给客户。' : '已复制客户报价图，可粘贴发给客户。');
             }catch{
                 const blob=await image;
-                if(currentBlobUrl)URL.revokeObjectURL(currentBlobUrl);
+                $('saveTitle').textContent = internal ? '手动复制内部留存图（可还原，请勿外发）' : '手动复制客户报价图';
+                $('saveImage').alt = internal ? '内部留存图，可还原' : '客户报价图';
                 currentBlobUrl=URL.createObjectURL(blob);$('saveImage').src=currentBlobUrl;
                 $('saveDialog').showModal();
             }
-        }catch{notify('报价图片生成失败，请重试。');}
-        finally{btn.disabled=false;btn.textContent='复制报价图片';}
-    };
+        }catch(error){notify(internal ? '内部留存图未复制：'+(error.message || '请重试。') : '客户报价图生成失败，请重试。');}
+        finally{customerButton.disabled=internalButton.disabled=false;button.textContent=label;}
+    }
+    $('png').onclick = () => copyQuoteImage(false);
+    $('internalPng').onclick = () => copyQuoteImage(true);
+    $('saveDialog').addEventListener('close', () => {
+        $('saveImage').removeAttribute('src');
+        if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+        currentBlobUrl = '';
+    });
     $('closeSave').onclick=()=>$('saveDialog').close();
     new ResizeObserver(fit).observe($('preview'));
     window.QuoteRestoreUI.init({
