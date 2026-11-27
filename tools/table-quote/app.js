@@ -60,9 +60,18 @@
         }
         all('[data-top]').forEach(el => { const val=state[el.dataset.top]; if(el.type==='checkbox') el.checked=val; else el.value=val; });
         $('multi').checked=state.multi; $('shipment').value=state.different?'different':'same'; $('rateChoice').value=state.rateChoice;
-        drawProducts(); update();
+        drawProducts(); fitNotes($('editor')); update();
     }
-    function drawProducts() { $('products').innerHTML=activeProducts().map(card).join(''); }
+    function fitNote(field) {
+        if (!field.clientWidth) return;
+        field.style.height = 'auto';
+        const border = field.offsetHeight - field.clientHeight;
+        field.style.height = (field.scrollHeight + border) + 'px';
+    }
+    function fitNotes(container) {
+        container.querySelectorAll('textarea').forEach(fitNote);
+    }
+    function drawProducts() { $('products').innerHTML=activeProducts().map(card).join(''); fitNotes($('products')); }
     function issue() {
         if (pendingFiles) return ['请等待产品图片读取完成。', null];
         if (!state.date) return ['请填写订货日期。', '[data-top="date"]'];
@@ -140,7 +149,22 @@
         if(a.top<b.top||a.bottom>b.bottom)stage.scrollTop+=a.top-b.top-Math.max(0,(stage.clientHeight-a.height)/2);
     }
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)queueRaster();});
-    $('editor').addEventListener('focusin',()=>requestAnimationFrame(followInput));
+    function revealFocusedField() {
+        const field = document.activeElement;
+        if (!window.matchMedia('(max-width:920px)').matches || !$('editor').contains(field) ||
+            !field.matches('input:not([type=file]), textarea, select')) return;
+        const bounds = field.getBoundingClientRect();
+        const viewport = window.visualViewport;
+        const top = viewport?.offsetTop || 0;
+        const height = viewport?.height || document.documentElement.clientHeight;
+        if (bounds.height <= height && (bounds.top < top || bounds.bottom > top + height)) {
+            field.scrollIntoView({block: 'nearest', inline: 'nearest'});
+        }
+    }
+    $('editor').addEventListener('focusin', () => requestAnimationFrame(() => {
+        revealFocusedField();
+        followInput();
+    }));
     function fit(){
         if(collapsed)return;
         const w=1280;const s=zoom?1:Math.min(1,($('stage').clientWidth-2)/w);
@@ -215,6 +239,7 @@
     $('rateChoice').onchange=e=>{state.rateChoice=e.target.value;state.rate=e.target.value==='custom'?'':e.target.value;dirty=true;loadInputs();};
     $('editor').addEventListener('input',e=>{
         const el=e.target;const key=el.dataset.top;
+        if (el.tagName === 'TEXTAREA') fitNote(el);
         if(key){
             state[key]=el.type==='checkbox'?el.checked:el.value;dirty=true;
             if(key==='lalamove'){
@@ -249,6 +274,15 @@
         if(type==='drop')readPhoto(e.dataTransfer.files[0],state.products[+drop.closest('.prod').dataset.index]);
     }));
     window.addEventListener('resize',fit);
+    // Refit wrapped text when the host iframe first opens or its width changes.
+    let editorWidth = 0;
+    new ResizeObserver(([entry]) => {
+        const width = entry.contentRect.width;
+        if (width > 0 && width !== editorWidth) {
+            editorWidth = width;
+            fitNotes($('editor'));
+        }
+    }).observe($('editor'));
     let cellProduct=null;
     function chooseCell(e){
         const cell=e.target.closest('[data-photo-index]');

@@ -50,3 +50,22 @@ html [hidden]{display:none!important}#message:not(:empty){position:fixed;bottom:
 @media(max-width:920px){.wrap{width:calc(100% - 24px)}#workbench{display:flex;flex-direction:column;gap:12px}#editor,#preview{width:100%}#preview{order:-1;top:0;z-index:4}.paperstage{max-height:clamp(80px,24dvh,220px)}#preview .preview-foot{display:none}#preview.expanded .preview-foot{display:flex}#preview.expanded{inset:6px;width:auto}#editor{scroll-margin-top:35dvh}#editor :is(input,textarea,select){scroll-margin-top:38dvh}#preview .preview-tools{padding:6px 9px}.privacy{margin-top:0}}
 @media(max-width:560px){.wrap{width:calc(100% - 16px)}.bar{height:44px}.headline{margin:12px 0;flex-wrap:wrap;gap:8px}.headline h1{font-size:26px}.headline p{font-size:13px}.card,.totalbar{padding:13px}.section-head{align-items:start;flex-wrap:wrap}.prod-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.g4,.prod-fields{gap:8px}.chrome :is(input,select,textarea){font-size:16px!important}.preview-tools strong{font-size:14px}.preview-tools .tools{gap:4px}.preview-tools button{padding-inline:7px;font-size:13px}.preview-tools{gap:4px}.row-amount{margin-left:0}}
 @media print{@page{size:A4 landscape;margin:6mm}html,body,main.wrap{background:white;margin:0;width:100%;padding:0}.chrome,#message,#liveImage,#saveDialog{display:none!important}#workbench{display:block!important}#preview,#preview.expanded,#stage,#stage[hidden],#scaled,#paper{display:block!important;overflow:visible!important;position:static!important;border:0!important;border-radius:0!important;transform:none!important;width:100%!important;max-height:none!important;height:auto!important;margin:0!important;padding:0!important;box-shadow:none!important;background:white!important}}
+
+.preview-tip{display:none}
+.quote-meta-fields input[type=date]{box-sizing:border-box;min-inline-size:0;max-inline-size:100%}
+.quote-meta-fields input[type=date]::-webkit-date-and-time-value{text-align:start}
+#editor textarea{min-inline-size:0;overflow-wrap:anywhere}
+@media screen and (max-width:920px){
+    /* Only the enlarged preview overlays the editor. The normal card scrolls with the page. */
+    #preview:not(.expanded){position:static;z-index:auto}
+    #preview:not(.expanded) .paperstage{overscroll-behavior-y:auto}
+    #preview:not(.expanded) #stage:not([hidden]) + .preview-tip{display:block;padding:4px 9px;color:var(--apple-muted);font-size:12px}
+    #editor,#editor :is(input,textarea,select){scroll-margin-top:8px}
+    #editor textarea{max-height:18rem;resize:none}
+}
+@media screen and (max-width:560px){
+    /* Give the native WebKit date editor a real full-width track, including its intrinsic UI. */
+    .quote-meta-fields{grid-template-columns:minmax(0,1fr)}
+    .quote-meta-fields > label{grid-column:1 / -1}
+    .quote-meta-fields input[type=date]{text-align:start}
+}

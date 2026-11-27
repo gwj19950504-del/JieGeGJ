@@ -2,7 +2,7 @@
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light"><title>表格报价 · 杰哥工具</title>
 <link rel="icon" href="data:,"><link rel="stylesheet" href="apple-ui.css?v=20261027-2">
-<link rel="stylesheet" href="table-quote/editor-live.css?v=20261127-1">
+<link rel="stylesheet" href="table-quote/editor-live.css?v=20261127-3">
 <!-- The isolated PNG renderer copies this same customer sheet style. -->
 <style>
 .quote-original-lettering{max-width:100%;max-height:3.3em;object-fit:contain;vertical-align:middle}
@@ -294,10 +294,10 @@
 <div id="workbench">
 <div id="editor" class="chrome">
 <section class="card"><div class="section-head"><h2><small>01</small> 报价抬头</h2></div>
-<div class="g4"><label class="span2">客户信息 <small>选填</small><input data-top="customer" placeholder="客户名称、联系人"></label>
-<label>订货日期<input type="date" data-top="date" required></label><label>发货单位<input data-top="shipper"></label>
+<div class="g4 quote-meta-fields"><label class="span2">客户信息 <small>选填</small><textarea data-top="customer" rows="1" placeholder="客户名称、联系人"></textarea></label>
+<label>订货日期<input type="date" data-top="date" required></label><label>发货单位<textarea data-top="shipper" rows="1"></textarea></label>
 <label class="span2">收货地址 <small>选填</small><textarea data-top="address" rows="2" placeholder="可粘贴多行收货信息"></textarea></label>
-<label>业务经理<input data-top="manager"></label><label>运费明细<input data-top="delivery"></label></div></section>
+<label>业务经理<textarea data-top="manager" rows="1"></textarea></label><label>运费明细<textarea data-top="delivery" rows="1"></textarea></label></div></section>
 <section class="card"><div class="section-head"><h2><small>02</small> 产品明细</h2><label class="check"><input id="multi" type="checkbox">多产品报价</label></div>
 <div id="warehouseBar" class="subbar" hidden><label for="shipment">发货方式</label><select id="shipment"><option value="same">同一个仓库发货</option><option value="different">不同仓库发货</option></select><small id="warehouseHint"></small></div>
 <div id="products"></div><button id="addProduct" class="add" hidden>＋ 添加产品</button></section>
@@ -311,6 +311,7 @@
 </div>
 <section id="preview" aria-label="实时预览"><div class="preview-tools chrome"><strong>实时预览</strong><div class="tools"><button id="collapsePreview" aria-expanded="true" aria-controls="stage">收起</button><button id="zoom" aria-expanded="false">放大</button><button id="png" class="primary">复制客户报价图</button></div></div>
 <div class="paperstage" id="stage"><div id="scaled"><div id="paper"></div><img id="liveImage" alt="" aria-hidden="true" hidden></div></div>
+<small class="preview-tip chrome">上下滑动预览可看完整报价；点「放大」查看明细。</small>
 <div class="preview-foot chrome"><span id="sheetInfo"></span><button id="print">打印 / 存 PDF</button></div></section></div>
 <p class="privacy chrome">客户图只包含表格上看得见的内容。内部留存图另含仓名等可编辑数据，请勿发给客户。图片只在本机处理，不上传。</p>
 <div class="chrome" id="message" role="status" aria-live="polite"></div>
@@ -337,5 +338,5 @@
 <script src="table-quote/read-cells.js?v=20261127-1"></script>
 <script src="table-quote/table-parser.js?v=20261127-1"></script>
 <script src="table-quote/import-ui.js?v=20261127-1"></script>
-<script src="table-quote/app.js?v=20261127-2"></script>
+<script src="table-quote/app.js?v=20261127-3"></script>
 </body></html>
