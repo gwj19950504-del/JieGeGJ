@@ -52,6 +52,8 @@ html [hidden]{display:none!important}#message:not(:empty){position:fixed;bottom:
 @media print{@page{size:A4 landscape;margin:6mm}html,body,main.wrap{background:white;margin:0;width:100%;padding:0}.chrome,#message,#liveImage,#saveDialog{display:none!important}#workbench{display:block!important}#preview,#preview.expanded,#stage,#stage[hidden],#scaled,#paper{display:block!important;overflow:visible!important;position:static!important;border:0!important;border-radius:0!important;transform:none!important;width:100%!important;max-height:none!important;height:auto!important;margin:0!important;padding:0!important;box-shadow:none!important;background:white!important}}
 
 .preview-tip{display:none}
+.quote-date-control{display:block}
+#quoteDateDisplay{display:none}
 .quote-meta-fields input[type=date]{box-sizing:border-box;min-inline-size:0;max-inline-size:100%}
 .quote-meta-fields input[type=date]::-webkit-date-and-time-value{text-align:start}
 #editor textarea{min-inline-size:0;overflow-wrap:anywhere}
@@ -64,8 +66,14 @@ html [hidden]{display:none!important}#message:not(:empty){position:fixed;bottom:
     #editor textarea{max-height:18rem;resize:none}
 }
 @media screen and (max-width:560px){
-    /* Give the native WebKit date editor a real full-width track, including its intrinsic UI. */
-    .quote-meta-fields{grid-template-columns:minmax(0,1fr)}
+    .quote-meta-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
     .quote-meta-fields > label{grid-column:1 / -1}
-    .quote-meta-fields input[type=date]{text-align:start}
+    .quote-meta-fields > .quote-date-label{grid-column:1}
+    .quote-meta-fields > .quote-shipper-label{grid-column:2}
+    /* The wrapper owns the visible box. iOS's native date widget stays tappable
+       but its locale-specific text and intrinsic width never size the grid. */
+    .quote-date-control{box-sizing:border-box;position:relative;overflow:hidden;min-width:0;width:100%;height:44px;margin-top:5px;padding:0 8px;border:1px solid #d1d1d7;border-radius:9px;background:white;display:flex;align-items:center}
+    .quote-date-control:focus-within{outline:3px solid #6baafb;outline-offset:1px}
+    #quoteDateDisplay{display:block;white-space:nowrap;font-size:16px;font-weight:400;font-variant-numeric:tabular-nums}
+    #quoteDate{box-sizing:border-box;position:absolute;inset:0;width:100%;height:100%;min-width:0;min-height:0;margin:0;padding:0;border:0;opacity:0;cursor:pointer}
 }

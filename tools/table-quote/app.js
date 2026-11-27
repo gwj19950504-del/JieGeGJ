@@ -92,6 +92,7 @@
         return null;
     }
     function update(){
+        $('quoteDateDisplay').textContent = $('quoteDate').value || '选择日期';
         const data=payload(), result=calc();
         $('warehouseBar').hidden=!state.multi; $('addProduct').hidden=!state.multi;
         $('warehouseHint').textContent=data.different?'同名仓的产品合为一段，各项木箱和运费按仓汇总，同一笔费用只填一次。不填仓名时每项单列一仓。':'整单只计一次木箱与运费。';
@@ -236,6 +237,19 @@
         state.different=next;dirty=true;loadInputs();
     };
     $('addProduct').onclick=()=>{state.products.push(newProduct());dirty=true;drawProducts();update();all('.prod').at(-1).querySelector('[data-p=name]').focus();};
+    const dateInput = $('quoteDate');
+    dateInput.addEventListener('click', () => {
+        if (window.matchMedia('(max-width:560px)').matches) {
+            // Some browsers open the picker only from its tiny native indicator.
+            // Keep the native tap default for engines that do not support showPicker().
+            try { dateInput.showPicker?.(); } catch {}
+        }
+    });
+    dateInput.addEventListener('change', () => {
+        if (state.date !== dateInput.value) {
+            state.date = dateInput.value; dirty = true; update();
+        }
+    });
     $('rateChoice').onchange=e=>{state.rateChoice=e.target.value;state.rate=e.target.value==='custom'?'':e.target.value;dirty=true;loadInputs();};
     $('editor').addEventListener('input',e=>{
         const el=e.target;const key=el.dataset.top;

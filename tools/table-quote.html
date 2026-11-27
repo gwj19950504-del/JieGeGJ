@@ -2,7 +2,7 @@
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light"><title>表格报价 · 杰哥工具</title>
 <link rel="icon" href="data:,"><link rel="stylesheet" href="apple-ui.css?v=20261027-2">
-<link rel="stylesheet" href="table-quote/editor-live.css?v=20261127-3">
+<link rel="stylesheet" href="table-quote/editor-live.css?v=20261127-4">
 <!-- The isolated PNG renderer copies this same customer sheet style. -->
 <style>
 .quote-original-lettering{max-width:100%;max-height:3.3em;object-fit:contain;vertical-align:middle}
@@ -295,7 +295,7 @@
 <div id="editor" class="chrome">
 <section class="card"><div class="section-head"><h2><small>01</small> 报价抬头</h2></div>
 <div class="g4 quote-meta-fields"><label class="span2">客户信息 <small>选填</small><textarea data-top="customer" rows="1" placeholder="客户名称、联系人"></textarea></label>
-<label>订货日期<input type="date" data-top="date" required></label><label>发货单位<textarea data-top="shipper" rows="1"></textarea></label>
+<label class="quote-date-label">订货日期<span class="quote-date-control"><span id="quoteDateDisplay" aria-hidden="true"></span><input id="quoteDate" type="date" data-top="date" required></span></label><label class="quote-shipper-label">发货单位<textarea data-top="shipper" rows="1"></textarea></label>
 <label class="span2">收货地址 <small>选填</small><textarea data-top="address" rows="2" placeholder="可粘贴多行收货信息"></textarea></label>
 <label>业务经理<textarea data-top="manager" rows="1"></textarea></label><label>运费明细<textarea data-top="delivery" rows="1"></textarea></label></div></section>
 <section class="card"><div class="section-head"><h2><small>02</small> 产品明细</h2><label class="check"><input id="multi" type="checkbox">多产品报价</label></div>
@@ -338,5 +338,5 @@
 <script src="table-quote/read-cells.js?v=20261127-1"></script>
 <script src="table-quote/table-parser.js?v=20261127-1"></script>
 <script src="table-quote/import-ui.js?v=20261127-1"></script>
-<script src="table-quote/app.js?v=20261127-3"></script>
+<script src="table-quote/app.js?v=20261127-4"></script>
 </body></html>
